@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Semantic search over the repository — keyword-free, meaning-based retrieval.
 //
-//   node scripts/semantic/cli.mjs index [--out .index/semantic.json]
+//   node scripts/semantic/cli.mjs index [--out .index/semantic.json] [--with-memory]
 //   node scripts/semantic/cli.mjs search "least privilege agent" [-k 5] [--json]
 //   node scripts/semantic/cli.mjs stats
 //   node scripts/semantic/cli.mjs doctor
@@ -33,12 +33,16 @@ const score = (n) => (n > 0.4 ? `\x1b[32m${n.toFixed(3)}\x1b[0m` : n > 0.2 ? `\x
 async function cmdIndex() {
   const out = typeof flag("out") === "string" ? flag("out") : DEFAULT_INDEX;
   const provider = activeProvider();
+  // Memory notes are session knowledge, not repository knowledge: excluded by
+  // default, opt-in here. Decision record: docs/adr/0021-index-scope.md
+  const includeMemory = argv.includes("--with-memory");
   const t0 = Date.now();
-  const index = await buildIndex({ provider });
+  const index = await buildIndex({ provider, includeMemory });
   const target = saveIndex(index, out);
   const s = indexSummary(index);
   console.log(`${bold("indexed")} ${s.files} files → ${bold(String(s.chunks))} chunks in ${Date.now() - t0}ms`);
   console.log(`  provider : ${s.provider} (dims ${s.dims})`);
+  console.log(`  scope    : ${s.scope}${s.scope === "docs" ? " (add --with-memory to index .agent/memory/)" : ""}`);
   console.log(`  terms    : ${s.terms} unique · avg length ${s.avgLength}`);
   console.log(`  commit   : ${s.commit}`);
   console.log(`  output   : ${target}`);

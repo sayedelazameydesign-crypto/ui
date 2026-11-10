@@ -34,6 +34,10 @@ const MIN_MRR = Number(value("min-mrr", 0.66));
 const MIN_RECALL_AT_1 = Number(value("min-r1", 0.6));
 const RERANK = argv.includes("--rerank"); // default off: measured worse, see lib.mjs
 const JSON_OUT = argv.includes("--json");
+// Scope is a property of the index, not of the gate: evaluate whatever is on disk
+// and print which scope it is. `--rebuild` honours `--with-memory`.
+const WITH_MEMORY = argv.includes("--with-memory");
+const INDEX_PATH = typeof value("index") === "string" ? value("index") : DEFAULT_INDEX;
 const TIMING = argv.includes("--timing");
 
 const gold = JSON.parse(readFileSync("tests/semantic-gold.json", "utf8"));
@@ -41,13 +45,14 @@ const cases = gold.cases ?? [];
 
 const root = gitRoot();
 let index;
-if (argv.includes("--rebuild") || !existsSync(DEFAULT_INDEX)) {
-  index = await buildIndex({ root });
-  saveIndex(index, DEFAULT_INDEX, root);
-  if (!JSON_OUT) console.error(`rebuilt index: ${index.chunks.length} chunks`);
+if (argv.includes("--rebuild") || !existsSync(INDEX_PATH)) {
+  index = await buildIndex({ root, includeMemory: WITH_MEMORY });
+  saveIndex(index, INDEX_PATH, root);
+  if (!JSON_OUT) console.error(`rebuilt index: ${index.chunks.length} chunks (scope: ${index.scope?.label ?? "unscoped"})`);
 } else {
-  index = loadIndex(DEFAULT_INDEX, root);
+  index = loadIndex(INDEX_PATH, root);
 }
+const SCOPE = index.scope?.label ?? "unscoped";
 
 /** rank of the first acceptable hit (1-based), or 0 when nothing matched. */
 function firstHitRank(results, expect) {
@@ -154,7 +159,7 @@ if (JSON_OUT) {
   );
 } else {
   const pad = (s, n) => String(s).padEnd(n);
-  console.log(`retrieval eval · ${cases.length} cases · k=${K} · index ${index.chunks.length} chunks @ ${index.commit || "?"} · rerank ${RERANK ? "on" : "off"}\n`);
+  console.log(`retrieval eval · ${cases.length} cases · k=${K} · index ${index.chunks.length} chunks @ ${index.commit || "?"} · scope ${SCOPE} · rerank ${RERANK ? "on" : "off"}\n`);
   console.log(`${pad("mode", 10)}${pad("R@1", 8)}${pad("R@3", 8)}${pad(`R@${K}`, 8)}${pad("MRR", 8)}ms/query`);
   console.log("-".repeat(50));
   for (const mode of MODES) {

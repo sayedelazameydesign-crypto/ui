@@ -42,3 +42,19 @@ to an ADR without a human decision.
 - One fact per file; kebab-case names; front matter as in [`.agent/memory/README.md`](../../.agent/memory/README.md).
 - Review memory monthly: delete stale entries, supersede rather than append.
 - Memory that conflicts with the code is a bug — fix one of them in a PR.
+
+## 6. Memory and the semantic index
+
+Durable memory is **not** in the default retrieval corpus. It is knowledge about sessions, not about
+the repository, and notes phrased as instructions ("regenerate the artifacts after staging") read like
+documentation and outrank the script they describe. Measured on the 58-case gold set: with memory
+indexed, memory notes took rank 1 on two cases — **both wrong** — and appeared in the top 5 of ten.
+
+Nothing is deleted and nothing is hidden: the files stay tracked, and
+
+```bash
+node scripts/semantic/cli.mjs index --with-memory   # scope: docs+memory
+```
+
+restores the previous behaviour, with the choice recorded inside the index. Policy:
+[ADR-0021](../adr/0021-index-scope.md).

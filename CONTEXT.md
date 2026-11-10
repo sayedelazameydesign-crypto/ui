@@ -121,6 +121,7 @@ stack arrives.
 | **Routing class** | `docs` · `ci` · `tooling` · `data` · `deps` · `code` — decides which CI jobs run. |
 | **Hybrid retrieval** | Vector cosine fused with BM25 by reciprocal rank fusion (RRF, k=60). |
 | **RRF** | Rank-based fusion: `1/(k+rank)` summed across rankings; no score scaling needed. |
+| **Index scope** | Which tracked paths a semantic index covers. Default is repository knowledge (`docs`, `scripts`, workflows); `.agent/memory/` is opt-in with `--with-memory`, and the choice is recorded inside the index ([ADR-0021](docs/adr/0021-index-scope.md)). |
 | **Gold set** | `tests/semantic-gold.json` — queries with the file that truly answers each one. |
 | **Egress allowlist** | The declared set of outbound hosts, each with a reason and a file scope. |
 | **Fail-closed** | Absent an explicit rule, the answer is "reject" — for keys and for destinations. |
@@ -188,6 +189,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0018 — An evaluation set that can resolve what it claims](docs/adr/0018-evaluation-resolution.md) · accepted
 - [ADR-0019 — Adversarial input: shapes a scanner can hold, and a stated limit](docs/adr/0019-adversarial-inputs.md) · accepted
 - [ADR-0020 — Apache-2.0, with a NOTICE that states what is actually shipped](docs/adr/0020-license.md) · accepted
+- [ADR-0021 — Agent memory is not repository knowledge](docs/adr/0021-index-scope.md) · accepted
 
 ## 8. Change protocol
 
@@ -208,6 +210,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 | New adversarial class | `scripts/security/adversarial.mjs` + payload *and* benign sample in `tests/adversarial/cases.json` + a mutant |
 | New model artifact | manifest entry with pinned `sha256`, byte count, license, runtime |
 | Retrieval code change | re-run `bench.mjs` + `eval.mjs`, put both numbers in the PR, regenerate `playground/index.json` |
+| Change to what the index covers | ADR + property on `isIndexable` + guard scope check + new numbers in `retrieval-quality.md` |
 | Ranking change | eval run before/after recorded in the PR body (ADR-0009) |
 
 ## 9. References

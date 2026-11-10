@@ -1,8 +1,11 @@
 // Properties for the semantic engine: tokeniser and embedder contract.
 // These are invariants, not examples — they hold for every generated input.
 
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import {
   tokenize, normalizeToken, embedLocal, cosine, fnv1a, chunkFile, bm25Scores, DEFAULT_DIMS, MD_CHUNK_MAX,
+  isIndexable, listTrackedFiles, gitRoot, loadIndex, MEMORY_DIR, DEFAULT_INDEX,
 } from "../../scripts/semantic/lib.mjs";
 import { gen } from "../../scripts/lib/property.mjs";
 
@@ -145,6 +148,41 @@ export default [
       const body = Array.from({ length: range.total }, (_, i) => `line ${i} has enough words to be kept`);
       const content = ["# heading", ...body].join("\n");
       return chunkFile("doc.md", content).every((c) => c.end - c.start + 1 <= MD_CHUNK_MAX);
+    },
+  },
+  {
+    // Scope is a rule about the corpus, so it is asserted as a rule — not as a
+    // count that would drift with every document added.
+    name: "agent memory is out of scope by default and only ever added, never removed",
+    generators: { slug: gen.text({ maxLength: 20, alphabet: "abcdefghijklmnopqrstuvwxyz-" }) },
+    property: ({ slug }) => {
+      const path = `${MEMORY_DIR}2026-11-10-${slug || "note"}.md`;
+      if (isIndexable(path)) return false; // default must exclude it
+      if (!isIndexable(path, { includeMemory: true })) return false; // opt-in must include it
+      // Every path indexable by default is indexable with memory too: the flag adds.
+      const sample = ["docs/agents/memory-protocol.md", "AGENTS.md", "scripts/semantic/lib.mjs", "tests/semantic-gold.json", "mocks/fixtures/x.json"];
+      return sample.every((p) => !isIndexable(p) || isIndexable(p, { includeMemory: true }));
+    },
+  },
+  {
+    name: "the index on disk holds only what its recorded scope allows",
+    generators: { pick: gen.int(0, 0) },
+    property: () => {
+      const root = gitRoot();
+      if (!existsSync(join(root, DEFAULT_INDEX))) return true; // nothing to check
+      const index = loadIndex(DEFAULT_INDEX, root);
+      const includeMemory = index.scope?.memory === true;
+      if (index.chunks.some((chunk) => !isIndexable(chunk.file, { includeMemory }))) return false;
+      // A default-scope index that contains memory would silently break the rule.
+      return includeMemory || index.chunks.every((chunk) => !chunk.file.startsWith(MEMORY_DIR));
+    },
+  },
+  {
+    name: "the tracked file list honours the same scope as isIndexable",
+    generators: { pick: gen.bool() },
+    property: ({ pick }) => {
+      const files = listTrackedFiles(gitRoot(), { includeMemory: pick });
+      return files.every((f) => isIndexable(f, { includeMemory: pick }));
     },
   },
   {
