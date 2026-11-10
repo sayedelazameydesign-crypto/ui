@@ -1,6 +1,10 @@
 # The D8 Card — What a Cross-Encoder Would Actually Cost
 
-Decision **D8** asks whether to add a neural reranker to reach R@1 ≥ 0.85. This is the approval card the
+> **Status: closed.** The owner reviewed this card and closed D8 as a numeric target under the current
+> constraints — [ADR-0023](../adr/0023-close-d8.md). It is kept because the *pricing* is what makes the
+> closure defensible, and because reopening needs these numbers, not a new opinion.
+
+Decision **D8** asked whether to add a neural reranker to reach R@1 ≥ 0.85. This is the approval card the
 owner asked for: **research only**. Nothing here is installed, downloaded, or approved; there are no
 weights in the repository and no dependency in any manifest. Every figure is labelled either
 **verified** (read from a registry or model index on 2026-11-10) or **estimate** (derived, assumption
@@ -144,10 +148,13 @@ Pre-registered, so a disappointing result cannot be re-blessed afterwards.
 | **B. Deterministic path** | no dependencies | **measured and exhausted** (ADR-0022): chunking, path weighting and window widening all fail to move the metric |
 | **C. Multilingual now** (C or D) | policy amendment + Python export + >300 MB weights | a product decision about Arabic quality, not an engineering one |
 
-**Recommendation, as measured:** B is done and did not work, so the choice narrows to **A, C, or closing
-D8**. Option A now buys evidence about the only open question the numbers cannot answer — the runtime. If
-a 293 MiB runtime is unacceptable, the honest resolution is to **close D8 as out of reach for this
-engine** and say so, rather than leave it pending again.
+**Resolved (owner decision, [ADR-0023](../adr/0023-close-d8.md)):** B is done and did not work; **C is
+rejected** (non-commercial licence on the only multilingual int8 ONNX, and a runtime that contradicts the
+size ceiling); **A is rejected** because English-only reranking would serve 43 cases and leave the 15
+Arabic ones unreranked — a parity break, not a trade-off. **D8 is closed**, and the gate floors
+(R@1 ≥ 0.60 · R@3 ≥ 0.72 · MRR ≥ 0.66) are the standard. Reopening requires a new *constraint* — a
+licence-clean multilingual ONNX from its author, ≤ 100 MiB, carried by a runtime of a small fraction of
+that size — not a new experiment.
 
 ## 10. Open questions (owner)
 

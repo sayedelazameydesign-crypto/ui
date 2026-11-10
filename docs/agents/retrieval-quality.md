@@ -69,7 +69,7 @@ commit; the command prints it.
 | vector only | 0.41 | 0.53 | 0.64 | 0.49 | 0.6 |
 | keyword only | 0.48 | 0.71 | 0.79 | 0.60 | 0.6 |
 
-Read the table as a snapshot, and the engine on this corpus family as **R@1 0.62–0.66, R@3 0.74–0.76,
+Read the table as a snapshot, and the engine on this corpus family as **R@1 0.60–0.66, R@3 0.74–0.76,
 MRR 0.67–0.70**. The spread is corpus size, not code: adding documentation creates documents that
 compete with the ones that answer a question, and removing the session notes that used to compete gives
 some of that back (below). One case is 1.7 points, so a difference of one case is not a result.
@@ -166,10 +166,12 @@ Two consequences, both load-bearing:
 2. **Widening the window buys nothing.** R@20 = R@50 = 0.983, so "retrieve more candidates" is not a
    lever either; the one case beyond rank 20 needs a rank-100 window to reach.
 
-What the table does **not** say: that a 0.85 target is therefore easy. 0.983 is an upper bound on a
-hypothetical perfect ranker over this window, on 58 cases authored in this repository. Reaching 0.85
-still needs a ranker that is right about 50 of 58 — and the runtime that would carry it costs more than
-the weights it carries (see §4a).
+What the table does **not** say: that a 0.85 target is therefore easy — or still a target. 0.983 is an
+upper bound on a hypothetical perfect ranker over this window, on 58 cases authored in this repository.
+Reaching 0.85 needs a ranker that is right about 50 of 58, and the runtime that would carry it costs more
+than the weights it carries (see §4a). That is why **D8 is closed**
+([ADR-0023](../adr/0023-close-d8.md)) and why this table is kept: it is the evidence that the ceiling is
+in *ordering*, not in retrieval.
 
 ### 3d. How much of this is the instrument?
 
@@ -195,12 +197,15 @@ node scripts/semantic/eval.mjs --min-r1 0.60 --min-recall 0.72 --min-mrr 0.66   
 ```
 
 CI and the guard fail when hybrid drops below R@1 **0.60**, R@3 **0.72** or MRR **0.66** over the 58
-cases. Each floor sits just under the measured band (R@1 0.62–0.66 / R@3 0.74–0.76 / MRR 0.67–0.70): high enough to catch a regression, low enough
-not to flake when a document changes. The floors are a **ratchet**: they move up with the measurement.
+cases. The floors were chosen just under the measured band (R@1 0.62–0.66 / R@3 0.74–0.76 / MRR
+0.67–0.70); after two documentation PRs the measurement now sits at the **bottom edge** of that band
+(0.603 at 712 chunks), so the R@1 floor has one case of headroom. That is a corpus effect, not a code
+change, and the response to a red gate is to find the document that now competes with the answer — never
+to lower the floor. The floors are a **ratchet**: they move up with the measurement.
 Moving one *down* is a decision that needs an ADR, because it is indistinguishable from hiding a
 regression.
 
-## 4a. The reranker that lost (decision D8)
+## 4a. The reranker that lost (decision D8 — closed by ADR-0023)
 
 A feature-based reranker (`rerankScore`, top-20 window, weights fixed a priori, never fitted to the
 gold set) was measured on the 18-case set in four configurations — 0.56 to 0.67 R@1 against 0.67 for
@@ -218,7 +223,7 @@ default; the negative result is kept in [ADR-0011](../adr/0011-local-reranker-ex
 **Neural reranking is a declared, opt-in path**, not an aspiration
 ([ADR-0013](../adr/0013-opt-in-model-load.md)): ≤ 100 MiB quantized weights, isolated in `.models/`,
 usable only with a human-pinned SHA-256, refused unless `--enable-neural-rerank` is passed. The loader
-is implemented and property-tested; the artifact is not installed, so `R@1` stays at **0.64**.
+is implemented and property-tested; the artifact is not installed, so `R@1` stays in the band above.
 `node scripts/semantic/model.mjs status` prints exactly what is missing, without guessing.
 
 The **runtime** is the part the weight ceiling does not govern. From the npm registry (verified, not
@@ -243,10 +248,14 @@ This is why the 18-case set was retired as a decision tool: there, one case was 
 several decisions in this repository's history (reranker blends, embedding dimensions) were argued
 over differences of one or two cases — below the resolution of the instrument.
 
-**0.85 (decision D8) is not reachable by tuning this engine.** Two changes that genuinely worked
-moved R@1 by 3.4 and 5.2 points; closing the remaining 21 points by hand would take roughly a dozen
-such changes, each of which would have to survive a 58-case interval of ±12 points. That is why D8's
-target belongs to the neural path (§4a) and why §8's replacement trigger has now fired.
+**0.85 (decision D8) is not reachable by tuning this engine** — and as of
+[ADR-0023](../adr/0023-close-d8.md) it is not reachable at all within the repository's constraints, so
+**D8 is closed**. Two changes that genuinely worked moved R@1 by 3.4 and 5.2 points; closing the
+remaining 14 cases by hand would take roughly a dozen more, each of which would have to survive a
+58-case interval of ±12 points. The neural path is priced out (§4a: a 293 MiB runtime for a 23 MiB
+model, no licence-clean multilingual ONNX), so the **floors are the standard**: R@1 ≥ 0.60,
+R@3 ≥ 0.72, MRR ≥ 0.66, ratcheting upward only. Reopening requires a new constraint, not a new sweep
+(ADR-0023 §5).
 
 ## 5. Known failures, stated plainly
 
@@ -282,7 +291,7 @@ would add per-token charges and egress — both deliberately out of scope.
 | --- | --- |
 | Hashing embeddings, no neural model | no world knowledge, no paraphrase beyond the glossary |
 | BM25 with a fixed k1/b | not tuned per document type |
-| No cross-encoder reranker | top-3 is decent (0.74), top-1 is 64%; the lexical substitute measurably failed and the neural path has no pinned weights yet (D8) |
+| No cross-encoder reranker | top-3 is decent (0.76), top-1 is 0.62; the lexical substitute measurably failed, and the neural path is closed as priced-out ([ADR-0023](../adr/0023-close-d8.md)) |
 | Glossary is hand-curated | Arabic recall is bounded by 87 entries; grow it when a query *class* fails, not when a single case does |
 | 58 cases | enough to catch regressions and to state an interval, not enough to resolve 2-point claims |
 | Corpus grows with the docs | every added document shifts the numbers — including this one |

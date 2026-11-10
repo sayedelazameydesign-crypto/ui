@@ -307,7 +307,7 @@ When in doubt: **read-only beats write, ask beats assume.**
 | D5 | Repository licence (MIT vs. Apache-2.0) | **decided**: Apache-2.0 + `NOTICE` ([ADR-0020](docs/adr/0020-license.md)) |
 | D6 | Preview hosting target for per-PR sandboxes (see `docs/ci/ephemeral-environments.md`) | open |
 | D7 | Artifact remote for large data (LFS quota vs. dataset registry) — see `docs/data/artifacts.md` | open |
-| D8 | Neural cross-encoder reranker for R@1 ≥ 0.85 — the load policy is enforced ([ADR-0013](docs/adr/0013-opt-in-model-load.md)); still missing: a pinned checksum and the ONNX runtime | **open** (policy done) |
+| D8 | Neural cross-encoder reranker for R@1 ≥ 0.85 | **closed**: not reachable under the local constraints — 293 MiB runtime for a 23 MiB model, no licence-clean multilingual ONNX, parity break if English-only ([ADR-0023](docs/adr/0023-close-d8.md)). The floors are the standard: R@1 ≥ 0.60 · R@3 ≥ 0.72 · MRR ≥ 0.66 ([ADR-0018](docs/adr/0018-evaluation-resolution.md)) |
 | D9 | Runtime egress proxy for real enforcement (the allowlist is intent, a proxy is control); the commit-boundary PII guard now exists ([ADR-0012](docs/adr/0012-pii-dlp-guard.md)) | partly done |
 
 Do not pre-empt these by scaffolding a framework. Propose, then wait.

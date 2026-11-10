@@ -26,9 +26,10 @@ const K = Number(value("k", 5));
 const MIN_RECALL_AT_3 = Number(value("min-recall", 0.72));
 const MIN_MRR = Number(value("min-mrr", 0.66));
 // Floors = measured value *on the 58-case set* with a little headroom:
-//   R@1 0.64 · R@3 0.74 · MRR 0.69  (2026-11-10, 58 cases; exact values print on every run)
-// The *goal* is 0.85 (decision D8) and is deliberately not the gate: the gate is
-// a ratchet, and 0.85 belongs to the neural path (ADR-0013), not to this engine.
+//   R@1 0.62 · R@3 0.76 · MRR 0.68  (2026-11-10, 58 cases; exact values print on every run)
+// The old *goal* was 0.85 (decision D8); it is closed as unreachable under the local
+// constraints (ADR-0023), so these floors are the standard and the target no longer
+// exists. The gate is a ratchet: it moves up, never down.
 // Raising these numbers is the definition of progress; lowering them is a decision
 // that needs its own ADR.
 const MIN_RECALL_AT_1 = Number(value("min-r1", 0.6));

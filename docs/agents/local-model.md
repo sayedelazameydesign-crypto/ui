@@ -5,7 +5,10 @@ only by explicit request, with weights the operator verified — and the machine
 otherwise.
 
 The cost of the neural path is priced in the [D8 card](d8-onnx-card.md): the runtime is roughly thirteen
-times the weight file it carries, and no licence-clean multilingual weights ship an ONNX export.
+times the weight file it carries, and no licence-clean multilingual weights ship an ONNX export. **D8 —
+the R@1 0.85 target this machinery was built for — is closed** ([ADR-0023](../adr/0023-close-d8.md)).
+The policy and the loader below remain enforced and property-tested; nothing is installed, and no work is
+planned.
 
 ```bash
 node scripts/semantic/model.mjs status     # what is declared, what is installed, what is missing
@@ -118,11 +121,15 @@ Two of the three prerequisites are met by this phase: the **policy** exists and 
 an artifact in this environment — and (b) the inference runtime, a native dependency that would
 change the default install footprint.
 
-That is why the measured `R@1` is still **0.64** over 58 cases, and why the only honest statement about 0.85 is:
-*the machinery is ready; the artifact is not.*
+That is why the measured `R@1` is **0.62** over 58 cases, and why the machinery stays dormant: the
+0.85 target it was built for is **closed** ([ADR-0023](../adr/0023-close-d8.md)), and reopening it needs a
+new constraint — licence-clean multilingual weights, ≤ 100 MiB, from the author, with a runtime of a
+small fraction of that size.
 
 ## 6. Related decisions
 
 - [ADR-0011](../adr/0011-local-reranker-experiment.md) — the lexical reranker that lost
 - [ADR-0013](../adr/0013-opt-in-model-load.md) — this opt-in load policy
+- [ADR-0023](../adr/0023-close-d8.md) — D8 is closed; this policy remains enforced but dormant
+- [D8 cost card](d8-onnx-card.md) — what a cross-encoder would actually cost
 - [`data-sovereignty.md`](../security/data-sovereignty.md) — why egress is declared, not implied
