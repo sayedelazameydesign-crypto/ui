@@ -188,6 +188,7 @@ node scripts/validate-json.mjs                  # fail-closed schema validation
 node scripts/check-egress.mjs                   # declared egress destinations only
 node scripts/check-pii.mjs --staged             # PII/secrets in the staged diff (pre-commit)
 node scripts/semantic/model.mjs status          # opt-in model artifacts (never downloads)
+node scripts/semantic/model.mjs plan            # what is missing to enable neural rerank
 node scripts/bench.mjs                          # latency/memory per retrieval mode
 node scripts/playground-parity.mjs              # the browser demo answers like the engine
 node scripts/snapshot.mjs save --label "…"     # capture derived state before a risky change

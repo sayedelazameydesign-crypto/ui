@@ -7,7 +7,7 @@ import { createHash } from "node:crypto";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { installFrom, modelPath, verifyModel } from "../../scripts/semantic/model.mjs";
+import { installFrom, modelPath, planSteps, verifyModel } from "../../scripts/semantic/model.mjs";
 import { gen } from "../../scripts/lib/property.mjs";
 
 const root = mkdtempSync(join(tmpdir(), "model-props-"));
@@ -94,6 +94,34 @@ export default [
       } catch {
         return true;
       }
+    },
+  },
+  {
+    name: "the plan blocks installation until a checksum is pinned",
+    generators: { name: gen.text({ maxLength: 8, alphabet: "abcdef" }) },
+    property: () => {
+      const manifest = manifestFor(null, { file: "unpinned-plan.onnx" });
+      const plan = planSteps(root, manifest);
+      const install = plan.steps.find((s) => s.id === "install");
+      const pin = plan.steps.find((s) => s.id === "pin");
+      return pin.state === "pending" && install.state === "blocked" && plan.ready === false;
+    },
+  },
+  {
+    name: "with weights verified, the only remaining blocker is the runtime",
+    generators: { payload: gen.text({ maxLength: 12, alphabet: "abcdefgh" }) },
+    property: ({ payload }) => {
+      const bytes = Buffer.from(payload || "weights");
+      const manifest = manifestFor(sha(bytes), { bytes: bytes.length, file: "plan-progress.onnx" });
+      const source = join(root, "plan-progress.bin");
+      writeFileSync(source, bytes);
+      installFrom(root, manifest, manifest.models[0], source);
+
+      const plan = planSteps(root, manifest);
+      const state = (id) => plan.steps.find((s) => s.id === id).state;
+      // No node_modules/onnxruntime-node in the fixture root, so the runtime step
+      // must be the thing standing between us and a measured comparison.
+      return state("pin") === "done" && state("install") === "done" && state("runtime") === "pending" && state("measure") === "blocked" && plan.ready === false;
     },
   },
   {

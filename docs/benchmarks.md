@@ -53,7 +53,7 @@ within one sitting, not across time.)
 ## 4. Current numbers (measured, this machine)
 
 ```
-corpus   110 files · 618 chunks · 256d · 1544 KiB index · 4886 terms
+corpus   111 files · 623 chunks · 256d · 1544 KiB index · 4886 terms
 memory   +8.2 MiB heap after load · 56 MiB RSS
 runtime  node v22.22.3 · linux/x64 · 58 queries × 25 repeats × 4 modes
 

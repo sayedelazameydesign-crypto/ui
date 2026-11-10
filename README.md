@@ -136,7 +136,7 @@ node scripts/check-egress.mjs --list        # الوجهات المعلنة وأ
 | R@1 (هجين) | **0.64** على 58 استعلاماً — و**0.78** على الـ18 الأصلية بنفس المحرك |
 | R@3 (هجين) | **0.74** مقابل 0.55 للمتجه وحده |
 | زمن الاستجابة p50 | **0.65 ms** لكل استعلام (1 471 استعلاماً/ثانية) |
-| الحجم | 618 مقطعاً · 110 ملفاً · فهرس 1.6MB · +8MB ذاكرة |
+| الحجم | 623 مقطعاً · 111 ملفاً · فهرس 1.6MB · +8MB ذاكرة |
 
 **جرّبه الآن بلا تثبيت:** صفحة واحدة، بلا حزم ولا بناء ولا شبكة.
 
@@ -307,7 +307,7 @@ boundary?**
 | R@1 (hybrid) | **0.64** over 58 cases — and **0.78** over the original 18 on the same engine |
 | R@3 (hybrid) | **0.74** vs 0.55 vector-only |
 | p50 latency | **0.65 ms** per query (1,471 queries/s) |
-| Footprint | 618 chunks · 110 files · 1.6 MB index · +8 MB heap |
+| Footprint | 623 chunks · 111 files · 1.6 MB index · +8 MB heap |
 
 The benchmark also found and fixed a real hotspot: BM25 was scanning every chunk for every term, so
 postings cut the hybrid path from 2.12 ms to 0.38 ms with **identical** ranking
