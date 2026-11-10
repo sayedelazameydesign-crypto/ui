@@ -1,0 +1,81 @@
+name: pr-hygiene
+
+# Structural checks for pull requests: conventional title, honest body, reviewable size.
+# Deliberately deterministic — no model calls, no external service, nothing to leak.
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-hygiene-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  hygiene:
+    name: Pull request hygiene
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate title, body, and size
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const problems = [];
+
+            // 1. Conventional Commits title
+            const titleRe = /^(feat|fix|docs|chore|refactor|test|ci|build|perf|style|revert)(\([a-z0-9._/-]+\))?!?: .{5,}$/;
+            if (!titleRe.test(pr.title)) {
+              problems.push(
+                `Title must follow Conventional Commits, e.g. \`feat(agents): add memory retention rule\`. Got: "${pr.title}"`
+              );
+            }
+
+            if (pr.title.length > 90) {
+              problems.push(`Title is ${pr.title.length} chars; keep it under 90.`);
+            }
+
+            // 2. Body must state verification honestly
+            const body = pr.body || "";
+            const required = [
+              { test: /verif/i, label: "a **Verification** section (commands run, results, or 'not run')" },
+              { test: /(risk|impact|remains|follow-?up)/i, label: "a note on **risks / follow-ups**" },
+            ];
+            for (const { test, label } of required) {
+              if (!test.test(body)) problems.push(`Body is missing ${label}.`);
+            }
+            if (body.trim().length < 80) {
+              problems.push(`Body is too short (${body.trim().length} chars) to review against.`);
+            }
+
+            // 3. Reviewable size
+            const changed = (pr.additions || 0) + (pr.deletions || 0);
+            const warnAt = 400;
+            const core = [];
+            if (changed > warnAt) {
+              core.push(`Diff is ${changed} lines (budget ~${warnAt}). Consider splitting, or justify in the body.`);
+            }
+
+            const summary = problems.length
+              ? `### pr-hygiene\n\n${problems.map(p => `- ${p}`).join("\n")}\n`
+              : `### pr-hygiene\n\nTitle, body, and diff size look reviewable.\n`;
+
+            // Comment once per meaningful edit, never on every push (avoids noise).
+            const commentingAction = ["opened", "edited", "reopened"].includes(context.payload.action);
+            if (commentingAction) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: pr.number,
+                body: summary,
+              });
+            }
+
+            if (problems.length) {
+              core.setFailed(problems.join(" | "));
+            }
+            core.info(`changed lines: ${changed}`);

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/mcp.json",
+  "mcpServers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_MCP_TOKEN}"
+      },
+      "description": "Issues, pull requests, and repository metadata. Read-only by default; write scopes must be approved per task (docs/agents/permissions.md)."
+    },
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "description": "Repository-scoped file access only. Never widen the path beyond the repository root."
+    },
+    "fetch": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"],
+      "description": "Read documentation. Egress is restricted to hosts allowed by the task brief."
+    }
+  },
+  "_policy": {
+    "credentials": "No literal secrets. Values use ${ENV_VAR} interpolation and are injected at runtime.",
+    "least_privilege": "Prefer read-only tools; request the narrowest write scope needed for the current task.",
+    "docs": "docs/agents/mcp-policy.md",
+    "approval_required_for": [
+      "adding a new MCP server",
+      "granting write scopes",
+      "any server that can execute shell commands"
+    ]
+  }
+}

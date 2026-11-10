@@ -1,0 +1,52 @@
+name: Agent task
+description: A scoped task intended to be executed by an AI agent.
+title: "chore: "
+labels: ["agent-task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Agents: read `AGENTS.md` and `CONTEXT.md` before acting. If this task requires a
+        capability you do not have (`docs/agents/permissions.md`), stop and comment instead of
+        improvising.
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: One sentence describing the desired end state.
+      placeholder: "Add a design-tokens ADR that decides the RTL strategy."
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope — files and layers
+      description: Which files may change, and which must not. Name the layer (L0–L5).
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Definition of done
+      description: Verifiable acceptance criteria, not vibes.
+      placeholder: |
+        - ADR file added under docs/adr/, status "proposed"
+        - CONTEXT.md §7 updated
+        - scripts/check-repo.sh passes
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and non-goals
+      description: What must the agent avoid? Which decisions are out of bounds?
+  - type: dropdown
+    id: autonomy
+    attributes:
+      label: Allowed autonomy
+      options:
+        - Propose only (draft PR, no merge)
+        - Branch + PR (no merge)
+        - Analysis only (no writes)
+    validations:
+      required: true

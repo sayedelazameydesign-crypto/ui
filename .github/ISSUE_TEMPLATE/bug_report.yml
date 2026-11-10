@@ -1,0 +1,49 @@
+name: Bug report
+description: Something is broken or behaves unexpectedly.
+title: "fix: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Observed behaviour, as literally as possible.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. git switch -c test/repro
+        2. scripts/check-repo.sh
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit / branch
+      placeholder: "ff01404 on main"
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Guard script
+        - CI workflow
+        - Documentation
+        - Agent configuration
+        - Security
+        - Other
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: "Security problems: do **not** file them here — see SECURITY.md."
