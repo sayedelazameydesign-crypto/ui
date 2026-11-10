@@ -29,7 +29,7 @@ section() { [[ $QUIET -eq 1 ]] || bold "$1"; }
 has_arabic() { LC_ALL=C grep -q "$(printf '\330')" "$1" 2>/dev/null; }
 
 # ---------------------------------------------------------------------------
-section "1/12 · Required governance files"
+section "1/13 · Required governance files"
 REQUIRED=(
   "AGENTS.md"
   "CONTEXT.md"
@@ -124,6 +124,15 @@ REQUIRED=(
   "scripts/bench.mjs"
   "docs/benchmarks.md"
   "docs/adr/0014-playground-and-benchmarks.md"
+  # state capture + guard mutation testing
+  "scripts/snapshot.mjs"
+  "scripts/ledger.mjs"
+  "scripts/mutation-test.mjs"
+  "tests/properties/state.mjs"
+  "docs/agents/state-and-rollback.md"
+  "docs/adr/0015-state-snapshots-and-ledger.md"
+  "docs/adr/0016-mutation-testing.md"
+  "playground/graph.html"
 )
 for f in "${REQUIRED[@]}"; do
   if [[ -f "$f" ]]; then
@@ -139,7 +148,7 @@ for f in "${REQUIRED[@]}"; do
 done
 
 # ---------------------------------------------------------------------------
-section "2/12 · Secret scan (tracked files)"
+section "2/13 · Secret scan (tracked files)"
 SECRET_PATTERNS=(
   '-----BEGIN [A-Z ]*PRIVATE KEY-----'
   'AKIA[0-9A-Z]{16}'
@@ -192,7 +201,7 @@ done < <(git ls-files)
 [[ $big_files -eq 0 ]] && ok "no oversized non-LFS blobs tracked"
 
 # ---------------------------------------------------------------------------
-section "3/12 · JSON validity"
+section "3/13 · JSON validity"
 if command -v jq >/dev/null 2>&1; then
   while IFS= read -r json; do
     if jq empty "$json" 2>/dev/null; then ok "$json parses"; else fail "$json is not valid JSON"; fi
@@ -202,7 +211,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "4/12 · Relative links resolve"
+section "4/13 · Relative links resolve"
 broken=0
 while IFS= read -r doc; do
   dir=$(dirname "$doc")
@@ -221,7 +230,7 @@ done < <(git ls-files '*.md')
 [[ $broken -eq 0 ]] && ok "all relative links resolve"
 
 # ---------------------------------------------------------------------------
-section "5/12 · Agent skills are well-formed"
+section "5/13 · Agent skills are well-formed"
 shopt -s nullglob
 skills=(.claude/skills/*/SKILL.md)
 shopt -u nullglob
@@ -237,7 +246,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "6/12 · Documentation conventions"
+section "6/13 · Documentation conventions"
 # Bilingual requirement: human-facing entry points must contain Arabic text.
 for doc in README.md AGENTS.md CONTEXT.md; do
   if has_arabic "$doc"; then
@@ -262,7 +271,7 @@ if git rev-parse --verify -q origin/main >/dev/null; then
 fi
 
 # ---------------------------------------------------------------------------
-section "7/12 · Agent tooling smoke test"
+section "7/13 · Agent tooling smoke test"
 if command -v node >/dev/null 2>&1; then
   if node scripts/semantic/cli.mjs index --out .index/semantic.json >/dev/null 2>&1; then
     ok "semantic index builds"
@@ -293,7 +302,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "8/12 · Generated artifacts are current"
+section "8/13 · Generated artifacts are current"
 if command -v node >/dev/null 2>&1; then
   if node scripts/architecture-graph.mjs --check >/dev/null 2>&1; then
     ok "architecture graph matches the repository"
@@ -317,7 +326,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "9/12 · Boundaries: schemas, egress, retrieval gate"
+section "9/13 · Boundaries: schemas, egress, retrieval gate"
 if command -v node >/dev/null 2>&1; then
   if node scripts/validate-json.mjs >/dev/null 2>&1; then
     ok "structural JSON files pass fail-closed schema validation"
@@ -341,7 +350,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "10/12 · Privacy: PII and secrets"
+section "10/13 · Privacy: PII and secrets"
 if command -v node >/dev/null 2>&1; then
   if node scripts/check-pii.mjs >/dev/null 2>&1; then
     ok "no PII or secrets in tracked files"
@@ -358,7 +367,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "11/12 · Opt-in model policy"
+section "11/13 · Opt-in model policy"
 if command -v node >/dev/null 2>&1; then
   if node scripts/semantic/model.mjs verify >/dev/null 2>&1; then
     ok "declared model artifacts verify (or are honestly absent/unpinned)"
@@ -383,7 +392,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "12/12 · Playground and benchmarks"
+section "12/13 · Playground and benchmarks"
 if command -v node >/dev/null 2>&1; then
   if node scripts/export-playground.mjs --check >/dev/null 2>&1; then
     ok "playground index matches the current corpus"
@@ -404,6 +413,34 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   warn "node not installed — playground checks skipped (CI installs it)"
+fi
+
+# ---------------------------------------------------------------------------
+section "13/13 · State capture and guard mutation"
+if command -v node >/dev/null 2>&1; then
+  if [[ -f .agent/ledger.jsonl ]]; then
+    if node scripts/ledger.mjs verify >/dev/null 2>&1; then
+      ok "audit ledger chain is intact"
+    else
+      fail "audit ledger chain is broken — run: node scripts/ledger.mjs verify"
+    fi
+  else
+    ok "no local audit ledger yet (created on first recorded action)"
+  fi
+
+  if node scripts/snapshot.mjs verify >/dev/null 2>&1; then
+    ok "snapshots verify (or none exist)"
+  else
+    fail "a snapshot no longer matches its record — run: node scripts/snapshot.mjs list"
+  fi
+
+  if node scripts/mutation-test.mjs --quick >/dev/null 2>&1; then
+    ok "quick mutants killed (guards can fail)"
+  else
+    fail "a guard mutant survived — run: node scripts/mutation-test.mjs"
+  fi
+else
+  warn "node not installed — state checks skipped (CI installs it)"
 fi
 
 # ---------------------------------------------------------------------------

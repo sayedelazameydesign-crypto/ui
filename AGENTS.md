@@ -21,6 +21,9 @@
 | May I add an external URL or service? | Only by declaring it in `scripts/check-egress.mjs` with a reason ([sovereignty](docs/security/data-sovereignty.md)). |
 | May I commit test data? | Synthetic only. `node scripts/check-pii.mjs --staged` blocks PII and secrets ([pii guard](docs/security/pii-guard.md)). |
 | How do I demo a change? | `node scripts/playground-server.mjs` — the page imports the same `core.mjs` as the CLI ([ADR-0014](docs/adr/0014-playground-and-benchmarks.md)). |
+| I broke something. Now what? | `node scripts/snapshot.mjs restore <id>` — verified, guarded ([state](docs/agents/state-and-rollback.md)). |
+| What happened to this checkout? | `node scripts/ledger.mjs tail` — hash-chained audit trail ([ADR-0015](docs/adr/0015-state-snapshots-and-ledger.md)). |
+| Can the guards actually fail? | `node scripts/mutation-test.mjs` — 4/4 mutants killed ([ADR-0016](docs/adr/0016-mutation-testing.md)). |
 | How fast is retrieval? | `node scripts/bench.mjs` — p50/p95 per mode, no invented comparisons ([benchmarks](docs/benchmarks.md)). |
 | May I download a model? | Only via `semantic/model.mjs` with a checksum pinned in the manifest — never in CI ([local model](docs/agents/local-model.md)). |
 | Where do datasets and model weights go? | Git LFS + `artifacts.manifest.json` ([artifacts](docs/data/artifacts.md)). |
@@ -85,9 +88,11 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
 18. **Weights are opt-in, pinned, and isolated.** A model entry with `sha256: null` is refused; a
     fetch needs `--allow-network`; the default search path never imports the loader
     ([ADR-0013](docs/adr/0013-opt-in-model-load.md)).
-19. **A negative result is a result.** Report the measurement and ship the default that the numbers
+19. **Prove the guards can fail.** A guard change ships with a mutant that shows the suite notices it
+    ([ADR-0016](docs/adr/0016-mutation-testing.md)).
+20. **A negative result is a result.** Report the measurement and ship the default that the numbers
     support (`--rerank` is off for exactly this reason, see [ADR-0011](docs/adr/0011-local-reranker-experiment.md)).
-20. **Never weaken a gate to make a run faster.** Routing may skip work only when the classifier
+21. **Never weaken a gate to make a run faster.** Routing may skip work only when the classifier
     proves the change is docs-only ([green builds](docs/ci/green-builds.md)).
 
 ---
@@ -132,6 +137,9 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
     ├── change-classifier.mjs  ← CI cost/carbon routing by change class
     ├── validate-json.mjs      ← fail-closed schema validation for structural files
     ├── bench.mjs              ← latency/memory harness (same index, same queries)
+    ├── snapshot.mjs           ← capture/verify/restore derived state (byte-verified)
+    ├── ledger.mjs             ← append-only hash-chained audit log
+    ├── mutation-test.mjs      ← inject defects into guards; the suite must notice
     ├── export-playground.mjs  ← int8 index export for the zero-install demo
     ├── playground-parity.mjs  ← demo vs engine recall parity
     ├── playground-server.mjs  ← static server for the demo (no proxy, no bundler)
@@ -174,6 +182,9 @@ node scripts/check-pii.mjs --staged             # PII/secrets in the staged diff
 node scripts/semantic/model.mjs status          # opt-in model artifacts (never downloads)
 node scripts/bench.mjs                          # latency/memory per retrieval mode
 node scripts/playground-parity.mjs              # the browser demo answers like the engine
+node scripts/snapshot.mjs save --label "…"     # capture derived state before a risky change
+node scripts/ledger.mjs verify                 # audit chain integrity
+node scripts/mutation-test.mjs                 # prove the guards can fail
 node scripts/export-playground.mjs              # rebuild playground/index.json after corpus changes
 
 node scripts/architecture-graph.mjs --write     # regenerate the living architecture graph

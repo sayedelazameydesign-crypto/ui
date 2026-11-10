@@ -4,7 +4,7 @@
 > Regenerate with `node scripts/architecture-graph.mjs --write`.
 > `guard` and the `architecture` workflow fail when this file is stale.
 
-**113 tracked files · 16 components · 30 directed links**
+**122 tracked files · 16 components · 30 directed links**
 
 ## Component map
 
@@ -26,7 +26,7 @@ graph LR
   scripts["Repository scripts"]
   tests["Property tests"]
   mocks["Service mocks"]
-  adr -->|13| docs_agents
+  adr -->|15| docs_agents
   adr -->|3| docs_arch
   adr -->|4| docs_ci
   adr -->|2| docs_data
@@ -42,35 +42,35 @@ graph LR
   github_config -->|1| root
   other -->|1| root
   other -->|1| semantic
-  root -->|35| adr
+  root -->|41| adr
   root -->|4| agent_harness
-  root -->|32| docs_agents
+  root -->|34| docs_agents
   root -->|3| docs_arch
   root -->|8| docs_ci
   root -->|4| docs_data
-  root -->|10| other
+  root -->|11| other
   root -->|2| scripts
   scripts -->|1| other
-  scripts -->|4| semantic
+  scripts -->|6| semantic
   scripts -->|2| tooling_lib
-  tests -->|2| scripts
+  tests -->|4| scripts
   tests -->|3| semantic
-  tests -->|5| tooling_lib
+  tests -->|6| tooling_lib
 ```
 
 ## Components
 
 | Component | Files |
 | --- | --- |
-| `scripts` — Repository scripts | 27 |
+| `scripts` — Repository scripts | 30 |
 | `github-config` — GitHub config & templates | 17 |
-| `adr` — Decision records | 14 |
+| `adr` — Decision records | 16 |
+| `agent-harness` — Agent harness (.agent) | 12 |
 | `root` — Root docs & config | 12 |
-| `agent-harness` — Agent harness (.agent) | 11 |
 | `workflows` — CI workflows | 10 |
-| `docs-agents` — Agent docs | 7 |
+| `docs-agents` — Agent docs | 8 |
 | `semantic` — Semantic engine | 6 |
-| `tests` — Property tests | 5 |
+| `tests` — Property tests | 6 |
 | `skills` — Agent skills (.claude/skills) | 4 |
 | `docs-arch` — Architecture docs | 3 |
 | `docs-ci` — CI docs | 3 |
@@ -83,21 +83,21 @@ graph LR
 
 | From | To | References |
 | --- | --- | --- |
-| `root` | `adr` | 35 |
-| `root` | `docs-agents` | 32 |
-| `adr` | `docs-agents` | 13 |
-| `root` | `other` | 10 |
+| `root` | `adr` | 41 |
+| `root` | `docs-agents` | 34 |
+| `adr` | `docs-agents` | 15 |
+| `root` | `other` | 11 |
 | `root` | `docs-ci` | 8 |
 | `adr` | `other` | 6 |
+| `scripts` | `semantic` | 6 |
+| `tests` | `tooling-lib` | 6 |
 | `adr` | `root` | 5 |
 | `docs-agents` | `adr` | 5 |
-| `tests` | `tooling-lib` | 5 |
 | `adr` | `docs-ci` | 4 |
 | `agent-harness` | `docs-agents` | 4 |
 | `root` | `agent-harness` | 4 |
 | `root` | `docs-data` | 4 |
-| `scripts` | `semantic` | 4 |
-| `adr` | `docs-arch` | 3 |
+| `tests` | `scripts` | 4 |
 
 ## How this stays alive
 

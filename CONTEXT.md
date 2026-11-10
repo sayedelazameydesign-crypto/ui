@@ -77,7 +77,11 @@ stack arrives.
     default path never loads a model ([ADR-0013](docs/adr/0013-opt-in-model-load.md)).
 17. **The demo is the engine.** The playground imports `core.mjs`; parity is enforced, so a demo can
     never quietly retrieve worse than the CLI ([ADR-0014](docs/adr/0014-playground-and-benchmarks.md)).
-18. **Defaults follow the measurement.** A component that loses on the eval (the lexical reranker)
+18. **Derived state is versioned separately.** Snapshots restore it byte-for-byte; source belongs to
+    Git ([ADR-0015](docs/adr/0015-state-snapshots-and-ledger.md)).
+19. **History is self-verifying.** Every recorded action is hash-chained; an anchor makes truncation
+    detectable too.
+20. **Defaults follow the measurement.** A component that loses on the eval (the lexical reranker)
     ships off by default and is documented as a negative result ([ADR-0011](docs/adr/0011-local-reranker-experiment.md)).
 15. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
     result can be traced to the exact data that produced it
@@ -119,6 +123,10 @@ stack arrives.
 | **Parity** | The playground and the engine return the same ranking on the gold set (within tolerance). |
 | **Postings** | `token → [[chunk, tf]]`; BM25 touches matching chunks instead of scanning all of them. |
 | **p50 / p95** | Median and tail latency — a best case is not a benchmark. |
+| **Mutation** | A deliberate defect injected into a guard; "killed" means the suite noticed. |
+| **Baseline** | The unmutated behaviour — measured first, so a broken test cannot look like a pass. |
+| **Anchor** | A committed record of the ledger's length and head hash; defeats tail truncation. |
+| **Snapshot** | A hash-recorded copy of derived state, restorable byte-for-byte. |
 
 ## 5. Non-goals
 
@@ -154,6 +162,8 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0012 — PII and secret detection at the commit boundary](docs/adr/0012-pii-dlp-guard.md) · accepted
 - [ADR-0013 — Opt-in model loading with pinned checksums](docs/adr/0013-opt-in-model-load.md) · accepted (policy and loader; artifact absent)
 - [ADR-0014 — A playground that cannot lie, and a benchmark harness](docs/adr/0014-playground-and-benchmarks.md) · accepted
+- [ADR-0015 — Snapshots for derived state, and a tamper-evident ledger](docs/adr/0015-state-snapshots-and-ledger.md) · accepted
+- [ADR-0016 — Mutation testing for the guards](docs/adr/0016-mutation-testing.md) · accepted
 
 ## 8. Change protocol
 
@@ -194,3 +204,5 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - PII guard: [docs/security/pii-guard.md](docs/security/pii-guard.md)
 - Local model policy: [docs/agents/local-model.md](docs/agents/local-model.md)
 - Benchmarks: [docs/benchmarks.md](docs/benchmarks.md) · Demo: [playground/index.html](playground/index.html)
+- State and rollback: [docs/agents/state-and-rollback.md](docs/agents/state-and-rollback.md)
+- Architecture graph (interactive): [playground/graph.html](playground/graph.html)
