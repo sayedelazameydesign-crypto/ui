@@ -65,9 +65,9 @@ commit; the command prints it.
 
 | Mode | R@1 | R@3 | R@5 | MRR | ms/query |
 | --- | --- | --- | --- | --- | --- |
-| **hybrid** | **0.64** | **0.76** | **0.78** | **0.69** | 1.0 |
-| vector only | 0.41 | 0.55 | 0.64 | 0.49 | 0.4 |
-| keyword only | 0.47 | 0.69 | 0.79 | 0.60 | 0.4 |
+| **hybrid** | **0.62** | **0.76** | **0.78** | **0.68** | 1.6 |
+| vector only | 0.41 | 0.53 | 0.64 | 0.49 | 0.6 |
+| keyword only | 0.48 | 0.71 | 0.79 | 0.60 | 0.6 |
 
 Read the table as a snapshot, and the engine on this corpus family as **R@1 0.62–0.66, R@3 0.74–0.76,
 MRR 0.67–0.70**. The spread is corpus size, not code: adding documentation creates documents that
@@ -124,15 +124,69 @@ so the comparison is fair.
 | evidence tie-break (file appearing repeatedly wins ties) | 0.603 | 0.759 | 0.680 | favours files that repeat themselves, not files that answer |
 | 512 / 1024 / 2048 embedding dims | 0.667 / 0.722 / 0.556\* | — | — | hash collisions are not the bottleneck; 256 stays |
 | lexical reranker (`--rerank`) | 0.500 | 0.724 | 0.620 | see §4a |
+| markdown window grid: 27 configs, window 8–32 × overlap 0–8 (681 chunks, before §3c existed) | 0.552–0.690 | 0.724–0.793 | 0.640–0.736 | no plateau: the best point (`MD_WINDOW` 12 / overlap 0, i.e. +3 cases) has neighbours on **both** sides back at 0.638, and its 3 fixes cost 0 losses but give McNemar p = 0.25 — see §3d |
+| file-level aggregation: score a *file* by its `max` / `top-2` / `sum` chunk score | 0.621 / 0.586 / 0.310 | 0.759 / 0.845 / 0.603 | 0.682 / 0.705 / 0.470 | summing chunk scores rewards long files that repeat a topic; `top-2` buys R@3 and loses R@1 — the same trade the "evidence tie-break" already lost |
 
 \* measured while the set was still 18 cases, i.e. inside the noise band described in §4b — which is
 itself the point of that section.
 
 The candidate rows and §3a were measured against the corpus as it stood during the experiment (602
-chunks), so they keep three decimals; §3 is the final state *after* these documents were written (618
-chunks) and is quoted at two, because the third digit moves whenever a sentence is added. Documentation is
+chunks), so they keep three decimals; §3 is the final state *after* these documents were written
+(618 → 692 chunks as this file grew) and is quoted at two, because the third digit moves whenever a
+sentence is added. Documentation is
 corpus: a table about retrieval moves the retrieval numbers. Both states are reported instead of pretending
 the corpus holds still.
+
+### 3c. Where the misses actually live
+
+Rank-1 accuracy is 0.62, but that number says nothing about *why* the other 22 cases miss. Measured by
+re-scoring every gold query against all 692 chunks (`k = 200`, hybrid, default chunking, this commit):
+
+| Cut | R@k | Cases |
+| --- | --- | --- |
+| R@1 | 0.621 | 36/58 |
+| R@3 | 0.759 | 44/58 |
+| R@5 | 0.776 | 45/58 |
+| R@10 | 0.897 | 52/58 |
+| R@20 | **0.983** | **57/58** |
+| R@50 | 0.983 | 57/58 |
+| R@100 | 1.000 | 58/58 |
+
+The answer is somewhere in the top **20** for 57 of 58 cases; the single exception (`guard-ar`) sits at
+rank 90, and it only appears at all because the glossary expands an Arabic question into the vocabulary
+of a shell script.
+
+Two consequences, both load-bearing:
+
+1. **The candidate set is not the bottleneck — the order is.** A perfect re-scorer over the existing
+   top-20 window would be bounded by **0.983**, not by R@5. An earlier draft of the D8 approval card
+   claimed R@5 (0.776) was that ceiling; it was wrong, and this table is the correction. Rank-1 is lost
+   in *ordering*, which is what a cross-encoder changes and what no lexical re-weighting has managed
+   (§3b, §4a).
+2. **Widening the window buys nothing.** R@20 = R@50 = 0.983, so "retrieve more candidates" is not a
+   lever either; the one case beyond rank 20 needs a rank-100 window to reach.
+
+What the table does **not** say: that a 0.85 target is therefore easy. 0.983 is an upper bound on a
+hypothetical perfect ranker over this window, on 58 cases authored in this repository. Reaching 0.85
+still needs a ranker that is right about 50 of 58 — and the runtime that would carry it costs more than
+the weights it carries (see §4a).
+
+### 3d. How much of this is the instrument?
+
+One parameter of the chunker, moved inside a reasonable range on the same 58 cases (681 chunks, i.e. the
+corpus one commit before this section), produces
+R@1 anywhere from **0.552 to 0.690**: a spread of **eight cases** (σ = 0.022 over 27 configurations).
+That is larger than several of the "improvements" this file once celebrated. Two lessons, recorded
+because they are about the instrument and not the engine:
+
+- a single grid maximum is not evidence — a real gain shows up as a **region**, and the neighbours of
+  the 0.690 point are back at 0.638;
+- a parameter whose exact value nobody can defend (16 lines? 12?) should not be selected by the metric
+  it is being scored with, so the shipped window stays at 16/4 — chosen before the grid existed.
+
+The grid also found a bug rather than a gain: `MD_WINDOW === MD_OVERLAP` made the window loop advance
+by zero and hang until the heap died. The step is now clamped (`windowStep`), the shipped configuration
+is asserted by a property, and a mutant (`window-step-zero`) proves the property catches a regression.
 
 ## 4. The gate (a ratchet, not a wish)
 
@@ -166,6 +220,12 @@ default; the negative result is kept in [ADR-0011](../adr/0011-local-reranker-ex
 usable only with a human-pinned SHA-256, refused unless `--enable-neural-rerank` is passed. The loader
 is implemented and property-tested; the artifact is not installed, so `R@1` stays at **0.64**.
 `node scripts/semantic/model.mjs status` prints exactly what is missing, without guessing.
+
+The **runtime** is the part the weight ceiling does not govern. From the npm registry (verified, not
+estimated): `onnxruntime-node@1.31.1` is MIT and **307,626,018 bytes unpacked** with 3 direct
+dependencies and a `postinstall` step that extracts native binaries; `onnxruntime-web@1.31.1` is
+150,622,959 bytes with 6. Whatever model is chosen, the runtime is roughly ten times its size — which is
+why D8 is a dependency decision before it is a model decision.
 
 ## 4b. What this metric can and cannot resolve
 
