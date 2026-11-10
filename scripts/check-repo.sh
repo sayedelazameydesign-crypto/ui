@@ -29,7 +29,7 @@ section() { [[ $QUIET -eq 1 ]] || bold "$1"; }
 has_arabic() { LC_ALL=C grep -q "$(printf '\330')" "$1" 2>/dev/null; }
 
 # ---------------------------------------------------------------------------
-section "1/6 · Required governance files"
+section "1/7 · Required governance files"
 REQUIRED=(
   "AGENTS.md"
   "CONTEXT.md"
@@ -47,6 +47,27 @@ REQUIRED=(
   ".github/copilot-instructions.md"
   ".agent/README.md"
   ".agent/capabilities.yaml"
+  # retrieval, provenance, sandboxes, supply chain
+  "docs/agents/semantic-search.md"
+  "docs/agents/provenance.md"
+  "docs/ci/ephemeral-environments.md"
+  "docs/adr/0003-ai-code-provenance.md"
+  "docs/adr/0004-zero-trust-dependencies.md"
+  ".devcontainer/devcontainer.json"
+  "scripts/semantic/cli.mjs"
+  "scripts/semantic/lib.mjs"
+  "scripts/provenance.mjs"
+  "scripts/dependency-audit.mjs"
+  "scripts/dead-code-report.mjs"
+  "scripts/git-hooks/commit-msg"
+  "scripts/install-hooks.sh"
+  ".github/workflows/guard.yml"
+  ".github/workflows/security.yml"
+  ".github/workflows/provenance.yml"
+  ".github/workflows/preview.yml"
+  ".github/workflows/semantic-index.yml"
+  ".github/workflows/dependency-audit.yml"
+  ".github/workflows/license-compliance.yml"
 )
 for f in "${REQUIRED[@]}"; do
   if [[ -f "$f" ]]; then
@@ -62,7 +83,7 @@ for f in "${REQUIRED[@]}"; do
 done
 
 # ---------------------------------------------------------------------------
-section "2/6 · Secret scan (tracked files)"
+section "2/7 · Secret scan (tracked files)"
 SECRET_PATTERNS=(
   '-----BEGIN [A-Z ]*PRIVATE KEY-----'
   'AKIA[0-9A-Z]{16}'
@@ -100,7 +121,7 @@ fi
 [[ -z "$tracked_env" ]] && ok "no tracked env files, no obvious secrets"
 
 # ---------------------------------------------------------------------------
-section "3/6 · JSON validity"
+section "3/7 · JSON validity"
 if command -v jq >/dev/null 2>&1; then
   while IFS= read -r json; do
     if jq empty "$json" 2>/dev/null; then ok "$json parses"; else fail "$json is not valid JSON"; fi
@@ -110,7 +131,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "4/6 · Relative links resolve"
+section "4/7 · Relative links resolve"
 broken=0
 while IFS= read -r doc; do
   dir=$(dirname "$doc")
@@ -129,7 +150,7 @@ done < <(git ls-files '*.md')
 [[ $broken -eq 0 ]] && ok "all relative links resolve"
 
 # ---------------------------------------------------------------------------
-section "5/6 · Agent skills are well-formed"
+section "5/7 · Agent skills are well-formed"
 shopt -s nullglob
 skills=(.claude/skills/*/SKILL.md)
 shopt -u nullglob
@@ -145,7 +166,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "6/6 · Documentation conventions"
+section "6/7 · Documentation conventions"
 # Bilingual requirement: human-facing entry points must contain Arabic text.
 for doc in README.md AGENTS.md CONTEXT.md; do
   if has_arabic "$doc"; then
@@ -167,6 +188,37 @@ if git rev-parse --verify -q origin/main >/dev/null; then
       ok "commit messages follow Conventional Commits"
     fi
   fi
+fi
+
+# ---------------------------------------------------------------------------
+section "7/7 · Agent tooling smoke test"
+if command -v node >/dev/null 2>&1; then
+  if node scripts/semantic/cli.mjs index --out .index/semantic.json >/dev/null 2>&1; then
+    ok "semantic index builds"
+  else
+    fail "semantic index failed to build (node scripts/semantic/cli.mjs index)"
+  fi
+
+  hits=$(node scripts/semantic/cli.mjs search "least privilege agent" --index .index/semantic.json --json 2>/dev/null | grep -c '"file"' || true)
+  if [[ "${hits:-0}" -gt 0 ]]; then
+    ok "semantic search returns ${hits} hit(s)"
+  else
+    fail "semantic search returned no hits — tokenizer or index regressed"
+  fi
+
+  if node scripts/provenance.mjs --json >/dev/null 2>&1; then
+    ok "provenance report runs"
+  else
+    fail "provenance report failed (node scripts/provenance.mjs)"
+  fi
+
+  if node scripts/dependency-audit.mjs >/dev/null 2>&1; then
+    ok "dependency audit runs"
+  else
+    fail "dependency audit failed (node scripts/dependency-audit.mjs)"
+  fi
+else
+  warn "node not installed — agent tooling smoke test skipped (CI installs it)"
 fi
 
 # ---------------------------------------------------------------------------

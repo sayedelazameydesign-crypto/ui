@@ -16,6 +16,8 @@
 | May I change this file? | Only with an explicit human instruction, in a dedicated PR. |
 | Do I need to run checks? | **Yes** — `scripts/check-repo.sh` must pass before you finish. |
 | Where does project knowledge live? | `CONTEXT.md` + `docs/adr/` — update them with the code. |
+| How do I declare authorship? | Trailer: `AI-Assisted-By: <tool>` or `Human-Authored: true` ([provenance](docs/agents/provenance.md)). |
+| How do I find code by meaning? | `node scripts/semantic/cli.mjs search "…"` ([semantic search](docs/agents/semantic-search.md)). |
 
 ---
 
@@ -51,6 +53,13 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
    wrong is material, stop and ask — one precise question, with a recommended default.
 8. **Respect licensing and provenance.** Only introduce dependencies with a permissive licence
    (MIT / Apache-2.0 / BSD / ISC). Record additions in the PR body.
+9. **Declare authorship in every commit** — exactly one of `AI-Assisted-By: <tool>` or
+   `Human-Authored: true`, plus `Human-Reviewed-By:` on AI commits. Enforcement:
+   `node scripts/provenance.mjs --strict`. See [docs/agents/provenance.md](docs/agents/provenance.md).
+10. **Keep tooling offline and deterministic.** No script may phone home, and none may require an
+    API key to run in CI. Remote model providers are opt-in per session, never a default.
+11. **Never delete code you cannot prove is dead.** `scripts/dead-code-report.mjs` outputs
+    candidates; removal happens in a dedicated PR with the guard green.
 
 ---
 
@@ -67,6 +76,7 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
 ├── .mcp.json                  ← MCP server declarations (no secrets, ever)
 ├── .claude/skills/            ← reusable, versioned agent skills (SKILL.md each)
 ├── .agent/                    ← harness: capabilities, memory schema, task log
+├── .devcontainer/             ← isolated sandbox: non-root, capabilities dropped
 ├── .github/
 │   ├── workflows/             ← guard, security, PR hygiene
 │   ├── ISSUE_TEMPLATE/        ← issue forms incl. "agent task"
@@ -74,8 +84,15 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
 │   └── pull_request_template.md
 ├── docs/
 │   ├── adr/                   ← architecture decision records (immutable once accepted)
-│   └── agents/                ← permission matrix, memory protocol, MCP policy
-└── scripts/check-repo.sh      ← deterministic repository guard (runs in CI)
+│   ├── agents/                ← permissions, memory, MCP, semantic search, provenance
+│   └── ci/                    ← ephemeral environments, pipeline guarantees
+└── scripts/
+    ├── check-repo.sh          ← deterministic repository guard (runs locally and in CI)
+    ├── semantic/              ← offline vector index + `search` CLI
+    ├── provenance.mjs         ← AI/human authorship report
+    ├── dependency-audit.mjs   ← zero-trust supply-chain findings
+    ├── dead-code-report.mjs   ← orphan candidates (advisory)
+    └── git-hooks/             ← commit-msg hook (Conventional Commits + trailers)
 ```
 
 ---
@@ -85,10 +102,17 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
 Run these from the repository root. They are the **only** commands you may assume exist.
 
 ```bash
-scripts/check-repo.sh                 # repository guard: conventions + secret scan
+scripts/check-repo.sh                 # repository guard: conventions + secret scan + tooling
+bash scripts/install-hooks.sh         # once per clone: commit-msg hook (trailers, commit format)
 git fetch --all --prune               # refresh refs before any work
 git switch -c feat/<slug>             # always branch first
 git status --short                    # confirm a clean, intentional diff
+
+node scripts/semantic/cli.mjs index             # build the vector index (.index/, gitignored)
+node scripts/semantic/cli.mjs search "…" -k 5   # retrieve context by meaning
+node scripts/provenance.mjs --strict            # authorship trailers for this branch
+node scripts/dependency-audit.mjs --strict      # supply-chain posture
+node scripts/dead-code-report.mjs               # orphan candidates (never auto-delete)
 ```
 
 There is no build system yet. **Do not add one** as a side effect of an unrelated task; the
@@ -119,6 +143,7 @@ stack choice is an open decision (§9) that requires human sign-off.
 - [ ] No secrets, no `.env` values, no credentials, no personal data in the diff.
 - [ ] Documentation updated (`CONTEXT.md` / ADR / README) if behaviour or structure changed.
 - [ ] Commit messages follow the convention; branch is pushed with `-u`.
+- [ ] Every commit carries a provenance trailer (`AI-Assisted-By:` / `Human-Authored: true`).
 - [ ] The PR body states verification honestly — including anything **not** verified.
 - [ ] No unrelated formatting churn; no force-push; no direct commits to `main`.
 
@@ -138,7 +163,10 @@ Full matrix: [docs/agents/permissions.md](docs/agents/permissions.md). Default p
 | Create/modify releases or tags | ⛔ forbidden | requires human |
 | Change repository settings, secrets, or workflows permissions | ⛔ forbidden | requires human |
 | Network egress | ⚠️ restricted | only hosts declared in `.mcp.json` / task brief |
-| Install dependencies | ⚠️ ask first | never during an unrelated task |
+| Install dependencies | ⚠️ ask first | never during an unrelated task; `--ignore-scripts` in sandboxes |
+| Build the semantic index (`.index/`) | ✅ allowed | derived, gitignored, never committed |
+| Send code to a remote embedding provider | ⛔ forbidden by default | opt-in per session, explicit data decision |
+| Add a git trailer that misstates authorship | ⛔ forbidden | provenance is an audit trail (ADR-0003) |
 | Execute destructive shell commands (`rm -rf`, `git clean -xfd`) | ⛔ forbidden | requires human |
 
 When in doubt: **read-only beats write, ask beats assume.**
@@ -148,10 +176,16 @@ When in doubt: **read-only beats write, ask beats assume.**
 ## 8. Skills, MCP, and memory
 
 - **Skills** — reusable procedures live in `.claude/skills/<name>/SKILL.md`. Load a skill instead
-  of improvising a procedure. Available: `repo-guard`, `doc-sync`, `security-review`.
+  of improvising a procedure. Available: `repo-guard`, `doc-sync`, `security-review`,
+  `semantic-retrieval`.
 - **MCP** — servers are declared in `.mcp.json` **without credentials**; secrets come from the
   environment at runtime. Prefer read-only tools; request write scopes only for the task at hand.
   Policy: [docs/agents/mcp-policy.md](docs/agents/mcp-policy.md).
+- **Retrieval** — use `scripts/semantic/cli.mjs` (or `lib.mjs` in-process) to find context by
+  meaning instead of guessing paths. Results are candidates: open the file before acting.
+  Design and limits: [docs/agents/semantic-search.md](docs/agents/semantic-search.md).
+- **Provenance** — every commit declares authorship; see §2.9 and
+  [docs/agents/provenance.md](docs/agents/provenance.md).
 - **Memory** — durable, structured notes go in `.agent/memory/` (schema:
   [docs/agents/memory-protocol.md](docs/agents/memory-protocol.md)). Session scratch belongs in
   `.agent/tasks/` and must not be committed. Never store secrets in memory files — they are
@@ -167,6 +201,8 @@ When in doubt: **read-only beats write, ask beats assume.**
 | D2 | Styling & design tokens (Tailwind v4, CSS variables, RTL strategy) | open |
 | D3 | Hosting target (Vercel / Cloudflare / other) | open |
 | D4 | Whether agents may open PRs autonomously vs. draft-only | open |
+| D5 | Repository licence (MIT vs. Apache-2.0) — no `LICENSE` file yet | open |
+| D6 | Preview hosting target for per-PR sandboxes (see `docs/ci/ephemeral-environments.md`) | open |
 
 Do not pre-empt these by scaffolding a framework. Propose, then wait.
 

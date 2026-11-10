@@ -7,8 +7,10 @@
 
 [![guard](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/guard.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/guard.yml)
 [![security](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/security.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/security.yml)
+[![provenance](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/provenance.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/provenance.yml)
+[![dependency-audit](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/dependency-audit.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/dependency-audit.yml)
 
-`main` · `L0 baseline` · `AGENTS.md` · `MCP-ready` · `RTL-first` · `least privilege`
+`main` · `L0 baseline` · `AGENTS.md` · `semantic index` · `provenance` · `zero-trust deps` · `RTL-first`
 
 </div>
 
@@ -37,6 +39,9 @@
 | [`scripts/check-repo.sh`](scripts/check-repo.sh) | الجميع | الحارس الحتمي: الملفات المطلوبة، الأسرار، الروابط، المهارات، ثنائية اللغة |
 | [`docs/adr/`](docs/adr/) | الجميع | سجلات القرارات المعمارية (غير قابلة للتعديل بعد القبول) |
 | [`SECURITY.md`](SECURITY.md) | الجميع | الإبلاغ الخاص وسياسة أقل صلاحية للوكلاء |
+| [`scripts/semantic/`](scripts/semantic) | الجميع | فهرسة متجهية واستعلام بالمعنى |
+| [`docs/agents/provenance.md`](docs/agents/provenance.md) | الجميع | من كتب السطر: بشر أم وكيل |
+| [`docs/ci/ephemeral-environments.md`](docs/ci/ephemeral-environments.md) | الجميع | العزل والبيئات المؤقتة |
 
 ### دورة العمل
 
@@ -62,12 +67,28 @@ git push -u origin HEAD
 | فحص أمني آلي | Trivy + Dependabot + فحص أسرار إلزامي في CI |
 | بوابة جودة حتمية | `scripts/check-repo.sh` + `guard` workflow + `pr-hygiene` |
 
+### القدرات الأربع الجديدة
+
+| القدرة | كيف نُفِّذت هنا | الحالة |
+| --- | --- | --- |
+| **بحث دلالي متجهي** | `scripts/semantic/` — فهرسة `git ls-files`، تقطيع حسب العناوين، تضمينات hashing محلية (256 بُعداً)، استعلام بالمعنى بالعربية والإنجليزية | ✅ يعمل الآن، دون شبكة أو مفتاح |
+| **بيئات معزولة مؤقتة** | `.devcontainer/` (مستخدم غير جذري، `--cap-drop=ALL`) + `preview.yml` يبني داخل عدّاء معزول | ⏸ ينتظر حزمة التقنيات (ADR-0002) |
+| **أصل الكود (بشري/ذكائي)** | ترويسات `AI-Assisted-By` / `Human-Authored` + `provenance.yml` يرفض ما لا يُصرِّح | ✅ مفعّل — [السياسة](docs/agents/provenance.md) |
+| **تبعيات عديمة الثقة** | `dependency-audit.mjs` (تثبيت، سكربتات تنصيب، قفل، صلاحيات CI) + Dependabot + بوابة تراخيص | ✅ للفحوصات المتاحة اليوم |
+
+```bash
+node scripts/semantic/cli.mjs index
+node scripts/semantic/cli.mjs search "صلاحيات الوكيل الممنوعة" -k 3
+node scripts/provenance.mjs --strict
+node scripts/dependency-audit.mjs --strict
+```
+
 ### حالة المزامنة
 
 | العنصر | الحالة |
 | --- | --- |
 | الفرع الافتراضي | `main` |
-| فرع العمل | `arena/c632a1ad-ui` (متتبَّع، متزامن) |
+| فرع العمل | `arena/63076a70-ui` (متتبَّع، متزامن) |
 | الملفات غير المتتبَّعة | لا يوجد |
 
 ### الخطوات التالية
@@ -75,7 +96,8 @@ git push -u origin HEAD
 1. تثبيت **نظام التصميم** أولاً: الرموز (ألوان، مسافات، خطوط) واستراتيجية RTL — قرار D2.
 2. اختيار حزمة التقنيات عبر ADR جديد يُلغي [ADR-0002](docs/adr/0002-defer-stack-choice.md).
 3. تفعيل حماية الفرع `main` على GitHub: مراجعة إلزامية + منع الدفع المباشر.
-4. إضافة `.env.example` عند أول حاجة لتهيئة بيئة.
+4. اختيار **الترخيص** (D5) وإضافة ملف `LICENSE` — أداة الفحص تنبّه حالياً لغيابه.
+5. إضافة `.env.example` عند أول حاجة لتهيئة بيئة.
 
 ---
 
@@ -103,6 +125,9 @@ choice is deliberately deferred (see [ADR-0002](docs/adr/0002-defer-stack-choice
 | [`scripts/check-repo.sh`](scripts/check-repo.sh) | everyone | Deterministic guard: files, secrets, links, skills, bilingual content |
 | [`docs/adr/`](docs/adr/) | everyone | Architecture decision records (immutable once accepted) |
 | [`SECURITY.md`](SECURITY.md) | everyone | Private disclosure + agent least-privilege posture |
+| [`scripts/semantic/`](scripts/semantic) | everyone | Vector index + meaning-based query CLI |
+| [`docs/agents/provenance.md`](docs/agents/provenance.md) | everyone | Who wrote each commit: human or agent |
+| [`docs/ci/ephemeral-environments.md`](docs/ci/ephemeral-environments.md) | everyone | Isolation model and per-PR sandboxes |
 
 ### Workflow
 
@@ -128,11 +153,30 @@ git push -u origin HEAD
 | Automated security | Trivy, Dependabot, blocking secret scan in CI |
 | Deterministic quality gate | `scripts/check-repo.sh`, `guard` and `pr-hygiene` workflows |
 
+### The four 2026 capabilities
+
+| Capability | Implementation | State |
+| --- | --- | --- |
+| **Native vector search** | `scripts/semantic/` — `git ls-files` sources, heading-aware chunking, local 256-dim hashing embeddings, bilingual query CLI | ✅ live, offline, no key |
+| **Ephemeral sandboxes** | `.devcontainer/` (non-root, `--cap-drop=ALL`) + `preview.yml` building in a disposable runner | ⏸ waits for the stack (ADR-0002) |
+| **Code provenance** | `AI-Assisted-By` / `Human-Authored` trailers, enforced by `provenance.yml` | ✅ active — [policy](docs/agents/provenance.md) |
+| **Zero-trust dependencies** | `dependency-audit.mjs` (pinning, install hooks, lockfile, workflow refs) + Dependabot + licence gate | ✅ what is checkable today |
+
+```bash
+node scripts/semantic/cli.mjs index
+node scripts/semantic/cli.mjs search "which agent capabilities are denied" -k 3
+node scripts/provenance.mjs --strict
+node scripts/dependency-audit.mjs --strict
+```
+
 ### Honest limits
 
 - The guard proves **conventions**, not correctness — review still matters.
 - "Self-healing" automation is **not** enabled: an agent may propose a patch in a PR, but nothing
   auto-merges. Auto-merge is an explicit open decision (`AGENTS.md` §9, D4).
+- Provenance trailers are **declarative, not cryptographic** — review is the real control (ADR-0003).
+- The semantic index uses hashing embeddings, not a neural model: precise on this repository's own
+  vocabulary, approximate elsewhere. Swapping in a real model touches one file (`lib.mjs`).
 - No model calls are made by CI. Everything in `.github/workflows/` is deterministic and auditable.
 
 ### Next steps
@@ -140,7 +184,8 @@ git push -u origin HEAD
 1. Specify the **design system** first: tokens (colour, space, type) and the RTL strategy — D2.
 2. Choose the stack through a new ADR superseding [ADR-0002](docs/adr/0002-defer-stack-choice.md).
 3. Enable `main` branch protection on GitHub: required review, no direct pushes.
-4. Add `.env.example` at the first need for environment configuration.
+4. Choose the **licence** (D5) and add a `LICENSE` file — the audit currently warns about the gap.
+5. Add `.env.example` at the first need for environment configuration.
 
 ---
 

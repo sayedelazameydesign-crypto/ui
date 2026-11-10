@@ -31,11 +31,18 @@ agents:
       docker: ask
       network_egress: ask
       destructive_shell: deny # rm -rf, git clean -xfd, git reset --hard on shared branches
+    tooling:
+      build_semantic_index: allow # .index/ is derived and gitignored
+      remote_embedding_provider: deny # opt-in per session, explicit data decision
+      run_provenance_report: allow
+      run_dependency_audit: allow
+      delete_orphaned_code: ask # report is advisory; removal is a dedicated PR
     data:
       read_secrets: deny
       write_secrets: deny
       handle_personal_data: deny
       store_memory: allow # .agent/memory/ only, sanitised
+      declared_provenance_required: true
 
   reviewer:
     description: Read-only review agent (PR comments, security review).

@@ -10,7 +10,9 @@
 
 المستودع في مرحلة **الأساس (L0)**:
 - لا يوجد كود تطبيق ولا حزمة تقنيات مختارة — القرار مؤجَّل عمداً (D1 في [AGENTS.md](AGENTS.md#9-open-decisions-human-sign-off-required)).
-- الموجود الآن: التوثيق، حواجز الحماية الآلية، مهارات الوكلاء، وسياسات الصلاحيات.
+- الموجود الآن: التوثيق، حواجز الحماية الآلية، مهارات الوكلاء، وسياسات الصلاحيات،
+  إضافة إلى أربع قدرات: **بحث دلالي متجهي**، **بيئات معزولة مؤقتة**، **توقيع أصل الكود (بشري/ذكائي)**،
+  و**محرك تبعيات عديم الثقة**. جميعها تعمل دون شبكة ودون مفاتيح.
 - الهدف: أن يكون المستودع **قابلاً للقراءة والتنفيذ الآمن بواسطة الوكلاء** قبل كتابة أي سطر واجهة.
 
 ---
@@ -30,7 +32,11 @@ can change it without breaking it.
 | L2 · Design system | tokens, typography, spacing, RTL/LTR primitives | ⛔ not started (D2) |
 | L3 · Components | accessible, composable UI primitives | ⛔ not started |
 | L4 · Surfaces | pages / routes / content | ⛔ not started |
-| L5 · Delivery | hosting, previews, observability | ⛔ not chosen (D3) |
+| L5 · Delivery | hosting, previews, observability | ⛔ not chosen (D3, D6) |
+| L0+ · Retrieval & provenance | semantic index, authorship trailers, supply-chain audit | ✅ present |
+
+The `L0+` row is cross-cutting tooling: it never imports from L1–L5 and must keep working when the
+stack arrives.
 
 **Rule:** a layer may not depend on a layer above it. L0 must stay stack-agnostic.
 
@@ -46,6 +52,13 @@ can change it without breaking it.
 5. **Documentation is part of the definition of done**, not a follow-up ticket.
 6. **Reversible by default.** Prefer changes a single `git revert` can undo.
 7. **One source of truth per fact.** If a fact lives in two files, one of them links to the other.
+8. **Authorship is declared.** Every commit states `AI-Assisted-By:` or `Human-Authored: true`;
+   AI commits need a human reviewer before merge. Declarative, not cryptographic
+   ([ADR-0003](docs/adr/0003-ai-code-provenance.md)).
+9. **Tooling is offline and deterministic.** The guard, index, provenance, and audit scripts run
+   with no network and no API key; identical inputs give identical outputs.
+10. **Dependencies are untrusted input.** Pinning, install-hook review, and licence checks run when
+    a dependency arrives — not a month later ([ADR-0004](docs/adr/0004-zero-trust-dependencies.md)).
 
 ## 4. Vocabulary
 
@@ -59,6 +72,10 @@ can change it without breaking it.
 | **ADR** | Architecture Decision Record in `docs/adr/`, immutable once accepted. |
 | **Surface** | A user-facing page or route (L4). |
 | **Token** | A design decision expressed as data (colour, space, type). |
+| **Embedding / index** | Dense vector per chunk of text; the index is derived state (`.index/`, gitignored). |
+| **Provenance** | The declared authorship of a commit (human vs. AI + tool), enforced in CI. |
+| **Sandbox** | An ephemeral, non-root, capability-dropped environment a change can be run in. |
+| **Orphan** | A code file nothing references — a *candidate* for removal, never proof of it. |
 
 ## 5. Non-goals
 
@@ -82,6 +99,8 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 
 - [ADR-0001 — Agentic-first repository baseline](docs/adr/0001-agentic-first-baseline.md) · accepted
 - [ADR-0002 — Deferring the application stack](docs/adr/0002-defer-stack-choice.md) · accepted
+- [ADR-0003 — Trailer-based AI code provenance](docs/adr/0003-ai-code-provenance.md) · accepted
+- [ADR-0004 — Zero-trust dependency engine](docs/adr/0004-zero-trust-dependencies.md) · accepted
 
 ## 8. Change protocol
 
@@ -91,6 +110,8 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 | New invariant | `AGENTS.md` §2 + ADR if contentious |
 | Stack or tooling adoption | ADR superseding ADR-0002 + `CONTEXT.md` layer table |
 | Agent capability change | `docs/agents/permissions.md` + ADR |
+| New script under `scripts/` | `AGENTS.md` §3/§4 + guard required-file list + a smoke test |
+| Authorship or licence policy change | new ADR superseding 0003 / 0004 |
 
 ## 9. References
 
@@ -99,3 +120,6 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - Security & disclosure: [SECURITY.md](SECURITY.md)
 - MCP policy: [docs/agents/mcp-policy.md](docs/agents/mcp-policy.md)
 - Memory protocol: [docs/agents/memory-protocol.md](docs/agents/memory-protocol.md)
+- Semantic search: [docs/agents/semantic-search.md](docs/agents/semantic-search.md)
+- Code provenance: [docs/agents/provenance.md](docs/agents/provenance.md)
+- Ephemeral environments: [docs/ci/ephemeral-environments.md](docs/ci/ephemeral-environments.md)
