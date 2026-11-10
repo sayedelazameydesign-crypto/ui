@@ -2,7 +2,8 @@
 // A validator that fails open, or an expansion that drops the user's words, is a silent bug.
 
 import { validate } from "../../scripts/lib/schema.mjs";
-import { expandTokens, stripIgnored, normalizeToken, tokenize, BILINGUAL_GLOSSARY } from "../../scripts/semantic/lib.mjs";
+import { expandTokens, stripIgnored, normalizeToken, tokenize, BILINGUAL_GLOSSARY, rerankScore } from "../../scripts/semantic/lib.mjs";
+import { scanContent, maskValue } from "../../scripts/check-pii.mjs";
 import { gen } from "../../scripts/lib/property.mjs";
 
 const closedObject = {
@@ -70,6 +71,47 @@ export default [
       const doc = `${before}\n// @semantic-ignore-begin\nSECRET_PAYLOAD\n// @semantic-ignore-finish\n${after}`;
       const cleaned = stripIgnored(doc);
       return !cleaned.includes("SECRET_PAYLOAD") && cleaned.includes(before.trim()) === (before.trim().length === 0 || cleaned.includes(before.trim()));
+    },
+  },
+  {
+    name: "masking never reproduces the value it hides",
+    generators: { value: gen.text({ maxLength: 24, alphabet: "abcdefghij0123456789" }) },
+    property: ({ value }) => {
+      if (value.length < 8) return true;
+      const masked = maskValue(value);
+      return masked !== value && !(value.length > 12 && masked.includes(value));
+    },
+  },
+  {
+    name: "an email-shaped string is always detected, and its excerpt never leaks it",
+    generators: { user: gen.text({ maxLength: 10, alphabet: "abcdef" }), domain: gen.text({ maxLength: 8, alphabet: "abcdef" }) },
+    property: ({ user, domain }) => {
+      if (user.length < 3 || domain.length < 3) return true;
+      const address = `${user}@${domain}.com`;
+      const findings = scanContent("probe.md", `contact: ${address}`);
+      if (findings.length === 0) return false;
+      return findings.every((f) => !f.excerpt.includes(address) && !f.masked.includes(address));
+    },
+  },
+  {
+    name: "an allowlisted rule silences exactly that rule, nothing else",
+    generators: { address: gen.text({ maxLength: 8, alphabet: "abc" }) },
+    property: ({ address }) => {
+      if (address.length < 4) return true;
+      const text = `mail: ${address}@corp.com`;
+      const exemptions = [{ file: "probe.md", rule: "email", reason: "property test exemption" }];
+      return scanContent("probe.md", text).length > 0 && scanContent("probe.md", text, exemptions).length === 0;
+    },
+  },
+  {
+    name: "rerank scores stay in [0, 1] for any query tokens",
+    generators: { tokens: gen.arrayOf(gen.pick(["merge", "permission", "دمج", "search"]), { maxLength: 4 }) },
+    property: ({ tokens }) => {
+      const chunk = { terms: [["merge", 2]], heading: "Merge policy", file: "docs/agents/permissions.md", length: 20 };
+      const index = { stats: { documents: 10, df: [["merge", 2], ["permission", 5]] } };
+      const { score, features } = rerankScore(index, chunk, tokens);
+      const values = [score, ...Object.values(features)];
+      return values.every((v) => Number.isFinite(v) && v >= 0 && v <= 1);
     },
   },
   {

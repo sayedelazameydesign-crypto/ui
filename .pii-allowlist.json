@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "note": "Reviewed exemptions for scripts/check-pii.mjs. Every entry needs file, rule, and a reason of at least 10 characters; the scanner rejects entries that do not. Keep this list empty unless a finding is genuinely not data. Policy: docs/security/pii-guard.md",
+  "allow": []
+}

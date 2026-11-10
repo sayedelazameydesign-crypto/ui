@@ -51,6 +51,7 @@ reviewed. Errors carry a JSON path, so the message points at the key, not at the
 | Boundary | Direction | Control |
 | --- | --- | --- |
 | Repository → developer machine | in | `git clone`, no telemetry |
+| Developer → repository | in | pre-commit PII/secret scan ([`pii-guard.md`](pii-guard.md)) |
 | Tooling → network | **none by default** | all scripts are offline; egress allowlist |
 | CI → GitHub APIs | metadata only | explicit `permissions:` per workflow |
 | Agent → MCP server | declared endpoints only | `.mcp.json` + `mcp-policy.md` |
@@ -71,7 +72,7 @@ reviewed. Errors carry a JSON path, so the message points at the key, not at the
 
 | Gap | Risk | Mitigation path |
 | --- | --- | --- |
-| No PII classification or DLP | a developer could paste customer data into a commit | pre-commit review + `SECURITY.md`; a scanner is D-level work |
+| PII detection exists, classification does not | a pasted address or phone number is caught; a person's name in prose or in a screenshot is not | [`pii-guard.md`](pii-guard.md) — patterns at the commit boundary, no data inventory or retention policy |
 | No key management | secrets live in the environment, not in a vault | adopt a vault when a service exists |
 | Devcontainer network policy is advisory | the container can reach the internet unless Docker restricts it | enforce with `--network=none` for offline tasks |
 | Allowlist is textual, not runtime-enforced | a script could build a URL at runtime | review + `code-review` skill; a proxy is the next real control |
