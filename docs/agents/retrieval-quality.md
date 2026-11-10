@@ -57,35 +57,36 @@ node scripts/semantic/eval.mjs --rebuild       # re-index first
 
 ## 3. Measured results
 
-Corpus: **678 chunks from 115 files** (tests, fixtures and generated mirrors excluded — see §2 of
-[`semantic-search.md`](semantic-search.md)). Measured on this commit, not estimated — the chunk count
-moves by a chunk or two whenever documentation is edited, so re-run the command rather than trusting the
-number alone:
+Corpus: the repository's own text, 58 bilingual cases (tests, fixtures and generated mirrors excluded —
+see §2 of [`semantic-search.md`](semantic-search.md)). Measured, not estimated. The chunk count moves with
+every documentation edit, so an exact count here would be stale by the next commit; the command prints it
+(it was ~687 chunks from ~118 files when this table was recorded).
 
 | Mode | R@1 | R@3 | R@5 | MRR | ms/query |
 | --- | --- | --- | --- | --- | --- |
-| **hybrid** | **0.64** | **0.74** | **0.78** | **0.69** | 1.1 |
-| vector only | 0.41 | 0.57 | 0.64 | 0.50 | 0.5 |
-| keyword only | 0.47 | 0.69 | 0.79 | 0.59 | 0.4 |
+| **hybrid** | **0.62** | **0.74** | **0.78** | **0.67** | 1.2 |
+| vector only | 0.40 | 0.55 | 0.62 | 0.48 | 0.5 |
+| keyword only | 0.47 | 0.66 | 0.78 | 0.58 | 0.4 |
 
-The corpus grew from 623 chunks (111 files) to 677 (115) when the security documentation landed. The
-same engine on a larger retrieval surface:
+This branch added two security documents and a licence, and the corpus grew from ~623 chunks (111 files)
+to ~687 (118). The engine did not change; the retrieval surface did:
 
-- hybrid R@1 and R@3 did not move; **MRR 0.691 → 0.686** — one case, 1.7 points;
-- vector only R@3 0.55 → 0.57, keyword only R@3 0.71 → 0.69 (two cases each);
-- `answer@budget` at 400 tokens 81% → 79% (one case);
-- the corpus size itself: 623 → 678 chunks, 111 → 115 files.
+- hybrid **R@1 0.638 → 0.621** and **MRR 0.691 → 0.674** — one case each, 1.7 points;
+- vector only R@1 0.41 → 0.40; keyword only R@3 0.69 → 0.66;
+- `answer@budget` at 400 tokens 81% → 79% — one case.
 
-No gate floor moved, and every difference is inside the ±12-point interval. The direction is the point:
-adding documentation makes retrieval harder, and the document says so instead of rounding the digits to
-whatever looks stable.
+So read the table as a snapshot and the branch as a **band: R@1 0.62–0.64, R@3 0.74, MRR 0.67–0.69**, the
+low end being the larger corpus. Adding two documents costs roughly one case, because new text competes
+with the documents that answer a question. That is a real property of retrieval over a growing corpus,
+not a code regression, and not a reason to move a gate floor. If it should stop, the next lever is
+chunking or per-directory precedence — a decision with its own measurement, not a tuning pass.
 
 Subsets, because the average is not the story:
 
 | Subset | Cases | R@1 | R@3 | MRR |
 | --- | --- | --- | --- | --- |
-| `v1` (original) | 18 | 0.78 | 0.89 | 0.84 |
-| `v2` (added) | 40 | 0.58 | 0.68 | 0.61 |
+| `v1` (original) | 18 | 0.78 | 0.89 | 0.83 |
+| `v2` (added) | 40 | 0.55 | 0.68 | 0.61 |
 | English | 43 | 0.67 | 0.79 | 0.73 |
 | Arabic | 15 | 0.53 | 0.60 | 0.56 |
 
@@ -138,7 +139,7 @@ node scripts/semantic/eval.mjs --min-r1 0.60 --min-recall 0.72 --min-mrr 0.66   
 ```
 
 CI and the guard fail when hybrid drops below R@1 **0.60**, R@3 **0.72** or MRR **0.66** over the 58
-cases. Each floor sits just under the measured value (0.64 / 0.74 / 0.69): high enough to catch a regression, low enough
+cases. Each floor sits just under the measured band (R@1 0.62–0.64 / R@3 0.74 / MRR 0.67–0.69): high enough to catch a regression, low enough
 not to flake when a document changes. The floors are a **ratchet**: they move up with the measurement.
 Moving one *down* is a decision that needs an ADR, because it is indistinguishable from hiding a
 regression.
@@ -151,7 +152,7 @@ the plain fused order — and re-measured on all 58 cases:
 
 | Order | R@1 | R@3 | MRR | ms/query |
 | --- | --- | --- | --- | --- |
-| **fused (default)** | **0.64** | **0.74** | **0.69** | 1.1 |
+| **fused (default)** | **0.62–0.64** | **0.74** | **0.67–0.69** | 1.2 |
 | fused + lexical rerank (`--rerank`) | 0.500 | 0.724 | 0.618 | 10.2 |
 
 Still a loss, and now a slower one. Lexical features reward passages that *discuss* the topic and

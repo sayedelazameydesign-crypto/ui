@@ -21,14 +21,15 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { gitRoot } from "./semantic/lib.mjs";
+import { DEFAULT_INDEX, gitRoot } from "./semantic/lib.mjs";
 
 const sha = (text) => createHash("sha256").update(text).digest("hex");
 
 /**
  * detect:
- *   { cmd: [args], expect: "fail" }  run a node script; nonzero means "killed"
- *   { tamperedLedger: true }         build a temp root with a broken chain first
+ *   { kind: "property", only }        a property suite must fail
+ *   { kind: "cmd", cmd }              a command must exit nonzero (guard-level mutants)
+ *   { kind: "tampered-ledger" }       build a temp root with a broken chain first
  */
 const MUTANTS = [
   {
@@ -104,6 +105,17 @@ const MUTANTS = [
     quick: false,
   },
   {
+    // A licence is a decision. If the audit accepts a file that is not the text we
+    // declared, the decision is a comment rather than a control.
+    id: "license-text-drift",
+    file: "LICENSE",
+    find: "Apache License\nVersion 2.0, January 2004",
+    replace: "Apache License\nVersion 3.0, January 2004",
+    breaks: "the licence check: a relicensed repository would pass dependency-audit --strict",
+    detect: { kind: "cmd", cmd: ["scripts/dependency-audit.mjs", "--strict"] },
+    quick: false,
+  },
+  {
     id: "negation-ignored",
     file: "scripts/security/adversarial.mjs",
     find: '        if (!match || negated(line, match.index)) continue;',
@@ -115,6 +127,18 @@ const MUTANTS = [
 ];
 
 function runDetector(mutant, root) {
+  if (mutant.detect.kind === "cmd") {
+    const label = `node ${mutant.detect.cmd.join(" ")}`;
+    try {
+      execFileSync("node", mutant.detect.cmd, { cwd: root, encoding: "utf8", stdio: "pipe" });
+      return { holds: true, detail: `${label} still passed` };
+    } catch (error) {
+      const text = `${error.stdout ?? ""}${error.stderr ?? ""}`.replace(/\x1b\[[0-9;]*m/g, "");
+      const finding = text.split("\n").find((line) => line.includes(mutant.detect.expect ?? "license")) ?? "";
+      return { holds: false, detail: `behaviour changed: ${(finding || text.split("\n").filter(Boolean).at(-1) || label).trim().slice(0, 120)}` };
+    }
+  }
+
   if (mutant.detect.kind === "tampered-ledger") {
     // Two independent forgeries, because a single one can be caught by a single
     // check: (a) an entry edited in place, (b) an entry removed from the middle.
@@ -176,6 +200,17 @@ function main() {
   const QUICK = argv.includes("--quick");
   const JSON_OUT = argv.includes("--json");
   const root = gitRoot();
+
+  // A mutant that is "killed" or "survived" against an absent index proves
+  // nothing: the property suites would pass without exercising anything.
+  if (!existsSync(join(root, DEFAULT_INDEX))) {
+    try {
+      execFileSync("node", ["scripts/semantic/cli.mjs", "index"], { cwd: root, stdio: "pipe" });
+    } catch (error) {
+      console.error(`\x1b[31m✗ FATAL\x1b[0m could not build the index needed by the property mutants: ${error.message}`);
+      process.exit(2);
+    }
+  }
 
   const selected = QUICK ? MUTANTS.filter((mutant) => mutant.quick) : MUTANTS;
   const results = [];

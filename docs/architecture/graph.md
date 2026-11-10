@@ -4,7 +4,7 @@
 > Regenerate with `node scripts/architecture-graph.mjs --write`.
 > `guard` and the `architecture` workflow fail when this file is stale.
 
-**137 tracked files · 16 components · 32 directed links**
+**141 tracked files · 16 components · 32 directed links**
 
 ## Component map
 
@@ -30,7 +30,7 @@ graph LR
   adr -->|3| docs_arch
   adr -->|4| docs_ci
   adr -->|2| docs_data
-  adr -->|7| other
+  adr -->|8| other
   adr -->|5| root
   agent_harness -->|4| docs_agents
   agent_harness -->|1| root
@@ -44,7 +44,7 @@ graph LR
   other -->|2| docs_agents
   other -->|1| root
   other -->|1| semantic
-  root -->|53| adr
+  root -->|61| adr
   root -->|4| agent_harness
   root -->|37| docs_agents
   root -->|3| docs_arch
@@ -65,10 +65,10 @@ graph LR
 | Component | Files |
 | --- | --- |
 | `scripts` — Repository scripts | 33 |
-| `adr` — Decision records | 19 |
+| `adr` — Decision records | 20 |
 | `github-config` — GitHub config & templates | 17 |
-| `agent-harness` — Agent harness (.agent) | 15 |
-| `root` — Root docs & config | 13 |
+| `agent-harness` — Agent harness (.agent) | 16 |
+| `root` — Root docs & config | 15 |
 | `workflows` — CI workflows | 10 |
 | `docs-agents` — Agent docs | 9 |
 | `tests` — Property tests | 9 |
@@ -85,13 +85,13 @@ graph LR
 
 | From | To | References |
 | --- | --- | --- |
-| `root` | `adr` | 53 |
+| `root` | `adr` | 61 |
 | `root` | `docs-agents` | 37 |
 | `adr` | `docs-agents` | 20 |
 | `root` | `other` | 16 |
+| `adr` | `other` | 8 |
 | `root` | `docs-ci` | 8 |
 | `tests` | `tooling-lib` | 8 |
-| `adr` | `other` | 7 |
 | `docs-agents` | `adr` | 7 |
 | `scripts` | `semantic` | 7 |
 | `tests` | `scripts` | 7 |

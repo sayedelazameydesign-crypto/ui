@@ -1,0 +1,14 @@
+UI
+Copyright 2026 sayedelazameydesign-crypto
+
+This product includes software developed at
+sayedelazameydesign-crypto (https://github.com/sayedelazameydesign-crypto/ui).
+
+It is licensed under the Apache License, Version 2.0. The full text is in the
+LICENSE file at the repository root, and a copy is available at
+http://www.apache.org/licenses/LICENSE-2.0
+
+The corpus is documentation, scripts, and synthetic fixtures written for this
+repository. No third-party source code, dataset, or model weight is bundled:
+the semantic index is derived locally from the repository's own text, and the
+service fixtures under mocks/ are hand-written, not recordings.

@@ -15,8 +15,8 @@ injection phrase, exfil link) — plus a CLI (`adversarial-scan.mjs`), a corpus 
 neutraliser wired into `context-pack.mjs`, a warn-only pre-commit hook, and `check-repo.sh` §15/15.
 
 **Measured.** The corpus is **31 payloads / 20 benign**: 31/31 caught, **0/20 false positives**. The
-tracked sweep is **126 files / 586 KiB → 0 block, 0 warn** (after fixing a rule, see below). 15 new
-properties (70 total), 4 new mutants (**9/9 killed**). Neutralisation removes **0** codepoints from
+tracked sweep is **the whole tracked tree (≈130 files) → 0 block, 0 warn, 3 reviewed exemptions** (after fixing a rule, see below). 15 new
+properties (70 total), 4 new mutants (**10/10 killed** now, including the licence mutant added later). Neutralisation removes **0** codepoints from
 today's corpus — the integration exists for the day that number is not zero.
 
 **What the rules taught.** Two rules were wrong before the corpus found them. `(reveal|print|dump) … (secrets)`

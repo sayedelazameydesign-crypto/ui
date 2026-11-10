@@ -138,6 +138,18 @@ REQUIRED=(
   "tests/properties/context.mjs"
   "docs/agents/context-packing.md"
   "docs/adr/0017-context-packing.md"
+  # adversarial input detection
+  "scripts/security/adversarial.mjs"
+  "scripts/adversarial-scan.mjs"
+  "tests/adversarial/cases.json"
+  "tests/properties/adversarial.mjs"
+  "docs/security/adversarial-inputs.md"
+  "docs/adr/0019-adversarial-inputs.md"
+  ".adversarial-allowlist.json"
+  # licence
+  "LICENSE"
+  "NOTICE"
+  "docs/adr/0020-license.md"
 )
 for f in "${REQUIRED[@]}"; do
   if [[ -f "$f" ]]; then
@@ -151,6 +163,23 @@ for f in "${REQUIRED[@]}"; do
     fail "missing required file: $f"
   fi
 done
+
+# The licence is a decision, not a file: pin the text so it cannot drift into
+# something nobody approved (ADR-0020).
+if command -v node >/dev/null 2>&1; then
+  expected_license_sha="074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff"
+  actual_license_sha=$(node -e 'const {createHash}=require("crypto");const {readFileSync}=require("fs");process.stdout.write(createHash("sha256").update(readFileSync("LICENSE")).digest("hex"))' 2>/dev/null || true)
+  if [[ "$actual_license_sha" == "$expected_license_sha" ]]; then
+    ok "LICENSE is the canonical Apache-2.0 text (sha256 pinned)"
+  else
+    fail "LICENSE changed (sha256 ${actual_license_sha:-unknown}) — changing the licence needs an ADR superseding 0020"
+  fi
+  if grep -q "Copyright 2026 sayedelazameydesign-crypto" NOTICE 2>/dev/null; then
+    ok "NOTICE names the copyright holder"
+  else
+    fail "NOTICE does not name the copyright holder — Apache-2.0 attribution is not optional (ADR-0020)"
+  fi
+fi
 
 # ---------------------------------------------------------------------------
 section "2/15 · Secret scan (tracked files)"

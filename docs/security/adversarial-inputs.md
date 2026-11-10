@@ -72,7 +72,8 @@ The fixture is stored as `\uXXXX` escapes and the file is pure ASCII, so the fix
 be the attack it tests for — and `tests/adversarial/` is excluded from the tracked scan, or the
 corpus would report itself.
 
-Repository sweep: **127 files, 591 KiB → 0 block, 0 warn, 3 reviewed exemptions.** The exemptions are
+Repository sweep: the whole tracked tree (≈130 files, ≈600 KiB) → **0 block, 0 warn, 3 reviewed
+exemptions**; the command prints the exact counts, which grow with every document added. The exemptions are
 this policy's own two files: the detector's source comments quote the phrasing they detect, and the
 property suite constructs a negated directive on purpose. That is what the allowlist is for — the
 finding is real, and the reason is in the diff. The number is a statement about this repository today,
@@ -144,7 +145,7 @@ Four mutants in `scripts/mutation-test.mjs` prove the tests above can fail:
 | `excerpt-raw-bytes` | escaping in findings | "the scanner never re-emits the attack" |
 | `negation-ignored` | negation suppression | negated-directive property |
 
-`9/9 mutants killed` overall.
+`10/10 mutants killed` overall.
 
 ## 7. What this does **not** cover
 
