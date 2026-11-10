@@ -10,7 +10,7 @@
 [![provenance](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/provenance.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/provenance.yml)
 [![dependency-audit](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/dependency-audit.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/dependency-audit.yml)
 
-`main` · `L0 baseline` · `AGENTS.md` · `semantic index` · `provenance` · `zero-trust deps` · `RTL-first`
+`main` · `L0 baseline` · `AGENTS.md` · `semantic index` · `provenance` · `properties` · `living docs` · `RTL-first`
 
 </div>
 
@@ -42,6 +42,9 @@
 | [`scripts/semantic/`](scripts/semantic) | الجميع | فهرسة متجهية واستعلام بالمعنى |
 | [`docs/agents/provenance.md`](docs/agents/provenance.md) | الجميع | من كتب السطر: بشر أم وكيل |
 | [`docs/ci/ephemeral-environments.md`](docs/ci/ephemeral-environments.md) | الجميع | العزل والبيئات المؤقتة |
+| [`docs/data/artifacts.md`](docs/data/artifacts.md) | الجميع | LFS وسجل حالة البيانات |
+| [`docs/ci/testing-strategy.md`](docs/ci/testing-strategy.md) | الجميع | اختبارات الخصائص والمحاكاة |
+| [`docs/architecture/graph.md`](docs/architecture/graph.md) | الجميع | مخطط معماري مُولَّد |
 
 ### دورة العمل
 
@@ -81,6 +84,23 @@ node scripts/semantic/cli.mjs index
 node scripts/semantic/cli.mjs search "صلاحيات الوكيل الممنوعة" -k 3
 node scripts/provenance.mjs --strict
 node scripts/dependency-audit.mjs --strict
+```
+
+### القدرات الأربع التالية
+
+| القدرة | كيف نُفِّذت هنا | الحالة |
+| --- | --- | --- |
+| **إدارة الأصول والبيانات** | `.gitattributes` بمسارات Git LFS + `artifacts.manifest.json` بسجلّ SHA-256، وفحص الحارس للبايتات الكبيرة | ✅ البنية جاهزة، السجل فارغ حتى توجد بيانات |
+| **اختبار دلالي قائم على الخصائص** | `scripts/property-test.mjs` (مولّدات، تقليص، بذرة قابلة للتكرار) + `mock-server.mjs` بمُحاكاة حتمية لـ API | ✅ 19 خاصية تعمل، ووجدت خللاً حقيقياً في التقطيع |
+| **حوسبة خضراء وتوجيه التكلفة** | `change-classifier.mjs` يصنّف الفرق ويقرّر أي وظائف CI تعمل؛ إلغاء التشغيلات المتجاوزة ومهلات زمنية | ✅ التوجيه مطبّق؛ لا أرقام كربون مخترعة |
+| **توثيق حي ومخطط معماري** | `architecture-graph.mjs` يولّد Mermaid + JSON من الروابط والاستيرادات، و`--check` يفشل عند التقادم | ✅ مُولَّد ومُتحقَّق في الحارس وCI |
+
+```bash
+node scripts/property-test.mjs --runs 300
+node scripts/mock-server.mjs --port 4010
+node scripts/change-classifier.mjs --files "README.md"
+node scripts/architecture-graph.mjs --check
+node scripts/artifact-manifest.mjs --check
 ```
 
 ### حالة المزامنة
@@ -128,6 +148,9 @@ choice is deliberately deferred (see [ADR-0002](docs/adr/0002-defer-stack-choice
 | [`scripts/semantic/`](scripts/semantic) | everyone | Vector index + meaning-based query CLI |
 | [`docs/agents/provenance.md`](docs/agents/provenance.md) | everyone | Who wrote each commit: human or agent |
 | [`docs/ci/ephemeral-environments.md`](docs/ci/ephemeral-environments.md) | everyone | Isolation model and per-PR sandboxes |
+| [`docs/data/artifacts.md`](docs/data/artifacts.md) | everyone | LFS lanes and the artifact ledger |
+| [`docs/ci/testing-strategy.md`](docs/ci/testing-strategy.md) | everyone | Properties and mocks |
+| [`docs/architecture/graph.md`](docs/architecture/graph.md) | everyone | Generated architecture map |
 
 ### Workflow
 
@@ -169,6 +192,23 @@ node scripts/provenance.mjs --strict
 node scripts/dependency-audit.mjs --strict
 ```
 
+### The next four capabilities
+
+| Capability | Implementation | State |
+| --- | --- | --- |
+| **Data & artifact management** | `.gitattributes` LFS patterns + `artifacts.manifest.json` (SHA-256 ledger) + guard's oversized-blob rule | ✅ plumbing live, ledger empty until data exists |
+| **Property-based testing & mocks** | `scripts/property-test.mjs` (generators, shrinking, replayable seed) + deterministic `mock-server.mjs` with fault injection | ✅ 19 properties green — and it caught a real chunker bug |
+| **Green computing & cost routing** | `change-classifier.mjs` decides which CI jobs run; concurrency cancellation; job timeouts | ✅ routing live; no invented carbon numbers |
+| **Living documentation** | `architecture-graph.mjs` derives a Mermaid map + JSON from links and imports; `--check` fails on drift | ✅ generated, gated in guard and CI |
+
+```bash
+node scripts/property-test.mjs --runs 300
+node scripts/mock-server.mjs --port 4010
+node scripts/change-classifier.mjs --files "README.md"
+node scripts/architecture-graph.mjs --check
+node scripts/artifact-manifest.mjs --check
+```
+
 ### Honest limits
 
 - The guard proves **conventions**, not correctness — review still matters.
@@ -177,6 +217,11 @@ node scripts/dependency-audit.mjs --strict
 - Provenance trailers are **declarative, not cryptographic** — review is the real control (ADR-0003).
 - The semantic index uses hashing embeddings, not a neural model: precise on this repository's own
   vocabulary, approximate elsewhere. Swapping in a real model touches one file (`lib.mjs`).
+- Property tests prove invariants, not intent; a wrong invariant is confidently wrong. No coverage
+  metric is claimed — there is nothing to cover until a runtime exists.
+- "Green" here means **runner-minutes avoided**, measured. Carbon accounting would be fabrication
+  without telemetry.
+- The architecture graph is static-reference only; runtime topology is out of scope.
 - No model calls are made by CI. Everything in `.github/workflows/` is deterministic and auditable.
 
 ### Next steps

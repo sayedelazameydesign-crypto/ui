@@ -34,6 +34,7 @@ can change it without breaking it.
 | L4 · Surfaces | pages / routes / content | ⛔ not started |
 | L5 · Delivery | hosting, previews, observability | ⛔ not chosen (D3, D6) |
 | L0+ · Retrieval & provenance | semantic index, authorship trailers, supply-chain audit | ✅ present |
+| L0+ · Verification & docs | property tests, deterministic mocks, generated architecture graph | ✅ present |
 
 The `L0+` row is cross-cutting tooling: it never imports from L1–L5 and must keep working when the
 stack arrives.
@@ -59,6 +60,15 @@ stack arrives.
    with no network and no API key; identical inputs give identical outputs.
 10. **Dependencies are untrusted input.** Pinning, install-hook review, and licence checks run when
     a dependency arrives — not a month later ([ADR-0004](docs/adr/0004-zero-trust-dependencies.md)).
+11. **Generated documentation is verified, not trusted.** The architecture graph and the artifact
+    ledger are outputs; `--check` fails when they disagree with the repository
+    ([ADR-0008](docs/adr/0008-living-documentation.md)).
+12. **Optimisation never weakens a gate.** A job may be skipped only when the change classifier
+    proves it safe; guard, provenance, and PR hygiene always run
+    ([ADR-0007](docs/adr/0007-green-builds.md)).
+13. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
+    result can be traced to the exact data that produced it
+    ([ADR-0005](docs/adr/0005-artifact-storage.md)).
 
 ## 4. Vocabulary
 
@@ -76,6 +86,11 @@ stack arrives.
 | **Provenance** | The declared authorship of a commit (human vs. AI + tool), enforced in CI. |
 | **Sandbox** | An ephemeral, non-root, capability-dropped environment a change can be run in. |
 | **Orphan** | A code file nothing references — a *candidate* for removal, never proof of it. |
+| **Property** | An invariant asserted over generated inputs, not a hand-picked example. |
+| **Mock** | A deterministic local stand-in for an external service, served from fixtures. |
+| **Component** | A directory-level node in the architecture graph (workflows, skills, semantic…). |
+| **LFS pointer** | The small tracked stub that stands in for a large binary's bytes. |
+| **Routing class** | `docs` · `ci` · `tooling` · `data` · `deps` · `code` — decides which CI jobs run. |
 
 ## 5. Non-goals
 
@@ -101,6 +116,10 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0002 — Deferring the application stack](docs/adr/0002-defer-stack-choice.md) · accepted
 - [ADR-0003 — Trailer-based AI code provenance](docs/adr/0003-ai-code-provenance.md) · accepted
 - [ADR-0004 — Zero-trust dependency engine](docs/adr/0004-zero-trust-dependencies.md) · accepted
+- [ADR-0005 — Artifact storage: LFS + manifest](docs/adr/0005-artifact-storage.md) · accepted
+- [ADR-0006 — Property tests and deterministic mocks](docs/adr/0006-testing-strategy.md) · accepted
+- [ADR-0007 — Cost- and carbon-aware CI routing](docs/adr/0007-green-builds.md) · accepted
+- [ADR-0008 — Living documentation as a verified artifact](docs/adr/0008-living-documentation.md) · accepted
 
 ## 8. Change protocol
 
@@ -112,6 +131,9 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 | Agent capability change | `docs/agents/permissions.md` + ADR |
 | New script under `scripts/` | `AGENTS.md` §3/§4 + guard required-file list + a smoke test |
 | Authorship or licence policy change | new ADR superseding 0003 / 0004 |
+| New artifact root or LFS pattern | `.gitattributes` + `docs/data/artifacts.md` + manifest regeneration |
+| Structure change (files move) | `node scripts/architecture-graph.mjs --write` |
+| New CI job | classifier rule + `docs/ci/green-builds.md` routing table |
 
 ## 9. References
 
@@ -123,3 +145,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - Semantic search: [docs/agents/semantic-search.md](docs/agents/semantic-search.md)
 - Code provenance: [docs/agents/provenance.md](docs/agents/provenance.md)
 - Ephemeral environments: [docs/ci/ephemeral-environments.md](docs/ci/ephemeral-environments.md)
+- Artifacts & datasets: [docs/data/artifacts.md](docs/data/artifacts.md)
+- Testing strategy: [docs/ci/testing-strategy.md](docs/ci/testing-strategy.md)
+- Green builds: [docs/ci/green-builds.md](docs/ci/green-builds.md)
+- Living documentation: [docs/architecture/living-docs.md](docs/architecture/living-docs.md)

@@ -33,10 +33,17 @@ agents:
       destructive_shell: deny # rm -rf, git clean -xfd, git reset --hard on shared branches
     tooling:
       build_semantic_index: allow # .index/ is derived and gitignored
+      run_property_tests: allow
+      run_mock_server: allow # bound to 127.0.0.1, no egress
+      classify_changes: allow
+      regenerate_generated_docs: allow # --write, then commit the output
+      move_binary_to_lfs: ask # history rewrite + quota implications
       remote_embedding_provider: deny # opt-in per session, explicit data decision
       run_provenance_report: allow
       run_dependency_audit: allow
       delete_orphaned_code: ask # report is advisory; removal is a dedicated PR
+      hand_edit_generated_files: deny # regenerate with --write instead
+      commit_file_over_1mb_without_lfs: deny
     data:
       read_secrets: deny
       write_secrets: deny

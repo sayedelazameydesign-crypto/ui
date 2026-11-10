@@ -19,7 +19,7 @@ git fetch --all --prune
 git switch main && git pull
 git switch -c feat/my-change        # feat/ fix/ docs/ chore/
 # … edit …
-scripts/check-repo.sh               # must pass
+scripts/check-repo.sh               # must pass (also checks generated files are current)
 git add -p                          # stage intentionally, not everything
 git commit                          # Conventional Commits
 git push -u origin HEAD
@@ -77,6 +77,17 @@ Memory files were accumulating stale task notes. Add a promotion path
 (scratch → memory → ADR) so scratch content is deleted each session.
 ```
 
+## 3.1 Regenerate what is generated
+
+Three files are outputs, never hand-edited. If your change alters structure, artifacts, or
+capabilities, regenerate and commit the result — the guard fails otherwise:
+
+```bash
+node scripts/architecture-graph.mjs --write   # docs/architecture/graph.{md,json}
+node scripts/artifact-manifest.mjs --write    # artifacts.manifest.json
+node scripts/property-test.mjs --runs 300     # invariants; also runs in CI
+```
+
 ## 4. Pull requests
 
 - Keep it **one concern** and reviewable (~≤400 changed lines). Split larger work.
@@ -94,6 +105,8 @@ Memory files were accumulating stale task notes. Add a promotion path
 | User-facing onboarding | [`README.md`](README.md) — **both** Arabic and English sections |
 | An expensive-to-reverse decision | new ADR in [`docs/adr/`](docs/adr/) (never edit an accepted one) |
 | A new script under `scripts/` | `AGENTS.md` §3/§4 + guard required-file list + a smoke test |
+| A new data/model artifact | `.gitattributes` pattern + `artifacts.manifest.json` regeneration |
+| A moved/added folder | `node scripts/architecture-graph.mjs --write` |
 | Capabilities / MCP / memory | [`docs/agents/`](docs/agents/) |
 
 ## 5.1 Finding things before writing

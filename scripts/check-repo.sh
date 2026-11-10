@@ -29,7 +29,7 @@ section() { [[ $QUIET -eq 1 ]] || bold "$1"; }
 has_arabic() { LC_ALL=C grep -q "$(printf '\330')" "$1" 2>/dev/null; }
 
 # ---------------------------------------------------------------------------
-section "1/7 · Required governance files"
+section "1/8 · Required governance files"
 REQUIRED=(
   "AGENTS.md"
   "CONTEXT.md"
@@ -68,6 +68,30 @@ REQUIRED=(
   ".github/workflows/semantic-index.yml"
   ".github/workflows/dependency-audit.yml"
   ".github/workflows/license-compliance.yml"
+  # data, testing, routing, living documentation
+  ".gitattributes"
+  "artifacts.manifest.json"
+  "scripts/lib/property.mjs"
+  "scripts/property-test.mjs"
+  "scripts/mock-server.mjs"
+  "scripts/change-classifier.mjs"
+  "scripts/artifact-manifest.mjs"
+  "scripts/architecture-graph.mjs"
+  "tests/properties/semantic.mjs"
+  "tests/properties/tooling.mjs"
+  "mocks/fixtures/github-issues.json"
+  "docs/data/artifacts.md"
+  "docs/ci/testing-strategy.md"
+  "docs/ci/green-builds.md"
+  "docs/architecture/living-docs.md"
+  "docs/architecture/graph.md"
+  "docs/architecture/graph.json"
+  "docs/adr/0005-artifact-storage.md"
+  "docs/adr/0006-testing-strategy.md"
+  "docs/adr/0007-green-builds.md"
+  "docs/adr/0008-living-documentation.md"
+  ".github/workflows/property-tests.yml"
+  ".github/workflows/architecture.yml"
 )
 for f in "${REQUIRED[@]}"; do
   if [[ -f "$f" ]]; then
@@ -83,7 +107,7 @@ for f in "${REQUIRED[@]}"; do
 done
 
 # ---------------------------------------------------------------------------
-section "2/7 · Secret scan (tracked files)"
+section "2/8 · Secret scan (tracked files)"
 SECRET_PATTERNS=(
   '-----BEGIN [A-Z ]*PRIVATE KEY-----'
   'AKIA[0-9A-Z]{16}'
@@ -120,8 +144,23 @@ if [[ -n "$tracked_env" ]]; then
 fi
 [[ -z "$tracked_env" ]] && ok "no tracked env files, no obvious secrets"
 
+# Binary hygiene: a tracked file above 1 MB must be an LFS pointer, not raw bytes.
+big_files=0
+while IFS= read -r file; do
+  [[ -f "$file" ]] || continue
+  size=$(stat -c%s "$file" 2>/dev/null || echo 0)
+  [[ "$size" -gt 1048576 ]] || continue
+  if head -c 64 "$file" 2>/dev/null | grep -q "git-lfs.github.com/spec/v1"; then
+    ok "LFS pointer: $file ($(head -c 200 "$file" | grep -o 'size [0-9]*' | head -1))"
+  else
+    fail "large tracked file without LFS: $file (${size}B) — see docs/data/artifacts.md"
+    big_files=$((big_files+1))
+  fi
+done < <(git ls-files)
+[[ $big_files -eq 0 ]] && ok "no oversized non-LFS blobs tracked"
+
 # ---------------------------------------------------------------------------
-section "3/7 · JSON validity"
+section "3/8 · JSON validity"
 if command -v jq >/dev/null 2>&1; then
   while IFS= read -r json; do
     if jq empty "$json" 2>/dev/null; then ok "$json parses"; else fail "$json is not valid JSON"; fi
@@ -131,7 +170,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "4/7 · Relative links resolve"
+section "4/8 · Relative links resolve"
 broken=0
 while IFS= read -r doc; do
   dir=$(dirname "$doc")
@@ -150,7 +189,7 @@ done < <(git ls-files '*.md')
 [[ $broken -eq 0 ]] && ok "all relative links resolve"
 
 # ---------------------------------------------------------------------------
-section "5/7 · Agent skills are well-formed"
+section "5/8 · Agent skills are well-formed"
 shopt -s nullglob
 skills=(.claude/skills/*/SKILL.md)
 shopt -u nullglob
@@ -166,7 +205,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "6/7 · Documentation conventions"
+section "6/8 · Documentation conventions"
 # Bilingual requirement: human-facing entry points must contain Arabic text.
 for doc in README.md AGENTS.md CONTEXT.md; do
   if has_arabic "$doc"; then
@@ -191,7 +230,7 @@ if git rev-parse --verify -q origin/main >/dev/null; then
 fi
 
 # ---------------------------------------------------------------------------
-section "7/7 · Agent tooling smoke test"
+section "7/8 · Agent tooling smoke test"
 if command -v node >/dev/null 2>&1; then
   if node scripts/semantic/cli.mjs index --out .index/semantic.json >/dev/null 2>&1; then
     ok "semantic index builds"
@@ -219,6 +258,30 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   warn "node not installed — agent tooling smoke test skipped (CI installs it)"
+fi
+
+# ---------------------------------------------------------------------------
+section "8/8 · Generated artifacts are current"
+if command -v node >/dev/null 2>&1; then
+  if node scripts/architecture-graph.mjs --check >/dev/null 2>&1; then
+    ok "architecture graph matches the repository"
+  else
+    fail "docs/architecture/graph.* is stale — run: node scripts/architecture-graph.mjs --write"
+  fi
+
+  if node scripts/artifact-manifest.mjs --check >/dev/null 2>&1; then
+    ok "artifact manifest matches disk"
+  else
+    fail "artifacts.manifest.json drifted — run: node scripts/artifact-manifest.mjs --write"
+  fi
+
+  if node scripts/property-test.mjs --runs 50 --quiet >/dev/null 2>&1; then
+    ok "property suite passes (50 runs)"
+  else
+    fail "property suite failed — run: node scripts/property-test.mjs"
+  fi
+else
+  warn "node not installed — generated-artifact checks skipped (CI installs it)"
 fi
 
 # ---------------------------------------------------------------------------

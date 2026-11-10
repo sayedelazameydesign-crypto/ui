@@ -18,6 +18,8 @@
 | Where does project knowledge live? | `CONTEXT.md` + `docs/adr/` — update them with the code. |
 | How do I declare authorship? | Trailer: `AI-Assisted-By: <tool>` or `Human-Authored: true` ([provenance](docs/agents/provenance.md)). |
 | How do I find code by meaning? | `node scripts/semantic/cli.mjs search "…"` ([semantic search](docs/agents/semantic-search.md)). |
+| Where do datasets and model weights go? | Git LFS + `artifacts.manifest.json` ([artifacts](docs/data/artifacts.md)). |
+| May I hand-edit a generated file? | **No.** Regenerate it (`--write`) and commit the output. |
 
 ---
 
@@ -60,6 +62,12 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
     API key to run in CI. Remote model providers are opt-in per session, never a default.
 11. **Never delete code you cannot prove is dead.** `scripts/dead-code-report.mjs` outputs
     candidates; removal happens in a dedicated PR with the guard green.
+12. **Never hand-edit generated files.** `docs/architecture/graph.md`, `graph.json`, and
+    `artifacts.manifest.json` are outputs: change the input, run the generator, commit the result.
+13. **Large binaries go through LFS.** Declare the pattern in `.gitattributes` *before* the first
+    commit of that type, then record it with `node scripts/artifact-manifest.mjs --write`.
+14. **Never weaken a gate to make a run faster.** Routing may skip work only when the classifier
+    proves the change is docs-only ([green builds](docs/ci/green-builds.md)).
 
 ---
 
@@ -86,9 +94,19 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
 │   ├── adr/                   ← architecture decision records (immutable once accepted)
 │   ├── agents/                ← permissions, memory, MCP, semantic search, provenance
 │   └── ci/                    ← ephemeral environments, pipeline guarantees
+├── tests/properties/          ← invariant tests (property-based, seeded)
+├── mocks/fixtures/            ← static service fixtures (deterministic, offline)
+├── artifacts.manifest.json    ← dataset/model state ledger (generated)
+├── .gitattributes             ← LFS patterns + line-ending policy
 └── scripts/
     ├── check-repo.sh          ← deterministic repository guard (runs locally and in CI)
     ├── semantic/              ← offline vector index + `search` CLI
+    ├── lib/property.mjs       ← property-testing primitives (generators, shrinking)
+    ├── property-test.mjs      ← property runner (seeded, shrinks failures)
+    ├── mock-server.mjs        ← deterministic HTTP mocks, fault injection
+    ├── change-classifier.mjs  ← CI cost/carbon routing by change class
+    ├── artifact-manifest.mjs  ← artifact ledger: write / check for drift
+    ├── architecture-graph.mjs ← living architecture graph: write / check
     ├── provenance.mjs         ← AI/human authorship report
     ├── dependency-audit.mjs   ← zero-trust supply-chain findings
     ├── dead-code-report.mjs   ← orphan candidates (advisory)
@@ -113,6 +131,13 @@ node scripts/semantic/cli.mjs search "…" -k 5   # retrieve context by meaning
 node scripts/provenance.mjs --strict            # authorship trailers for this branch
 node scripts/dependency-audit.mjs --strict      # supply-chain posture
 node scripts/dead-code-report.mjs               # orphan candidates (never auto-delete)
+
+node scripts/property-test.mjs --runs 300       # invariants over generated input
+node scripts/mock-server.mjs --port 4010        # deterministic service mocks (no egress)
+node scripts/change-classifier.mjs              # what the current diff should run in CI
+
+node scripts/architecture-graph.mjs --write     # regenerate the living architecture graph
+node scripts/artifact-manifest.mjs --write      # regenerate the artifact ledger
 ```
 
 There is no build system yet. **Do not add one** as a side effect of an unrelated task; the
@@ -140,6 +165,7 @@ stack choice is an open decision (§9) that requires human sign-off.
 
 - [ ] The diff does exactly what was asked — nothing more, nothing less.
 - [ ] `scripts/check-repo.sh` passes locally.
+- [ ] Generated files regenerated if structure or artifacts changed (`--write`, then commit).
 - [ ] No secrets, no `.env` values, no credentials, no personal data in the diff.
 - [ ] Documentation updated (`CONTEXT.md` / ADR / README) if behaviour or structure changed.
 - [ ] Commit messages follow the convention; branch is pushed with `-u`.
@@ -203,6 +229,7 @@ When in doubt: **read-only beats write, ask beats assume.**
 | D4 | Whether agents may open PRs autonomously vs. draft-only | open |
 | D5 | Repository licence (MIT vs. Apache-2.0) — no `LICENSE` file yet | open |
 | D6 | Preview hosting target for per-PR sandboxes (see `docs/ci/ephemeral-environments.md`) | open |
+| D7 | Artifact remote for large data (LFS quota vs. dataset registry) — see `docs/data/artifacts.md` | open |
 
 Do not pre-empt these by scaffolding a framework. Propose, then wait.
 
