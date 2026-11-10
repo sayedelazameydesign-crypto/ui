@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Local commit-msg hook: Conventional Commits subject + provenance trailer.
+# Install with: bash scripts/install-hooks.sh
+# Policy: docs/agents/provenance.md · docs/adr/0003-ai-code-provenance.md
+#
+# This is a courtesy check. CI is the authority (workflows: guard, provenance).
+
+set -Eeuo pipefail
+
+message_file="${1:?commit message file missing}"
+subject=$(head -1 "$message_file")
+
+# Merge, revert, and fixup commits are exempt: their trailers are handled elsewhere.
+case "$subject" in
+  Merge* | Revert* | "fixup!"* | "squash!"*) exit 0 ;;
+esac
+
+status=0
+
+if ! printf '%s' "$subject" | grep -qE '^(feat|fix|docs|chore|refactor|test|ci|build|perf|style|revert)(\([a-z0-9._/-]+\))?!?: .{5,}'; then
+  printf '\033[31m✗ subject is not Conventional Commits\033[0m\n'
+  printf '  expected: <type>(<scope>): <summary>   e.g. feat(agents): add provenance check\n'
+  status=1
+fi
+
+if ! grep -qiE '^(AI-Assisted-By|Human-Authored):' "$message_file"; then
+  printf '\033[31m✗ provenance trailer missing\033[0m\n'
+  printf '  add exactly one trailer to the message body:\n\n'
+  printf '      AI-Assisted-By: <tool or model>\n'
+  printf '      Model: <model-id>                (optional)\n'
+  printf '      Human-Reviewed-By: @handle       (required for AI commits)\n\n'
+  printf '  or, for work written without a model:\n\n'
+  printf '      Human-Authored: true\n\n'
+  printf '  why: docs/agents/provenance.md\n'
+  status=1
+fi
+
+if grep -qiE '^Human-Authored: true' "$message_file" && grep -qiE '^AI-Assisted-By:' "$message_file"; then
+  printf '\033[31m✗ contradictory provenance: both Human-Authored and AI-Assisted-By present\033[0m\n'
+  status=1
+fi
+
+if [[ $status -ne 0 ]]; then
+  printf '\n\033[2mbypass (discouraged, will fail in CI): git commit --no-verify\033[0m\n'
+fi
+
+exit $status

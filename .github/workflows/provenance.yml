@@ -1,0 +1,52 @@
+name: provenance
+
+# Verifies AI/human authorship trailers on every commit in the pull request.
+# Policy: docs/agents/provenance.md · Decision: docs/adr/0003-ai-code-provenance.md
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: provenance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  provenance:
+    name: Authorship trailers
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Report (human-readable)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: node scripts/provenance.mjs --range "origin/${BASE_REF}..HEAD"
+
+      - name: Verify (strict) and emit artifact
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -o pipefail
+          node scripts/provenance.mjs --strict --json --range "origin/${BASE_REF}..HEAD" | tee provenance.json
+
+      - name: Upload provenance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: provenance
+          path: provenance.json
+          retention-days: 30
+          if-no-files-found: warn
