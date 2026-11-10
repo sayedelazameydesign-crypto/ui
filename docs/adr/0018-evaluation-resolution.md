@@ -33,7 +33,7 @@ how easy.
    (1/58 = 1.7 points) and a seeded, deterministic bootstrap 95% interval for R@1
    (currently `[0.52, 0.76]`). A change smaller than the interval is not a result.
 4. **The gate is a ratchet keyed to the new set**: R@1 ≥ 0.60, R@3 ≥ 0.72, MRR ≥ 0.66 — just under the
-   measured 0.638 / 0.741 / 0.687. Lowering a floor requires its own ADR, because it is otherwise
+   measured 0.64 / 0.74 / 0.69. Lowering a floor requires its own ADR, because it is otherwise
    indistinguishable from hiding a regression.
 5. **Re-measure the rejected candidates on the larger set** rather than carrying 18-case conclusions
    forward. Eight candidates were re-run; two survived (windowed markdown sections, glossary growth) and
@@ -41,9 +41,9 @@ how easy.
 
 ## Consequences
 
-- R@1 fell from 0.722 to 0.638 **because the test got harder**, not because the engine regressed. Both
-  numbers are reported: `v1` still scores 0.778 on the same engine.
-- The `v1`/`v2` gap (0.778 versus 0.575) is the measured size of the author bias that was previously
+- R@1 fell from 0.72 to 0.64 **because the test got harder**, not because the engine regressed. Both
+  numbers are reported: `v1` still scores 0.78 on the same engine.
+- The `v1`/`v2` gap (0.78 versus 0.58) is the measured size of the author bias that was previously
   only a caveat in a table.
 - The 0.85 target (decision D8) is now demonstrably out of reach for this engine: the two changes that
   work move R@1 by 3.4 and 5.2 points, and the interval is ±12. The replacement trigger in

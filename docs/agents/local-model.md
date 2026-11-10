@@ -85,7 +85,7 @@ Two of the three prerequisites are met by this phase: the **policy** exists and 
 an artifact in this environment — and (b) the inference runtime, a native dependency that would
 change the default install footprint.
 
-That is why the measured `R@1` is still **0.638** over 58 cases, and why the only honest statement about 0.85 is:
+That is why the measured `R@1` is still **0.64** over 58 cases, and why the only honest statement about 0.85 is:
 *the machinery is ready; the artifact is not.*
 
 ## 5. Related decisions

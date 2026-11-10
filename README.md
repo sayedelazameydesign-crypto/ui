@@ -107,12 +107,12 @@ node scripts/artifact-manifest.mjs --check
 
 | القدرة | كيف نُفِّذت هنا | الحالة |
 | --- | --- | --- |
-| **بحث هجين مُقاس** | متجه + BM25 بدمج RRF، وتوسيع استعلام عربي من معجم محلي (87 مدخلاً)؛ **58 استعلاماً ذهبياً** (43 إنجليزي · 15 عربي) وفاصل ثقة مُبلَّغ عنه | ✅ R@1 **0.638** · R@3 **0.741** · MRR **0.687** — فاصل 95% لـ R@1: 0.52–0.76 |
+| **بحث هجين مُقاس** | متجه + BM25 بدمج RRF، وتوسيع استعلام عربي من معجم محلي (87 مدخلاً)؛ **58 استعلاماً ذهبياً** (43 إنجليزي · 15 عربي) وفاصل ثقة مُبلَّغ عنه | ✅ R@1 **0.64** · R@3 **0.74** · MRR **0.69** — فاصل 95% لـ R@1: 0.52–0.76 |
 | **بوابة جودة** | `semantic/eval.mjs` يفشل تحت R@3 0.90 أو MRR 0.75 — سقف يزيد ولا ينقص | ✅ مفعّلة في الحارس و CI |
 | **تحقق صارم (fail-closed)** | مخطّطات JSON لمفاتيح `.mcp.json` والسجلات؛ أي مفتاح غير معروف خطأ لا تحذير | ✅ مع اختبارات سلبية |
 | **سيادة البيانات** | قائمة وجهات مسموحة بـ«سبب» و«ملف مسموح»؛ أي URL جديد يفشل البناء | ✅ 8 وجهات معلنة، 0 مخالفة |
 | **حارس الخصوصية (PII/DLP)** | فحص المحتوى المرحّل قبل الالتزام: بريد، هاتف مصري، رقم قومي، بطاقات (Luhn)، مفاتيح وسرّ؛ النتائج مُقنَّعة دائماً | ✅ 10 قواعد، 0 نتيجة، إعفاء لا بد له من سبب |
-| **نتيجة سلبية موثّقة** | معيد ترتيب معجمي جُرِّب في 4 تهيئات ثم أُعيد قياسه على 58 استعلاماً: R@1 0.500 مقابل 0.638 — لذا هو مُعطَّل افتراضياً | ✅ R@1 = 0.638 (الهدف 0.85، D8 — يحتاج المسار العصبي) |
+| **نتيجة سلبية موثّقة** | معيد ترتيب معجمي جُرِّب في 4 تهيئات ثم أُعيد قياسه على 58 استعلاماً: R@1 0.50 مقابل 0.64 — لذا هو مُعطَّل افتراضياً | ✅ R@1 = 0.64 (الهدف 0.85، D8 — يحتاج المسار العصبي) |
 | **تحميل نموذج اختياري ومُوثَّق** | وزن مُكمَّم ≤ 100MB في `.models/` (خارج Git)، لا يُستخدم إلا ببصمة SHA-256 مثبَّتة بشرياً؛ الشبكة تحتاج `--allow-network` صريحاً | ✅ السياسة والمُحمِّل مُنفَّذان ومُختبَران؛ الوزن نفسه غير مُنزَّل |
 
 ```bash
@@ -133,8 +133,8 @@ node scripts/check-egress.mjs --list        # الوجهات المعلنة وأ
 
 | الحقيقة الآن | الرقم |
 | --- | --- |
-| R@1 (هجين) | **0.638** على 58 استعلاماً — و**0.778** على الـ18 الأصلية بنفس المحرك |
-| R@3 (هجين) | **0.741** مقابل 0.552 للمتجه وحده |
+| R@1 (هجين) | **0.64** على 58 استعلاماً — و**0.78** على الـ18 الأصلية بنفس المحرك |
+| R@3 (هجين) | **0.74** مقابل 0.55 للمتجه وحده |
 | زمن الاستجابة p50 | **0.65 ms** لكل استعلام (1 471 استعلاماً/ثانية) |
 | الحجم | 618 مقطعاً · 110 ملفاً · فهرس 1.6MB · +8MB ذاكرة |
 
@@ -277,12 +277,12 @@ node scripts/artifact-manifest.mjs --check
 
 | Capability | Implementation | State |
 | --- | --- | --- |
-| **Measured hybrid retrieval** | vector + BM25 fused by RRF, Arabic query expansion from an 87-entry glossary, **58-case** bilingual gold set with a reported interval | ✅ R@1 **0.638** · R@3 **0.741** · MRR **0.687** — 95% CI for R@1: 0.52–0.76 |
+| **Measured hybrid retrieval** | vector + BM25 fused by RRF, Arabic query expansion from an 87-entry glossary, **58-case** bilingual gold set with a reported interval | ✅ R@1 **0.64** · R@3 **0.74** · MRR **0.69** — 95% CI for R@1: 0.52–0.76 |
 | **Quality gate** | `semantic/eval.mjs` fails below R@3 0.90 / MRR 0.75 — a floor that only ratchets up | ✅ in guard and CI |
 | **Fail-closed validation** | explicit JSON schemas for `.mcp.json` and the ledgers; unknown keys are errors | ✅ negative-tested |
 | **Data sovereignty** | egress allowlist where each host needs a reason and a permitted file scope | ✅ 8 declared hosts, 0 violations |
 | **Privacy guard (PII/DLP)** | staged-diff scan before commit: email, EG phone, national ID, Luhn-checked cards, keys; findings are always masked | ✅ 10 rules, 0 findings, reasoned exemptions only |
-| **A documented negative result** | a lexical reranker was measured in 4 configurations, then re-measured on 58 cases: R@1 0.500 against 0.638 — so it ships off | ✅ R@1 0.638 (goal 0.85, D8 — needs the neural path) |
+| **A documented negative result** | a lexical reranker was measured in 4 configurations, then re-measured on 58 cases: R@1 0.50 against 0.64 — so it ships off | ✅ R@1 0.64 (goal 0.85, D8 — needs the neural path) |
 | **Opt-in, pinned model load** | quantized weights ≤ 100 MiB in `.models/` (outside Git), usable only with a human-pinned SHA-256; a fetch needs explicit `--allow-network` | ✅ policy and loader enforced and property-tested; no artifact installed |
 
 ```bash
@@ -304,8 +304,8 @@ boundary?**
 
 | Fact, now | Number |
 | --- | --- |
-| R@1 (hybrid) | **0.638** over 58 cases — and **0.778** over the original 18 on the same engine |
-| R@3 (hybrid) | **0.741** vs 0.552 vector-only |
+| R@1 (hybrid) | **0.64** over 58 cases — and **0.78** over the original 18 on the same engine |
+| R@3 (hybrid) | **0.74** vs 0.55 vector-only |
 | p50 latency | **0.65 ms** per query (1,471 queries/s) |
 | Footprint | 618 chunks · 110 files · 1.6 MB index · +8 MB heap |
 
@@ -355,7 +355,7 @@ The browser imports the **same** `scripts/semantic/core.mjs` the CLI uses, and
 - "Green" here means **runner-minutes avoided**, measured. Carbon accounting would be fabrication
   without telemetry.
 - The architecture graph is static-reference only; runtime topology is out of scope.
-- Retrieval is **measured and humbler than it first looked**: 58 gold cases, top-1 at 0.638 with a
+- Retrieval is **measured and humbler than it first looked**: 58 gold cases, top-1 at 0.64 with a
   95% interval of ±0.12, and four documented failure *classes*. The original 18 cases score 0.778 on
   the same engine — that gap is author bias, measured instead of assumed. A neural reranker is the
   next real gain (D8), not more tuning.
@@ -374,7 +374,7 @@ The browser imports the **same** `scripts/semantic/core.mjs` the CLI uses, and
 - The playground is a **demo**, not a product: no ranking feedback loop, no query log, no
   multi-user concurrency, and it loads the whole index into memory (fine at 445 chunks, not at 50k).
 - Neural reranking is **plumbed but not running**: the manifest is unpinned (nobody verified an
-  artifact here) and `onnxruntime-node` is not installed. `R@1` stays 0.638 until both exist.
+  artifact here) and `onnxruntime-node` is not installed. `R@1` stays 0.64 until both exist.
 - No model calls are made by CI. Everything in `.github/workflows/` is deterministic and auditable.
 
 ### Next steps

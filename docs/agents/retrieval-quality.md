@@ -62,18 +62,18 @@ Corpus: **618 chunks from 110 files** (tests, fixtures and generated mirrors exc
 
 | Mode | R@1 | R@3 | R@5 | MRR | ms/query |
 | --- | --- | --- | --- | --- | --- |
-| **hybrid** | **0.638** | **0.741** | **0.759** | **0.687** | 1.3 |
-| vector only | 0.414 | 0.552 | 0.621 | 0.491 | 0.6 |
-| keyword only | 0.466 | 0.707 | 0.810 | 0.595 | 0.5 |
+| **hybrid** | **0.64** | **0.74** | **0.76** | **0.69** | 1.4 |
+| vector only | 0.41 | 0.55 | 0.62 | 0.49 | 0.6 |
+| keyword only | 0.47 | 0.71 | 0.81 | 0.60 | 0.5 |
 
 Subsets, because the average is not the story:
 
 | Subset | Cases | R@1 | R@3 | MRR |
 | --- | --- | --- | --- | --- |
-| `v1` (original) | 18 | 0.778 | 0.889 | 0.835 |
-| `v2` (added) | 40 | 0.575 | 0.675 | 0.621 |
-| English | 43 | 0.674 | 0.791 | 0.733 |
-| Arabic | 15 | 0.533 | 0.600 | 0.556 |
+| `v1` (original) | 18 | 0.78 | 0.89 | 0.84 |
+| `v2` (added) | 40 | 0.58 | 0.68 | 0.62 |
+| English | 43 | 0.67 | 0.79 | 0.73 |
+| Arabic | 15 | 0.53 | 0.60 | 0.56 |
 
 The original 18 look easy next to the 40 that followed: they were written by the author of the
 ranker, on the documents the ranker was built from. That gap is the most useful number in this file.
@@ -111,10 +111,11 @@ so the comparison is fair.
 \* measured while the set was still 18 cases, i.e. inside the noise band described in §4b — which is
 itself the point of that section.
 
-The candidate rows were measured against the corpus as it stood during the experiment (602 chunks). §3 is
-the final state *after* these documents were written (610 chunks): documentation is corpus, so a table
-about retrieval moves the retrieval numbers. Both states are reported instead of pretending the corpus
-holds still.
+The candidate rows and §3a were measured against the corpus as it stood during the experiment (602
+chunks), so they keep three decimals; §3 is the final state *after* these documents were written (618
+chunks) and is quoted at two, because the third digit moves whenever a sentence is added. Documentation is
+corpus: a table about retrieval moves the retrieval numbers. Both states are reported instead of pretending
+the corpus holds still.
 
 ## 4. The gate (a ratchet, not a wish)
 
@@ -123,7 +124,7 @@ node scripts/semantic/eval.mjs --min-r1 0.60 --min-recall 0.72 --min-mrr 0.66   
 ```
 
 CI and the guard fail when hybrid drops below R@1 **0.60**, R@3 **0.72** or MRR **0.66** over the 58
-cases. Each floor sits just under the measured value: high enough to catch a regression, low enough
+cases. Each floor sits just under the measured value (0.64 / 0.74 / 0.69): high enough to catch a regression, low enough
 not to flake when a document changes. The floors are a **ratchet**: they move up with the measurement.
 Moving one *down* is a decision that needs an ADR, because it is indistinguishable from hiding a
 regression.
@@ -136,7 +137,7 @@ the plain fused order — and re-measured on all 58 cases:
 
 | Order | R@1 | R@3 | MRR | ms/query |
 | --- | --- | --- | --- | --- |
-| **fused (default)** | **0.638** | **0.741** | **0.687** | 1.3 |
+| **fused (default)** | **0.64** | **0.74** | **0.69** | 1.4 |
 | fused + lexical rerank (`--rerank`) | 0.500 | 0.724 | 0.618 | 10.2 |
 
 Still a loss, and now a slower one. Lexical features reward passages that *discuss* the topic and
@@ -146,7 +147,7 @@ default; the negative result is kept in [ADR-0011](../adr/0011-local-reranker-ex
 **Neural reranking is a declared, opt-in path**, not an aspiration
 ([ADR-0013](../adr/0013-opt-in-model-load.md)): ≤ 100 MiB quantized weights, isolated in `.models/`,
 usable only with a human-pinned SHA-256, refused unless `--enable-neural-rerank` is passed. The loader
-is implemented and property-tested; the artifact is not installed, so `R@1` stays at **0.638**.
+is implemented and property-tested; the artifact is not installed, so `R@1` stays at **0.64**.
 `node scripts/semantic/model.mjs status` prints exactly what is missing, without guessing.
 
 ## 4b. What this metric can and cannot resolve
@@ -215,7 +216,7 @@ would add per-token charges and egress — both deliberately out of scope.
 ## 8. When to replace this
 
 Adopt a real embedding model (local ONNX) when a reranker or the glossary cannot lift R@1 above ~0.8
-on a gold set of 50+ queries. **That trigger has fired**: 58 cases, R@1 0.638, both systematic levers
+on a gold set of 50+ queries. **That trigger has fired**: 58 cases, R@1 0.64, both systematic levers
 already spent, and the neural path is declared but unshipped. Until the artifact is pinned, this
 engine is a *measured* baseline that knows its own ceiling — not a claim of quality.
 The `search(index, query, {mode})` contract and the eval harness stay valid — only `providers` in
