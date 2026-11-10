@@ -33,7 +33,7 @@ stale index in Git is worse than none.
 
 | Stage | Implementation |
 | --- | --- |
-| Sources | `git ls-files`, text extensions only, files < 400 KB, `node_modules`/`.index` excluded |
+| Sources | `git ls-files`, text extensions only, files < 400 KB, `node_modules`/`.index`/`tests`/`mocks` excluded |
 | Chunking | Markdown split on headings, and long sections into 16-line windows with 4-line overlap (heading kept as context); code split into 45-line windows with 10-line overlap |
 | Tokenising | Unicode-aware (`\p{L}`), so Arabic works; Arabic diacritics, alef variants, `ال` prefix and common suffixes are normalised |
 | Embedding | Signed hashing trick (FNV-1a) over unigrams + bigrams, sublinear term frequency, L2-normalised → 256 dense dims |
@@ -41,6 +41,8 @@ stale index in Git is worse than none.
 | Fusion | Reciprocal rank fusion (k=60) over the vector and BM25 rankings |
 | Query expansion | `BILINGUAL_GLOSSARY` maps ~45 Arabic terms to English equivalents — queries only |
 | Ignored regions | Lines between `@semantic-ignore-begin` / `@semantic-ignore-finish` are not indexed |
+| Scope (default) | `.agent/memory/` is **excluded** — session knowledge is not repository knowledge ([ADR-0021](../adr/0021-index-scope.md)) |
+| Scope (opt-in) | `--with-memory` includes it; the chosen scope is recorded inside the index |
 
 **Why hashing instead of a neural model:** it runs offline, in CI, with no API key, no model
 download, no network egress, and it is **deterministic** — an index built on a laptop matches one
@@ -74,6 +76,24 @@ const hits = await search(index, "who may merge a pull request", { k: 3 });
 
 Both `search` and the CLI accept `{ mode }`. Quality changes are accepted only with an eval run
 before and after — see [retrieval-quality.md](retrieval-quality.md).
+
+## 4a. Index scope
+
+The index is **repository knowledge**: docs, scripts, workflows, and the fixtures outside `tests/`
+and `mocks/`. `.agent/memory/` holds notes *about sessions* — "regenerate the artifacts after
+staging" — which read like documentation and compete with the document that actually answers a
+question. It is therefore out of the default scope:
+
+```bash
+node scripts/semantic/cli.mjs index                 # scope: docs (memory excluded)
+node scripts/semantic/cli.mjs index --with-memory   # scope: docs+memory
+node scripts/semantic/eval.mjs --rebuild --with-memory --index .index/with-memory.json  # A/B the scopes
+```
+
+The scope is written into the index (`scope: { memory, label }`), printed by `eval.mjs`, checked by
+`check-repo.sh`, and asserted as a property (`isIndexable` is pure, so the rule is tested without
+building anything). Nothing is deleted: the notes stay tracked and readable; only the default
+*retrieval* corpus changes, and one flag restores the old behaviour.
 
 **Contract:** results are *candidates*, not truth. Open the file and read it before acting — the
 index points, it does not decide. Retrieval must never replace `AGENTS.md` / `CONTEXT.md`.

@@ -105,6 +105,15 @@ const MUTANTS = [
     quick: false,
   },
   {
+    id: "memory-indexed-by-default",
+    file: "scripts/semantic/lib.mjs",
+    find: '  if (!includeMemory && path.startsWith(MEMORY_DIR)) return false;',
+    replace: '  // MUTANT: agent memory is indexed by default',
+    breaks: "index scope: session memory would compete with the documentation it summarises",
+    detect: { kind: "property", only: "semantic" },
+    quick: false,
+  },
+  {
     // A licence is a decision. If the audit accepts a file that is not the text we
     // declared, the decision is a comment rather than a control.
     id: "license-text-drift",

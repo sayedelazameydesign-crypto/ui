@@ -47,6 +47,12 @@ const TEXT_EXTENSIONS = new Set([
   ".yml", ".yaml", ".sh", ".css", ".html", ".txt", ".astro", ".vue",
 ]);
 
+// Agent memory is knowledge about *sessions*, not about the repository: a note
+// that records "regenerate the artifacts after staging" reads like documentation
+// and outranks the guard script it describes. Default scope excludes it;
+// `--with-memory` opts in and the choice is recorded in the index.
+export const MEMORY_DIR = ".agent/memory/";
+
 const SKIP_PATHS = [
   /^node_modules\//, /^\.index\//, /^\.git\//, /package-lock\.json$/,
   /^\.agent\/tasks\//, /\.min\.(js|css)$/,
@@ -70,14 +76,32 @@ export function gitRoot() {
   }
 }
 
-/** Tracked text files, so the index always mirrors the repository. */
-export function listTrackedFiles(root = gitRoot()) {
+/** Scope labels are part of the index contract: a reader can tell what it holds. */
+export const INDEX_SCOPES = Object.freeze({
+  default: { memory: false, label: "docs" },
+  withMemory: { memory: true, label: "docs+memory" },
+});
+
+export const scopeFor = (includeMemory) => (includeMemory ? INDEX_SCOPES.withMemory : INDEX_SCOPES.default);
+
+/**
+ * Whether a tracked path belongs in the index. Pure and exported so the scope
+ * rules are testable without building an index.
+ */
+export function isIndexable(path, { includeMemory = false } = {}) {
+  if (!TEXT_EXTENSIONS.has(extname(path))) return false;
+  if (SKIP_PATHS.some((re) => re.test(path))) return false;
+  if (!includeMemory && path.startsWith(MEMORY_DIR)) return false;
+  return true;
+}
+
+/** Tracked text files, so the index always mirrors the selected scope. */
+export function listTrackedFiles(root = gitRoot(), { includeMemory = false } = {}) {
   const out = execFileSync("git", ["ls-files", "-z"], { cwd: root, encoding: "utf8" });
   return out
     .split("\0")
     .filter(Boolean)
-    .filter((p) => TEXT_EXTENSIONS.has(extname(p)))
-    .filter((p) => !SKIP_PATHS.some((re) => re.test(p)))
+    .filter((p) => isIndexable(p, { includeMemory }))
     .filter((p) => {
       try {
         return statSync(join(root, p)).size < 400_000;
@@ -224,9 +248,10 @@ export function activeProvider() {
 /* Index                                                               */
 /* ------------------------------------------------------------------ */
 
-export async function buildIndex({ root = gitRoot(), provider = activeProvider() } = {}) {
+export async function buildIndex({ root = gitRoot(), provider = activeProvider(), includeMemory = false } = {}) {
   if (!providers[provider]) throw new Error(`unknown EMBED_PROVIDER: ${provider}`);
-  const files = listTrackedFiles(root);
+  const files = listTrackedFiles(root, { includeMemory });
+  const scope = scopeFor(includeMemory);
   const chunks = [];
   for (const file of files) {
     const content = readFileSync(join(root, file), "utf8");
@@ -256,6 +281,7 @@ export async function buildIndex({ root = gitRoot(), provider = activeProvider()
   return {
     version: INDEX_VERSION,
     provider,
+    scope,
     dims: chunks[0]?.vector.length ?? DEFAULT_DIMS,
     createdAt: new Date().toISOString(),
     commit,
@@ -490,6 +516,7 @@ export function indexSummary(index) {
     chunks: index.chunks.length,
     terms: index.stats?.df?.length ?? 0,
     avgLength: index.stats?.avgLength ?? 0,
+    scope: index.scope?.label ?? "unscoped (built before scope was recorded)",
     createdAt: index.createdAt,
   };
 }

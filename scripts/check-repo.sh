@@ -320,6 +320,18 @@ if command -v node >/dev/null 2>&1; then
     fail "semantic search returned no hits — tokenizer or index regressed"
   fi
 
+  scope_state=$(node -e '
+    const {readFileSync} = require("fs");
+    const index = JSON.parse(readFileSync(".index/semantic.json", "utf8"));
+    const memory = index.chunks.filter((c) => c.file.startsWith(".agent/memory/")).length;
+    process.stdout.write(`${index.scope?.label ?? "unscoped"}:${memory}`);
+  ' 2>/dev/null || true)
+  case "$scope_state" in
+    docs:0) ok "index scope is docs — agent memory excluded (opt in with --with-memory)" ;;
+    docs+memory:*) ok "index scope is docs+memory — memory indexed on request (--with-memory)" ;;
+    *) fail "index scope is unexpected (${scope_state:-unknown}) — run: node scripts/semantic/cli.mjs index" ;;
+  esac
+
   if node scripts/provenance.mjs --json >/dev/null 2>&1; then
     ok "provenance report runs"
   else

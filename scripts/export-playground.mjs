@@ -67,6 +67,9 @@ const payload = {
   // No commit hash here on purpose: an exported artifact that embeds HEAD can
   // never be "current" after it is committed, so `--check` would fail forever.
   dims: index.dims,
+  // The demo shows the same corpus the CLI searches: memory notes are out of
+  // scope unless the index was built with --with-memory (ADR-0021).
+  scope: index.scope?.label ?? "unscoped",
   termsEncoding: "term tf,term tf",
   quantization: {
     scheme: "int8",
