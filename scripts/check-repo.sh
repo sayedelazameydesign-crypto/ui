@@ -346,7 +346,7 @@ if command -v node >/dev/null 2>&1; then
   fi
 
   if node scripts/semantic/eval.mjs --json >/dev/null 2>&1; then
-    ok "retrieval quality meets the gate (hybrid R@1 ≥ 0.65, R@3 ≥ 0.90, MRR ≥ 0.75)"
+    ok "retrieval quality meets the gate (hybrid R@1 ≥ 0.60, R@3 ≥ 0.72, MRR ≥ 0.66 over 58 bilingual cases)"
   else
     fail "retrieval quality regression — run: node scripts/semantic/eval.mjs"
   fi

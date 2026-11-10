@@ -33,6 +33,11 @@ touches only the chunks that actually contain its terms.
 
 ## 3. Before / after (same corpus, same 18 queries, k=5)
 
+> The gold set has since grown from 18 to 58 cases ([ADR-0018](adr/0018-evaluation-resolution.md)). The
+> tables in §3 are a *historical* before/after on one corpus within one sitting, kept because the
+> speed-up claim depends on the ranking being identical on the same queries. Current quality numbers
+> live in [retrieval quality §3](agents/retrieval-quality.md).
+
 | mode | p50 before | p50 after | throughput before | throughput after |
 | --- | --- | --- | --- | --- |
 | hybrid | 2.116 ms | **0.375 ms** | 456 q/s | **2 551 q/s** |
@@ -48,15 +53,15 @@ within one sitting, not across time.)
 ## 4. Current numbers (measured, this machine)
 
 ```
-corpus   96 files · 480 chunks · 256d · 1217 KiB index · 4310 terms
-memory   +6.8 MiB heap after load · 54 MiB RSS
-runtime  node v22.22.3 · linux/x64
+corpus   108 files · 611 chunks · 256d · 1544 KiB index · 4886 terms
+memory   +8.2 MiB heap after load · 56 MiB RSS
+runtime  node v22.22.3 · linux/x64 · 58 queries × 25 repeats × 4 modes
 
 mode                      p50 ms    p95 ms    mean ms   queries/s
-hybrid                    0.375     0.516     0.392     2551
-vector                    0.262     0.338     0.274     3654
-keyword                   0.250     0.340     0.262     3813
-hybrid+lexical-rerank     6.371     8.348     6.535     153
+hybrid                    0.654     0.932     0.680     1471
+vector                    0.497     0.572     0.508     1970
+keyword                   0.470     0.548     0.480     2084
+hybrid+lexical-rerank     8.776    10.816     9.172      109
 ```
 
 The reranker's cost is now visible for what it is: ~8× the fused path for a **worse** result

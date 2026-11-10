@@ -107,12 +107,12 @@ node scripts/artifact-manifest.mjs --check
 
 | القدرة | كيف نُفِّذت هنا | الحالة |
 | --- | --- | --- |
-| **بحث هجين مُقاس** | متجه + BM25 بدمج RRF، وتوسيع استعلام عربي من معجم محلي؛ مجموعة ذهبية من 18 استعلاماً | ✅ R@3 = **0.94** و MRR = **0.79** مقابل 0.67/0.62 للمتجه وحده |
+| **بحث هجين مُقاس** | متجه + BM25 بدمج RRF، وتوسيع استعلام عربي من معجم محلي (87 مدخلاً)؛ **58 استعلاماً ذهبياً** (43 إنجليزي · 15 عربي) وفاصل ثقة مُبلَّغ عنه | ✅ R@1 **0.638** · R@3 **0.741** · MRR **0.687** — فاصل 95% لـ R@1: 0.52–0.76 |
 | **بوابة جودة** | `semantic/eval.mjs` يفشل تحت R@3 0.90 أو MRR 0.75 — سقف يزيد ولا ينقص | ✅ مفعّلة في الحارس و CI |
 | **تحقق صارم (fail-closed)** | مخطّطات JSON لمفاتيح `.mcp.json` والسجلات؛ أي مفتاح غير معروف خطأ لا تحذير | ✅ مع اختبارات سلبية |
 | **سيادة البيانات** | قائمة وجهات مسموحة بـ«سبب» و«ملف مسموح»؛ أي URL جديد يفشل البناء | ✅ 8 وجهات معلنة، 0 مخالفة |
 | **حارس الخصوصية (PII/DLP)** | فحص المحتوى المرحّل قبل الالتزام: بريد، هاتف مصري، رقم قومي، بطاقات (Luhn)، مفاتيح وسرّ؛ النتائج مُقنَّعة دائماً | ✅ 10 قواعد، 0 نتيجة، إعفاء لا بد له من سبب |
-| **نتيجة سلبية موثّقة** | معيد ترتيب معجمي جُرِّب في 4 تهيئات وهبط بـ R@1 من 0.67 إلى 0.61 — لذا هو مُعطَّل افتراضياً | ✅ R@1 = 0.67 (الهدف 0.85، D8) |
+| **نتيجة سلبية موثّقة** | معيد ترتيب معجمي جُرِّب في 4 تهيئات ثم أُعيد قياسه على 58 استعلاماً: R@1 0.500 مقابل 0.638 — لذا هو مُعطَّل افتراضياً | ✅ R@1 = 0.638 (الهدف 0.85، D8 — يحتاج المسار العصبي) |
 | **تحميل نموذج اختياري ومُوثَّق** | وزن مُكمَّم ≤ 100MB في `.models/` (خارج Git)، لا يُستخدم إلا ببصمة SHA-256 مثبَّتة بشرياً؛ الشبكة تحتاج `--allow-network` صريحاً | ✅ السياسة والمُحمِّل مُنفَّذان ومُختبَران؛ الوزن نفسه غير مُنزَّل |
 
 ```bash
@@ -128,14 +128,15 @@ node scripts/check-egress.mjs --list        # الوجهات المعلنة وأ
 
 - **الاسترجاع:** دالة ترتيب واحدة لا تكفي. `score(d) = Σ_r w_r / (60 + rank_r(d))` تدمج ترتيب
   المتجهات وترتيب BM25، و`BM25(tf, dl) = idf · tf(k₁+1) / (tf + k₁(1−b+b·dl/avgdl))` بـ k₁=1.2، b=0.75.
-- **الجودة:** تُقاس على مجموعة ذهبية من 18 استعلاماً، وبوابة تفشل تحت R@3 0.90 أو MRR 0.75.
+- **الجودة:** تُقاس على **58 استعلاماً ذهبياً**، ومع كل تشغيل يُطبع فاصل ثقة bootstrap (عينة واحدة = 1.7 نقطة)، وبوابة تفشل تحت R@1 0.60 / R@3 0.72 / MRR 0.66.
 - **الكلفة:** تُقاس بـ `bench.mjs` على نفس الفهرس ونفس الاستعلامات — لا أرقام تسويقية.
 
 | الحقيقة الآن | الرقم |
 | --- | --- |
-| R@3 (هجين) | **0.944** مقابل 0.67 للمتجه وحده |
-| زمن الاستجابة p50 | **0.38 ms** لكل استعلام (2 474 استعلاماً/ثانية) |
-| الحجم | 445 مقطعاً · 88 ملفاً · فهرس 1.1MB · +6MB ذاكرة |
+| R@1 (هجين) | **0.638** على 58 استعلاماً — و**0.778** على الـ18 الأصلية بنفس المحرك |
+| R@3 (هجين) | **0.741** مقابل 0.552 للمتجه وحده |
+| زمن الاستجابة p50 | **0.65 ms** لكل استعلام (1 471 استعلاماً/ثانية) |
+| الحجم | 611 مقطعاً · 108 ملفاً · فهرس 1.6MB · +8MB ذاكرة |
 
 **جرّبه الآن بلا تثبيت:** صفحة واحدة، بلا حزم ولا بناء ولا شبكة.
 
@@ -148,7 +149,7 @@ node scripts/check-egress.mjs --list        # الوجهات المعلنة وأ
 | **اختبار الطفرات للحرّاس** | `mutation-test.mjs` — 4 طفرات، خط أساس قبل كل طفرة | ✅ 4/4 مقتولة |
 | **خريطة معمارية تفاعلية** | `playground/graph.html` من `graph.json` | ✅ تُبنى من الكود، والحارس يفشل إذا انحرفت |
 
-| **ضغط السياق بالاستخلاص** | `context-pack.mjs` — جمل مستخرجة حرفياً بمراجع `file:line` وفجوات معلّمة | ✅ 400 توكن: 94% من الإجابات باقية · أصغر 31× من إرسال المرشحات |
+| **ضغط السياق بالاستخلاص** | `context-pack.mjs` — جمل مستخرجة حرفياً بمراجع `file:line` وفجوات معلّمة | ✅ 400 توكن: 81% من الإجابات باقية · أصغر 29× من إرسال المرشحات (58 استعلاماً) |
 
 ```bash
 node scripts/snapshot.mjs save --label "قبل التجربة"
@@ -164,14 +165,14 @@ node scripts/playground-server.mjs        # ثم افتح /playground/
 ```
 
 المتصفح يستدعي **نفس** `scripts/semantic/core.mjs` الذي يستدعيه الـCLI، و`playground-parity.mjs`
-يفشل إن اختلف الاثنان (الحالي: 0.94 مقابل 0.94).
+يفشل إن اختلف الاثنان (الحالي: R@3 0.74 مقابل 0.74 على 58 استعلاماً).
 
 ### حالة المزامنة
 
 | العنصر | الحالة |
 | --- | --- |
 | الفرع الافتراضي | `main` |
-| فرع العمل | `arena/63076a70-ui` (متتبَّع، متزامن) |
+| فرع العمل | `arena/df16e95f-ui` (متتبَّع، متزامن) |
 | الملفات غير المتتبَّعة | لا يوجد |
 
 ### الخطوات التالية
@@ -276,12 +277,12 @@ node scripts/artifact-manifest.mjs --check
 
 | Capability | Implementation | State |
 | --- | --- | --- |
-| **Measured hybrid retrieval** | vector + BM25 fused by RRF, Arabic query expansion from a local glossary, 18-case gold set | ✅ R@3 **0.94**, MRR **0.79** vs 0.67/0.62 for vector-only |
+| **Measured hybrid retrieval** | vector + BM25 fused by RRF, Arabic query expansion from an 87-entry glossary, **58-case** bilingual gold set with a reported interval | ✅ R@1 **0.638** · R@3 **0.741** · MRR **0.687** — 95% CI for R@1: 0.52–0.76 |
 | **Quality gate** | `semantic/eval.mjs` fails below R@3 0.90 / MRR 0.75 — a floor that only ratchets up | ✅ in guard and CI |
 | **Fail-closed validation** | explicit JSON schemas for `.mcp.json` and the ledgers; unknown keys are errors | ✅ negative-tested |
 | **Data sovereignty** | egress allowlist where each host needs a reason and a permitted file scope | ✅ 8 declared hosts, 0 violations |
 | **Privacy guard (PII/DLP)** | staged-diff scan before commit: email, EG phone, national ID, Luhn-checked cards, keys; findings are always masked | ✅ 10 rules, 0 findings, reasoned exemptions only |
-| **A documented negative result** | a lexical reranker was measured in 4 configurations and lowered R@1 from 0.67 to 0.61 — so it ships off | ✅ R@1 0.67 (goal 0.85, D8) |
+| **A documented negative result** | a lexical reranker was measured in 4 configurations, then re-measured on 58 cases: R@1 0.500 against 0.638 — so it ships off | ✅ R@1 0.638 (goal 0.85, D8 — needs the neural path) |
 | **Opt-in, pinned model load** | quantized weights ≤ 100 MiB in `.models/` (outside Git), usable only with a human-pinned SHA-256; a fetch needs explicit `--allow-network` | ✅ policy and loader enforced and property-tested; no artifact installed |
 
 ```bash
@@ -298,14 +299,15 @@ boundary?**
 
 - **Ranking:** one signal is not enough. `score(d) = Σ_r w_r / (60 + rank_r(d))` fuses the vector and
   BM25 rankings, with `BM25(tf, dl) = idf · tf(k₁+1) / (tf + k₁(1−b+b·dl/avgdl))`, k₁=1.2, b=0.75.
-- **Quality:** measured on an 18-case gold set behind a gate (R@3 ≥ 0.90, MRR ≥ 0.75).
+- **Quality:** measured on a **58-case** gold set; every run prints a bootstrap interval (one case = 1.7 points) behind a gate (R@1 ≥ 0.60, R@3 ≥ 0.72, MRR ≥ 0.66).
 - **Cost:** measured by `bench.mjs` on the same index and queries — no marketing figures.
 
 | Fact, now | Number |
 | --- | --- |
-| R@3 (hybrid) | **0.944** vs 0.67 vector-only |
-| p50 latency | **0.38 ms** per query (2,474 queries/s) |
-| Footprint | 445 chunks · 88 files · 1.1 MB index · +6 MB heap |
+| R@1 (hybrid) | **0.638** over 58 cases — and **0.778** over the original 18 on the same engine |
+| R@3 (hybrid) | **0.741** vs 0.552 vector-only |
+| p50 latency | **0.65 ms** per query (1,471 queries/s) |
+| Footprint | 611 chunks · 108 files · 1.6 MB index · +8 MB heap |
 
 The benchmark also found and fixed a real hotspot: BM25 was scanning every chunk for every term, so
 postings cut the hybrid path from 2.12 ms to 0.38 ms with **identical** ranking
@@ -322,7 +324,7 @@ postings cut the hybrid path from 2.12 ms to 0.38 ms with **identical** ranking
 | **Mutation testing for the guards** | `mutation-test.mjs` — 4 mutants, baseline measured first | ✅ 4/4 killed |
 | **Interactive architecture graph** | `playground/graph.html` from `graph.json` | ✅ generated from the code; the guard fails on drift |
 
-| **Extractive context packing** | `context-pack.mjs` — verbatim sentences, `file:line` citations, marked gaps | ✅ at 400 tokens: 94% answer retention, 31× smaller than the candidates |
+| **Extractive context packing** | `context-pack.mjs` — verbatim sentences, `file:line` citations, marked gaps | ✅ at 400 tokens: 81% answer retention, 29× smaller than the candidates (58 cases) |
 
 ```bash
 node scripts/snapshot.mjs save --label "before the experiment"
@@ -353,8 +355,10 @@ The browser imports the **same** `scripts/semantic/core.mjs` the CLI uses, and
 - "Green" here means **runner-minutes avoided**, measured. Carbon accounting would be fabrication
   without telemetry.
 - The architecture graph is static-reference only; runtime topology is out of scope.
-- Retrieval is **measured but thin**: 18 gold cases, top-1 at 0.67, one documented Arabic failure —
-  the numbers are reported, not smoothed. A neural reranker is the next real gain (D8).
+- Retrieval is **measured and humbler than it first looked**: 58 gold cases, top-1 at 0.638 with a
+  95% interval of ±0.12, and four documented failure *classes*. The original 18 cases score 0.778 on
+  the same engine — that gap is author bias, measured instead of assumed. A neural reranker is the
+  next real gain (D8), not more tuning.
 - The egress allowlist is **textual**: a URL assembled at runtime would evade it. A proxy is the
   runtime control (D9).
 - The PII guard is **pattern-based**: it catches an address or a phone number, not a person's name in
@@ -363,14 +367,14 @@ The browser imports the **same** `scripts/semantic/core.mjs` the CLI uses, and
   does not exist by design: a failing test never deletes your work.
 - The audit ledger is **per-machine** and local; the anchor is what makes truncation detectable, and it
   is only as current as the last commit that carried it.
-- Context packing is **lossy by design**: at 400 tokens one gold case in eighteen loses its answering
+- Context packing is **lossy by design**: at 400 tokens roughly one gold case in five loses its answering
   file; the token count is a `chars / 4` estimate, not a tokenizer.
 - Mutation testing has **5 mutants**, not exhaustive coverage: it proves the key guards are load-bearing,
   not that every branch is.
 - The playground is a **demo**, not a product: no ranking feedback loop, no query log, no
   multi-user concurrency, and it loads the whole index into memory (fine at 445 chunks, not at 50k).
 - Neural reranking is **plumbed but not running**: the manifest is unpinned (nobody verified an
-  artifact here) and `onnxruntime-node` is not installed. `R@1` stays 0.667 until both exist.
+  artifact here) and `onnxruntime-node` is not installed. `R@1` stays 0.638 until both exist.
 - No model calls are made by CI. Everything in `.github/workflows/` is deterministic and auditable.
 
 ### Next steps

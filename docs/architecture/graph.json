@@ -5,7 +5,7 @@
   "stats": {
     "files": 127,
     "components": 16,
-    "edges": 30
+    "edges": 31
   },
   "components": [
     {
@@ -143,7 +143,7 @@
     {
       "from": "docs-agents",
       "to": "other",
-      "links": 2
+      "links": 1
     },
     {
       "from": "docs-agents",
@@ -158,6 +158,11 @@
     {
       "from": "github-config",
       "to": "root",
+      "links": 1
+    },
+    {
+      "from": "other",
+      "to": "docs-agents",
       "links": 1
     },
     {
@@ -183,7 +188,7 @@
     {
       "from": "root",
       "to": "docs-agents",
-      "links": 36
+      "links": 37
     },
     {
       "from": "root",

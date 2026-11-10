@@ -68,7 +68,9 @@ stack arrives.
     proves it safe; guard, provenance, and PR hygiene always run
     ([ADR-0007](docs/adr/0007-green-builds.md)).
 13. **Quality is measured, not asserted.** Retrieval changes are accepted against a gold set with a
-    gate that only ratchets upward ([ADR-0009](docs/adr/0009-hybrid-retrieval.md)).
+    gate that only ratchets upward ([ADR-0009](docs/adr/0009-hybrid-retrieval.md)). The gold set must be
+    large enough to resolve the claim: the interval and the per-case resolution are printed with every
+    run ([ADR-0018](docs/adr/0018-evaluation-resolution.md)).
 14. **Boundaries default to "no".** Unknown config keys and undeclared network destinations fail the
     build ([ADR-0010](docs/adr/0010-fail-closed-boundaries.md)).
 15. **Only synthetic data enters the repository.** The pre-commit scan blocks PII and secrets in the
@@ -85,7 +87,10 @@ stack arrives.
     omitted text with `…` ([ADR-0017](docs/adr/0017-context-packing.md)).
 21. **Defaults follow the measurement.** A component that loses on the eval (the lexical reranker)
     ships off by default and is documented as a negative result ([ADR-0011](docs/adr/0011-local-reranker-experiment.md)).
-15. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
+22. **A measurement states its resolution.** 58 cases means one case is 1.7 points and the 95%
+    interval for R@1 is ±12; a change smaller than that is not a result
+    ([ADR-0018](docs/adr/0018-evaluation-resolution.md)).
+23. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
     result can be traced to the exact data that produced it
     ([ADR-0005](docs/adr/0005-artifact-storage.md)).
 
@@ -131,6 +136,9 @@ stack arrives.
 | **Snapshot** | A hash-recorded copy of derived state, restorable byte-for-byte. |
 | **Pack** | A cited, extractive subset of the corpus sized to a token budget. |
 | **answer@budget** | The gold file for a query is still cited somewhere in the pack. |
+| **Gold set** | `tests/semantic-gold.json`: the cases every retrieval claim is measured against. `origin` separates the original 18 (`v1`) from the 40 added later (`v2`). |
+| **Resolution** | The smallest difference a metric can report: one case as a share of the set (1.7 points at 58 cases). |
+| **Bootstrap interval** | A seeded resampling interval for R@1, printed on every eval run so a 2-point move is not mistaken for a result ([ADR-0018](docs/adr/0018-evaluation-resolution.md)). |
 | **Gap marker** | ` … ` where sentences were skipped, so an extract never reads as complete text. |
 
 ## 5. Non-goals
@@ -170,6 +178,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0015 — Snapshots for derived state, and a tamper-evident ledger](docs/adr/0015-state-snapshots-and-ledger.md) · accepted
 - [ADR-0016 — Mutation testing for the guards](docs/adr/0016-mutation-testing.md) · accepted
 - [ADR-0017 — Extractive context packing with measured citation retention](docs/adr/0017-context-packing.md) · accepted
+- [ADR-0018 — An evaluation set that can resolve what it claims](docs/adr/0018-evaluation-resolution.md) · accepted
 
 ## 8. Change protocol
 

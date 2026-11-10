@@ -204,12 +204,15 @@ const TARGETS = [
           minItems: 5,
           items: {
             type: "object",
-            required: ["id", "query", "expect"],
+            required: ["id", "query", "expect", "origin"],
             properties: {
               id: { type: "string", pattern: "^[a-z0-9-]+$" },
               query: { type: "string", minLength: 3 },
               expect: { type: "array", minItems: 1, items: { type: "string", minLength: 3 } },
               lang: { type: "string", enum: ["ar", "en"] },
+              // Which measurement set the case belongs to: the original 18 (v1) or the
+              // 40 added in ADR-0018 (v2). Required, so a new case cannot skip the choice.
+              origin: { type: "string", enum: ["v1", "v2"] },
             },
           },
         },

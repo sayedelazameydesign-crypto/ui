@@ -34,19 +34,24 @@ Three decisions worth naming:
 - **Citations are ranges.** Each passage is `path:line` → the exact source lines, re-read from disk at
   pack time, so a citation cannot drift from what the file says.
 
-## 3. Measured (18 gold cases, corpus 484 KiB)
+## 3. Measured (58 gold cases, corpus 533 KiB)
 
 | budget | passages | tokens used | answer@budget | vs corpus | vs top-40 |
 | --- | --- | --- | --- | --- | --- |
-| 400 | 6.6 | 388 | **94%** | 394× | **30.8×** |
-| 800 | 13.1 | 788 | **100%** | 194× | 15.2× |
-| 1 600 | 25.9 | 1 582 | 100% | 96× | 7.5× |
-| 3 200 | 32.6 | 2 018 | 100% | 75× | 5.9× |
+| 400 | 6.3 | 387 | **81%** | 438× | **29.4×** |
+| 800 | 12.4 | 785 | **91%** | 215× | 14.4× |
+| 1 600 | 24.7 | 1 574 | 98% | 107× | 7.2× |
+| 3 200 | 31.2 | 1 999 | 98% | 84× | 5.6× |
 
 `answer@budget` = the gold file for that query is cited somewhere in the pack. `vs top-40` = the
 unpacked candidate set most tools send as-is, divided by the pack size. **The honest headline is the
-400-token row: ~31× smaller than sending the candidates, and the answering file is still cited 94% of the
+400-token row: ~29× smaller than sending the candidates, and the answering file is still cited 81% of the
 time.**
+
+These numbers replaced a 94% / 100% / 100% / 100% row measured on 18 cases. Nothing about the packer
+changed: the test grew from 18 to 58 cases ([ADR-0018](../adr/0018-evaluation-resolution.md)), the new
+queries are harder, and packing can only cite what retrieval surfaced. The ceiling is inherited, which
+is why the two documents are read together.
 
 Tokens are estimated at 4 characters per token — a stated approximation, not a tokenizer. A real BPE
 count would shift these numbers by ±10–20%.
@@ -74,7 +79,7 @@ count would shift these numbers by ±10–20%.
 
 - **94% is not 100%.** At 400 tokens one case in eighteen loses the answering file; 800 is the smallest
   budget with full coverage on this gold set.
-- **The gold set is 18 cases.** It catches regressions; it does not prove generalisation.
+- **The gold set is 58 cases.** It catches regressions and bounds the interval (±12 points at 95%); it does not prove generalisation.
 - **Duplicate detection is lexical.** Two passages that say the same thing in different words survive.
 - **Sentence splitting is punctuation-based.** Arabic and English work; code blocks and tables are kept
   whole rather than scored, so a table can consume a budget on its own.

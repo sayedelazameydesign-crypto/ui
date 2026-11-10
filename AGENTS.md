@@ -18,6 +18,7 @@
 | Where does project knowledge live? | `CONTEXT.md` + `docs/adr/` — update them with the code. |
 | How do I declare authorship? | Trailer: `AI-Assisted-By: <tool>` or `Human-Authored: true` ([provenance](docs/agents/provenance.md)). |
 | How do I find code by meaning? | `node scripts/semantic/cli.mjs search "…"` (hybrid; see [retrieval quality](docs/agents/retrieval-quality.md)). |
+| How good is retrieval, really? | `node scripts/semantic/eval.mjs` — 58 bilingual cases, R@1 with a bootstrap interval ([quality](docs/agents/retrieval-quality.md)). |
 | May I add an external URL or service? | Only by declaring it in `scripts/check-egress.mjs` with a reason ([sovereignty](docs/security/data-sovereignty.md)). |
 | May I commit test data? | Synthetic only. `node scripts/check-pii.mjs --staged` blocks PII and secrets ([pii guard](docs/security/pii-guard.md)). |
 | How do I demo a change? | `node scripts/playground-server.mjs` — the page imports the same `core.mjs` as the CLI ([ADR-0014](docs/adr/0014-playground-and-benchmarks.md)). |
@@ -97,6 +98,9 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
     support (`--rerank` is off for exactly this reason, see [ADR-0011](docs/adr/0011-local-reranker-experiment.md)).
 22. **Never weaken a gate to make a run faster.** Routing may skip work only when the classifier
     proves the change is docs-only ([green builds](docs/ci/green-builds.md)).
+23. **A metric with n cases cannot resolve 1/n.** Quote the interval and the per-case resolution before
+    claiming an improvement; a change smaller than the interval is not a result
+    ([ADR-0018](docs/adr/0018-evaluation-resolution.md)). Enlarge the test before tuning the system.
 
 ---
 

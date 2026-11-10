@@ -1,6 +1,6 @@
 # 0009 — Hybrid retrieval with a measured quality gate
 
-- **Status:** accepted
+- **Status:** accepted (gold set enlarged and re-measured in [ADR-0018](0018-evaluation-resolution.md))
 - **Date:** 2026-11-10
 - **Deciders:** repository owner (`@sayedelazameydesign-crypto`)
 - **Supersedes:** —
