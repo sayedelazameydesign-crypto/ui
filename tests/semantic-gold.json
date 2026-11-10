@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "description": "Gold set for retrieval quality. Each case names the queries a competent reader would type and the file(s) that actually answer it. Add a case whenever a real query fails, so regressions are caught by measurement instead of opinion.",
+  "note": "expect: any listed path counts as a hit. Keep cases unambiguous — if two files answer equally well, list both.",
+  "cases": [
+    {
+      "id": "merge-authority",
+      "query": "who is allowed to merge a pull request",
+      "expect": ["docs/agents/permissions.md"],
+      "lang": "en"
+    },
+    {
+      "id": "merge-authority-ar",
+      "query": "من يحق له دمج طلب السحب",
+      "expect": ["docs/agents/permissions.md", "AGENTS.md", "docs/agents/memory-protocol.md"],
+      "lang": "ar"
+    },
+    {
+      "id": "provenance-declare",
+      "query": "how do I declare that a commit came from an agent",
+      "expect": ["docs/agents/provenance.md"],
+      "lang": "en"
+    },
+    {
+      "id": "artifact-ledger",
+      "query": "artifact sha256 ledger for datasets",
+      "expect": ["docs/data/artifacts.md"],
+      "lang": "en"
+    },
+    {
+      "id": "semantic-index",
+      "query": "offline vector index for the repository",
+      "expect": ["docs/agents/semantic-search.md", ".claude/skills/semantic-retrieval/SKILL.md"],
+      "lang": "en"
+    },
+    {
+      "id": "sandbox",
+      "query": "ephemeral sandbox isolation per pull request",
+      "expect": ["docs/ci/ephemeral-environments.md"],
+      "lang": "en"
+    },
+    {
+      "id": "trivy",
+      "query": "trivy vulnerability and secret scan job",
+      "expect": [".github/workflows/security.yml"],
+      "lang": "en"
+    },
+    {
+      "id": "properties",
+      "query": "property based tests that shrink failures",
+      "expect": ["docs/ci/testing-strategy.md"],
+      "lang": "en"
+    },
+    {
+      "id": "routing",
+      "query": "which jobs are skipped when only docs change",
+      "expect": ["docs/ci/green-builds.md"],
+      "lang": "en"
+    },
+    {
+      "id": "living-docs",
+      "query": "the architecture graph fails when it is stale",
+      "expect": ["docs/architecture/living-docs.md", "docs/architecture/graph.md"],
+      "lang": "en"
+    },
+    {
+      "id": "mcp-secrets",
+      "query": "mcp servers must not contain credentials",
+      "expect": ["docs/agents/mcp-policy.md"],
+      "lang": "en"
+    },
+    {
+      "id": "capability-matrix",
+      "query": "allow ask deny matrix per agent role",
+      "expect": [".agent/capabilities.yaml"],
+      "lang": "en"
+    },
+    {
+      "id": "licence",
+      "query": "dependency licence compliance gate",
+      "expect": ["docs/adr/0004-zero-trust-dependencies.md", ".github/workflows/license-compliance.yml"],
+      "lang": "en"
+    },
+    {
+      "id": "disclosure",
+      "query": "how do I report a security vulnerability privately",
+      "expect": ["SECURITY.md"],
+      "lang": "en"
+    },
+    {
+      "id": "memory",
+      "query": "durable memory between sessions",
+      "expect": ["docs/agents/memory-protocol.md"],
+      "lang": "en"
+    },
+    {
+      "id": "arabic-secrets",
+      "query": "الأسرار الممنوعة في المستودع",
+      "expect": ["AGENTS.md", "SECURITY.md"],
+      "lang": "ar"
+    },
+    {
+      "id": "arabic-license",
+      "query": "ترخيص المستودع المفتوح",
+      "expect": ["docs/adr/0004-zero-trust-dependencies.md", ".github/workflows/license-compliance.yml", "README.md", "CONTRIBUTING.md"],
+      "lang": "ar"
+    },
+    {
+      "id": "unicode-arabic",
+      "query": "تطبيع الحروف العربية في البحث",
+      "expect": ["docs/agents/semantic-search.md", "scripts/semantic/lib.mjs"],
+      "lang": "ar"
+    }
+  ]
+}
