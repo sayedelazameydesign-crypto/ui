@@ -59,6 +59,15 @@ const MUTANTS = [
     quick: false,
   },
   {
+    id: "packer-budget-ignored",
+    file: "scripts/context-pack.mjs",
+    find: '    if (tokens + nodeTokens > budgetTokens) {',
+    replace: '    if (false && tokens + nodeTokens > budgetTokens) {',
+    breaks: "the token budget: packs would grow past what the caller asked for",
+    detect: { kind: "property", only: "context" },
+    quick: false,
+  },
+  {
     id: "bm25-idf-sign",
     file: "scripts/semantic/core.mjs",
     find: '    const idf = Math.log(1 + (N - df + 0.5) / (df + 0.5));\n    for (const [i, tf] of list) {',
