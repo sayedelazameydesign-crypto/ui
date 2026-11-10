@@ -1,0 +1,38 @@
+# Dependencies and build output (once a stack is chosen — see AGENTS.md §9)
+node_modules/
+.pnpm-store/
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+coverage/
+*.tsbuildinfo
+
+# Environment and secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Generated semantic index (derived state — rebuild, never commit)
+.index/
+
+# Agent session scratch (see docs/agents/memory-protocol.md)
+.agent/tasks/*
+!.agent/tasks/.gitkeep
+
+# Local tooling and editor state
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.local
+
+# Logs and caches
+*.log
+npm-debug.log*
+.turbo/
+.cache/
+*.tmp

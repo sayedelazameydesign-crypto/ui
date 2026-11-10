@@ -1,0 +1,61 @@
+name: security
+
+# Filesystem vulnerability, secret, and misconfiguration scanning.
+# Findings are uploaded as SARIF so they appear under Security → Code scanning.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write # required to upload SARIF
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trivy:
+    name: Trivy (vuln · secret · misconfig)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Scan filesystem (report findings as SARIF)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig
+          severity: CRITICAL,HIGH,MEDIUM
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-results.sarif
+          exit-code: "0" # report; the secret gate below is the blocking one
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-fs
+
+      - name: Scan for secrets (blocking)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: secret
+          severity: CRITICAL,HIGH
+          format: table
+          exit-code: "1"

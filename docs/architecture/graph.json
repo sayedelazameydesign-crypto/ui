@@ -1,0 +1,204 @@
+{
+  "version": 1,
+  "generator": "scripts/architecture-graph.mjs",
+  "note": "Generated from tracked files — do not edit by hand. Regenerate with --write.",
+  "stats": {
+    "files": 78,
+    "components": 16,
+    "edges": 22
+  },
+  "components": [
+    {
+      "id": "root",
+      "label": "Root docs & config",
+      "files": 11
+    },
+    {
+      "id": "agent-harness",
+      "label": "Agent harness (.agent)",
+      "files": 7
+    },
+    {
+      "id": "skills",
+      "label": "Agent skills (.claude/skills)",
+      "files": 4
+    },
+    {
+      "id": "workflows",
+      "label": "CI workflows",
+      "files": 10
+    },
+    {
+      "id": "github-config",
+      "label": "GitHub config & templates",
+      "files": 17
+    },
+    {
+      "id": "sandbox",
+      "label": "Dev container",
+      "files": 1
+    },
+    {
+      "id": "adr",
+      "label": "Decision records",
+      "files": 8
+    },
+    {
+      "id": "docs-agents",
+      "label": "Agent docs",
+      "files": 5
+    },
+    {
+      "id": "docs-ci",
+      "label": "CI docs",
+      "files": 3
+    },
+    {
+      "id": "docs-data",
+      "label": "Data docs",
+      "files": 1
+    },
+    {
+      "id": "docs-arch",
+      "label": "Architecture docs",
+      "files": 3
+    },
+    {
+      "id": "semantic",
+      "label": "Semantic engine",
+      "files": 2
+    },
+    {
+      "id": "tooling-lib",
+      "label": "Tooling library",
+      "files": 1
+    },
+    {
+      "id": "scripts",
+      "label": "Repository scripts",
+      "files": 14
+    },
+    {
+      "id": "tests",
+      "label": "Property tests",
+      "files": 2
+    },
+    {
+      "id": "mocks",
+      "label": "Service mocks",
+      "files": 2
+    }
+  ],
+  "edges": [
+    {
+      "from": "adr",
+      "to": "docs-agents",
+      "links": 6
+    },
+    {
+      "from": "adr",
+      "to": "docs-arch",
+      "links": 3
+    },
+    {
+      "from": "adr",
+      "to": "docs-ci",
+      "links": 4
+    },
+    {
+      "from": "adr",
+      "to": "docs-data",
+      "links": 2
+    },
+    {
+      "from": "adr",
+      "to": "root",
+      "links": 5
+    },
+    {
+      "from": "agent-harness",
+      "to": "docs-agents",
+      "links": 4
+    },
+    {
+      "from": "agent-harness",
+      "to": "root",
+      "links": 1
+    },
+    {
+      "from": "docs-agents",
+      "to": "adr",
+      "links": 1
+    },
+    {
+      "from": "docs-agents",
+      "to": "agent-harness",
+      "links": 2
+    },
+    {
+      "from": "docs-agents",
+      "to": "root",
+      "links": 2
+    },
+    {
+      "from": "github-config",
+      "to": "root",
+      "links": 1
+    },
+    {
+      "from": "root",
+      "to": "adr",
+      "links": 18
+    },
+    {
+      "from": "root",
+      "to": "agent-harness",
+      "links": 4
+    },
+    {
+      "from": "root",
+      "to": "docs-agents",
+      "links": 29
+    },
+    {
+      "from": "root",
+      "to": "docs-arch",
+      "links": 3
+    },
+    {
+      "from": "root",
+      "to": "docs-ci",
+      "links": 8
+    },
+    {
+      "from": "root",
+      "to": "docs-data",
+      "links": 4
+    },
+    {
+      "from": "root",
+      "to": "scripts",
+      "links": 2
+    },
+    {
+      "from": "scripts",
+      "to": "tooling-lib",
+      "links": 1
+    },
+    {
+      "from": "tests",
+      "to": "scripts",
+      "links": 1
+    },
+    {
+      "from": "tests",
+      "to": "semantic",
+      "links": 1
+    },
+    {
+      "from": "tests",
+      "to": "tooling-lib",
+      "links": 2
+    }
+  ]
+}

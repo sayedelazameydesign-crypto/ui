@@ -1,0 +1,74 @@
+# Agent capability manifest — declarative least privilege.
+# Mirrors docs/agents/permissions.md. Stricter source wins on conflict.
+# Values: allow | ask | deny
+version: 1
+updated: 2026-11-10
+scope: repository
+default_decision: ask
+
+agents:
+  coding:
+    description: General-purpose coding agent working on a task branch.
+    repository:
+      read_files: allow
+      write_files: allow
+      create_branch: allow
+      commit: allow
+      push_task_branch: allow
+      push_main: deny
+      force_push: deny
+      rewrite_history: deny
+      delete_files: ask
+      merge_pull_request: deny
+      create_release: deny
+      edit_repository_settings: deny
+      edit_secrets: deny
+      edit_branch_protection: deny
+    execution:
+      run_scripts_scripts_dir: allow
+      install_dependencies: ask
+      run_package_manager: ask
+      docker: ask
+      network_egress: ask
+      destructive_shell: deny # rm -rf, git clean -xfd, git reset --hard on shared branches
+    tooling:
+      build_semantic_index: allow # .index/ is derived and gitignored
+      run_property_tests: allow
+      run_mock_server: allow # bound to 127.0.0.1, no egress
+      classify_changes: allow
+      regenerate_generated_docs: allow # --write, then commit the output
+      move_binary_to_lfs: ask # history rewrite + quota implications
+      remote_embedding_provider: deny # opt-in per session, explicit data decision
+      run_provenance_report: allow
+      run_dependency_audit: allow
+      delete_orphaned_code: ask # report is advisory; removal is a dedicated PR
+      hand_edit_generated_files: deny # regenerate with --write instead
+      commit_file_over_1mb_without_lfs: deny
+    data:
+      read_secrets: deny
+      write_secrets: deny
+      handle_personal_data: deny
+      store_memory: allow # .agent/memory/ only, sanitised
+      declared_provenance_required: true
+
+  reviewer:
+    description: Read-only review agent (PR comments, security review).
+    repository:
+      read_files: allow
+      write_files: deny
+      commit: deny
+      push_task_branch: deny
+      comment_on_pull_request: allow
+      approve_pull_request: ask
+    execution:
+      run_scripts_scripts_dir: allow
+      network_egress: deny
+
+escalation:
+  channel: pull request comment mentioning @sayedelazameydesign-crypto
+  must_escalate:
+    - leaked secret discovered
+    - history rewrite or main-branch write requested
+    - capability change requested
+    - stack/tooling decision (AGENTS.md §9)
+    - diff expected to exceed ~400 lines

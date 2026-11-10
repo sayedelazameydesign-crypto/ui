@@ -1,0 +1,56 @@
+{
+  "name": "ui — isolated agent sandbox",
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "os-provided"
+    }
+  },
+
+  "containerUser": "vscode",
+  "remoteUser": "vscode",
+  "updateRemoteUserUID": true,
+
+  "runArgs": [
+    "--cap-drop=ALL",
+    "--security-opt=no-new-privileges",
+    "--init"
+  ],
+
+  "mounts": [],
+
+  "remoteEnv": {
+    "AGENT_CONTEXT": "AGENTS.md",
+    "CHECK": "scripts/check-repo.sh"
+  },
+
+  "postCreateCommand": "bash scripts/check-repo.sh || true",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "EditorConfig.EditorConfig",
+        "DavidAnson.vscode-markdownlint",
+        "GitHub.vscode-github-actions"
+      ],
+      "settings": {
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+
+  "forwardPorts": [],
+
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb",
+    "storage": "32gb"
+  }
+}

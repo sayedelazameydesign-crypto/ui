@@ -1,0 +1,29 @@
+[
+  {
+    "id": 101,
+    "number": 1,
+    "title": "Establish the agentic-first baseline",
+    "state": "closed",
+    "labels": [{ "name": "type/docs" }],
+    "body": "Governance layer: AGENTS.md, CONTEXT.md, guard, CI, skills.",
+    "user": { "login": "sayedelazameydesign-crypto", "type": "User" }
+  },
+  {
+    "id": 102,
+    "number": 2,
+    "title": "Add semantic search over the repository",
+    "state": "closed",
+    "labels": [{ "name": "type/feature" }, { "name": "area/agents" }],
+    "body": "Offline vector index with a bilingual query CLI.",
+    "user": { "login": "sayedelazameydesign-crypto", "type": "User" }
+  },
+  {
+    "id": 103,
+    "number": 3,
+    "title": "Decide the licence (D5)",
+    "state": "open",
+    "labels": [{ "name": "type/decision" }],
+    "body": "MIT vs Apache-2.0. Blocks distribution and external contributions.",
+    "user": { "login": "sayedelazameydesign-crypto", "type": "User" }
+  }
+]

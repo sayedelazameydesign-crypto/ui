@@ -1,0 +1,59 @@
+name: dependency-audit
+
+# Zero-trust dependency posture: pinning, install hooks, lockfile, workflow refs.
+# Offline by design. Decision: docs/adr/0004-zero-trust-dependencies.md
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+  pull_request:
+  schedule:
+    - cron: "0 7 * * 1" # Mondays, after security.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-audit-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Supply-chain findings
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Audit (human report)
+        run: node scripts/dependency-audit.mjs
+
+      - name: Audit (signal)
+        run: node scripts/dependency-audit.mjs --json > dependency-audit.json
+
+      - name: Enforce policy
+        run: node scripts/dependency-audit.mjs --strict
+
+      - name: Dead-code report (advisory)
+        run: node scripts/dead-code-report.mjs --json > dead-code.json
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dependency-reports
+          path: |
+            dependency-audit.json
+            dead-code.json
+          retention-days: 30
+          if-no-files-found: warn

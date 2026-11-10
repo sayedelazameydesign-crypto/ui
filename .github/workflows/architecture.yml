@@ -1,0 +1,46 @@
+name: architecture
+
+# Living documentation gate: the committed architecture graph must match the repository.
+# Docs: docs/architecture/living-docs.md · Decision: docs/adr/0008-living-documentation.md
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: architecture-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  drift:
+    name: Graph freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Verify committed graph
+        run: node scripts/architecture-graph.mjs --check
+
+      - name: Verify artifact manifest
+        run: node scripts/artifact-manifest.mjs --check
+
+      - name: Show the diff when stale
+        if: failure()
+        run: |
+          node scripts/architecture-graph.mjs --write
+          git --no-pager diff --stat -- docs/architecture artifacts.manifest.json || true
+          echo "::error::Generated documentation is stale. Run the generators locally and commit the result."
