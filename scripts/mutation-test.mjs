@@ -133,6 +133,15 @@ const MUTANTS = [
     detect: { kind: "property", only: "adversarial" },
     quick: false,
   },
+  {
+    id: "window-step-zero",
+    file: "scripts/semantic/lib.mjs",
+    find: "  return Math.max(1, window - overlap);",
+    replace: "  return window - overlap; // MUTANT: a zero step hangs the chunker",
+    breaks: "window advance: overlap ≥ window would loop forever instead of moving forward",
+    detect: { kind: "property", only: "semantic" },
+    quick: false,
+  },
 ];
 
 function runDetector(mutant, root) {

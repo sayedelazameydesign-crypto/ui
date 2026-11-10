@@ -190,6 +190,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0019 — Adversarial input: shapes a scanner can hold, and a stated limit](docs/adr/0019-adversarial-inputs.md) · accepted
 - [ADR-0020 — Apache-2.0, with a NOTICE that states what is actually shipped](docs/adr/0020-license.md) · accepted
 - [ADR-0021 — Agent memory is not repository knowledge](docs/adr/0021-index-scope.md) · accepted
+- [ADR-0022 — Retrieval tuning is exhausted; ordering is the remaining lever](docs/adr/0022-retrieval-tuning-exhausted.md) · accepted (negative result)
 
 ## 8. Change protocol
 

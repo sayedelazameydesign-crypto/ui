@@ -127,6 +127,14 @@ export const MD_OVERLAP = 4; // lines shared with the previous window
 // is exported because it is a contract the property tests assert, not an accident.
 export const MD_CHUNK_MAX = MD_WINDOW + MD_OVERLAP;
 
+// Every windowed loop advances by this step. A configuration where overlap ≥ window
+// would make the step zero and the loop infinite — an OOM instead of an error. The
+// clamp is defence in depth; the invariant that MD_OVERLAP < MD_WINDOW is asserted by
+// the property suite, because a hang inside the guard is worse than a failed test.
+export function windowStep(window, overlap) {
+  return Math.max(1, window - overlap);
+}
+
 function chunkMarkdown(content) {
   const lines = content.split("\n");
   const chunks = [];
@@ -142,7 +150,7 @@ function chunkMarkdown(content) {
     if (buffer.length <= MD_CHUNK_MAX) {
       emit(buffer.join("\n"), start, start + buffer.length - 1);
     } else {
-      for (let i = 0; i < buffer.length; i += MD_WINDOW - MD_OVERLAP) {
+      for (let i = 0; i < buffer.length; i += windowStep(MD_WINDOW, MD_OVERLAP)) {
         const window = buffer.slice(i, i + MD_WINDOW);
         emit(window.join("\n"), start + i, start + i + window.length - 1);
         if (i + MD_WINDOW >= buffer.length) break; // the tail is already inside this window
@@ -167,7 +175,7 @@ function chunkMarkdown(content) {
 function chunkCode(content, window = 45, overlap = 10) {
   const lines = content.split("\n");
   const chunks = [];
-  for (let i = 0; i < lines.length; i += window - overlap) {
+  for (let i = 0; i < lines.length; i += windowStep(window, overlap)) {
     const slice = lines.slice(i, i + window);
     if (slice.join("").trim().length < 60) continue;
     chunks.push({ heading: "", start: i + 1, end: Math.min(i + window, lines.length), text: slice.join("\n") });

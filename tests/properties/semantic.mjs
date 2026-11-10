@@ -5,6 +5,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import {
   tokenize, normalizeToken, embedLocal, cosine, fnv1a, chunkFile, bm25Scores, DEFAULT_DIMS, MD_CHUNK_MAX,
+  MD_WINDOW, MD_OVERLAP, windowStep,
   isIndexable, listTrackedFiles, gitRoot, loadIndex, MEMORY_DIR, DEFAULT_INDEX,
 } from "../../scripts/semantic/lib.mjs";
 import { gen } from "../../scripts/lib/property.mjs";
@@ -140,6 +141,23 @@ export default [
       for (let line = 2; line <= range.total + 1; line += 1) if (!covered.has(line)) return false;
       return true;
     },
+  },
+  {
+    // Found by measuring chunk windows: configuring overlap ≥ window made the
+    // window loop advance by zero and hang until the heap died. A hang inside the
+    // guard is worse than a failed assertion, so the step is clamped *and* the
+    // shipped configuration is asserted below.
+    name: "a chunk window always advances, even when overlap is as large as the window",
+    generators: { window: gen.int(1, 64), overlap: gen.int(0, 80) },
+    property: ({ window, overlap }) => {
+      const step = windowStep(window, overlap);
+      return Number.isInteger(step) && step >= 1 && step <= window;
+    },
+  },
+  {
+    name: "the shipped chunk configuration cannot stall the window loop",
+    generators: { pick: gen.int(0, 0) },
+    property: () => MD_OVERLAP < MD_WINDOW && MD_CHUNK_MAX === MD_WINDOW + MD_OVERLAP,
   },
   {
     name: "a markdown chunk never exceeds MD_CHUNK_MAX lines",
