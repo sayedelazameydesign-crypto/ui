@@ -24,6 +24,7 @@ node scripts/check-egress.mjs --list   # the current contract
 | `mcr.microsoft.com`, `ghcr.io` | `.devcontainer/` | base image and features |
 | `api.openai.com` | `scripts/semantic/lib.mjs` | **opt-in** embeddings; refuses without a key, never used by CI |
 | `127.0.0.1` | mock server + its workflow | loopback only |
+| `huggingface.co` | model loader + manifest + local-model doc | **opt-in weights only**: `--allow-network` plus a pinned checksum; never in CI |
 | `git-lfs.github.com` | `scripts/artifact-manifest.mjs` | LFS pointer format string, not a request |
 
 Adding a destination is a code change with a written reason — reviewed like any other. A new URL
@@ -56,6 +57,7 @@ reviewed. Errors carry a JSON path, so the message points at the key, not at the
 | CI → GitHub APIs | metadata only | explicit `permissions:` per workflow |
 | Agent → MCP server | declared endpoints only | `.mcp.json` + `mcp-policy.md` |
 | Artifacts → storage | Git LFS | `.gitattributes` + hashed manifest |
+| Model weights → disk | in (opt-in) | `.models/` (git-ignored) + SHA-256 pinned in the manifest; unpinned means unusable |
 
 ## 4. Arabic and local-context considerations
 

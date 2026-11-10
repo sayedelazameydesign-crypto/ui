@@ -36,3 +36,7 @@ npm-debug.log*
 .turbo/
 .cache/
 *.tmp
+
+# Opt-in model weights (ADR-0013): large binaries, verified by checksum, never committed.
+.models/
+*.partial

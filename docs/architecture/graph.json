@@ -3,9 +3,9 @@
   "generator": "scripts/architecture-graph.mjs",
   "note": "Generated from tracked files — do not edit by hand. Regenerate with --write.",
   "stats": {
-    "files": 96,
+    "files": 102,
     "components": 16,
-    "edges": 26
+    "edges": 27
   },
   "components": [
     {
@@ -16,7 +16,7 @@
     {
       "id": "agent-harness",
       "label": "Agent harness (.agent)",
-      "files": 9
+      "files": 10
     },
     {
       "id": "skills",
@@ -41,12 +41,12 @@
     {
       "id": "adr",
       "label": "Decision records",
-      "files": 12
+      "files": 13
     },
     {
       "id": "docs-agents",
       "label": "Agent docs",
-      "files": 6
+      "files": 7
     },
     {
       "id": "docs-ci",
@@ -66,7 +66,7 @@
     {
       "id": "semantic",
       "label": "Semantic engine",
-      "files": 3
+      "files": 5
     },
     {
       "id": "tooling-lib",
@@ -76,12 +76,12 @@
     {
       "id": "scripts",
       "label": "Repository scripts",
-      "files": 20
+      "files": 22
     },
     {
       "id": "tests",
       "label": "Property tests",
-      "files": 4
+      "files": 5
     },
     {
       "id": "mocks",
@@ -93,7 +93,7 @@
     {
       "from": "adr",
       "to": "docs-agents",
-      "links": 10
+      "links": 12
     },
     {
       "from": "adr",
@@ -133,12 +133,17 @@
     {
       "from": "docs-agents",
       "to": "adr",
-      "links": 2
+      "links": 5
     },
     {
       "from": "docs-agents",
       "to": "agent-harness",
       "links": 2
+    },
+    {
+      "from": "docs-agents",
+      "to": "other",
+      "links": 1
     },
     {
       "from": "docs-agents",
@@ -163,7 +168,7 @@
     {
       "from": "root",
       "to": "adr",
-      "links": 29
+      "links": 32
     },
     {
       "from": "root",
@@ -173,7 +178,7 @@
     {
       "from": "root",
       "to": "docs-agents",
-      "links": 30
+      "links": 32
     },
     {
       "from": "root",
@@ -213,12 +218,12 @@
     {
       "from": "tests",
       "to": "semantic",
-      "links": 2
+      "links": 3
     },
     {
       "from": "tests",
       "to": "tooling-lib",
-      "links": 4
+      "links": 5
     }
   ]
 }

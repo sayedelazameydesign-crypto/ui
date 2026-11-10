@@ -69,7 +69,7 @@ const TARGETS = [
             properties: {
               path: { type: "string", minLength: 1 },
               bytes: { type: "integer", minimum: 0 },
-              sha256: { type: "string", pattern: "^[a-f0-9]{64}$" },
+              sha256: { type: "string", pattern: "^[a-f0-9]{64}$", nullable: true },
               lfs: { type: "boolean" },
             },
           },
@@ -116,6 +116,49 @@ const TARGETS = [
               from: { type: "string", minLength: 1 },
               to: { type: "string", minLength: 1 },
               links: { type: "integer", minimum: 1 },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    file: "scripts/semantic/models.manifest.json",
+    schema: {
+      type: "object",
+      required: ["version", "policy", "models"],
+      properties: {
+        version: { type: "integer", minimum: 1 },
+        note: { type: "string" },
+        policy: {
+          type: "object",
+          required: ["storageDir", "maxBytes", "requiresChecksum", "networkAllowedByDefault"],
+          properties: {
+            storageDir: { type: "string", pattern: "^\\.[a-z]+$" },
+            maxBytes: { type: "integer", minimum: 1 },
+            maxBytesReason: { type: "string" },
+            requiresChecksum: { type: "boolean" },
+            networkAllowedByDefault: { type: "boolean" },
+          },
+        },
+        models: {
+          type: "array",
+          items: {
+            type: "object",
+            required: ["id", "role", "name", "file", "bytes", "license", "runtime", "sha256"],
+            properties: {
+              id: { type: "string", pattern: "^[a-z0-9-]+$" },
+              role: { type: "string", enum: ["rerank", "embed"] },
+              name: { type: "string", minLength: 3 },
+              file: { type: "string", pattern: "^[A-Za-z0-9._-]+$" },
+              url: { type: "string", pattern: "^https://" },
+              bytes: { type: "integer", minimum: 1 },
+              // null is legal and means "not yet pinned" — the loader refuses it.
+              sha256: { type: "string", pattern: "^[a-f0-9]{64}$", nullable: true },
+              license: { type: "string", minLength: 3 },
+              runtime: { type: "string", minLength: 3 },
+              maxTokens: { type: "integer", minimum: 32 },
+              note: { type: "string" },
             },
           },
         },

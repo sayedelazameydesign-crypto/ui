@@ -511,7 +511,17 @@ export function rerankScore(index, chunk, queryTokens) {
 export async function search(
   index,
   query,
-  { k = 5, mode = "hybrid", provider = index.provider, rerank = false, rerankTop = RERANK_TOP } = {},
+  {
+    k = 5,
+    mode = "hybrid",
+    provider = index.provider,
+    rerank = false,
+    rerankTop = RERANK_TOP,
+    // "lexical" is the measured substitute (opt-in, docs: ADR-0011); "neural"
+    // requires verified weights plus a runtime and is refused when either is
+    // missing — never silently downgraded to something it is not.
+    rerankProvider = "lexical",
+  } = {},
 ) {
   if (!providers[provider]) throw new Error(`unknown provider: ${provider}`);
   if (!MODES.includes(mode)) throw new Error(`unknown mode: ${mode} (expected ${MODES.join(" | ")})`);
@@ -544,6 +554,17 @@ export async function search(
       .sort((a, b) => b.score - a.score || a.i - b.i);
   }
 
+  if (rerank && rerankProvider === "neural") {
+    const { neuralStatus } = await import("./model.mjs");
+    const status = neuralStatus();
+    if (!status.available) {
+      throw new Error(
+        `neural rerank is not available: ${status.reasons.join(" · ")}. ` +
+          "The default path stays local and unchanged; see docs/agents/local-model.md",
+      );
+    }
+  }
+
   // Rerank a window of candidates, then blend: the fused order still carries the
   // signal, the features correct it where lexical evidence is decisive.
   let ordering = fused;
@@ -573,6 +594,7 @@ export async function search(
       raw: Number(score.toFixed(6)),
       mode,
       reranked: rerank && fused.length > 1,
+      reranker: rerank ? rerankProvider : "none",
       features: featureScores.get(i),
       vector: Number(vectorScores[i].toFixed(4)),
       keyword: Number(keywordScores[i].toFixed(4)),
