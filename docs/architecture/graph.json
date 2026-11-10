@@ -3,9 +3,9 @@
   "generator": "scripts/architecture-graph.mjs",
   "note": "Generated from tracked files — do not edit by hand. Regenerate with --write.",
   "stats": {
-    "files": 78,
+    "files": 89,
     "components": 16,
-    "edges": 22
+    "edges": 26
   },
   "components": [
     {
@@ -16,7 +16,7 @@
     {
       "id": "agent-harness",
       "label": "Agent harness (.agent)",
-      "files": 7
+      "files": 8
     },
     {
       "id": "skills",
@@ -41,12 +41,12 @@
     {
       "id": "adr",
       "label": "Decision records",
-      "files": 8
+      "files": 10
     },
     {
       "id": "docs-agents",
       "label": "Agent docs",
-      "files": 5
+      "files": 6
     },
     {
       "id": "docs-ci",
@@ -66,22 +66,22 @@
     {
       "id": "semantic",
       "label": "Semantic engine",
-      "files": 2
+      "files": 3
     },
     {
       "id": "tooling-lib",
       "label": "Tooling library",
-      "files": 1
+      "files": 2
     },
     {
       "id": "scripts",
       "label": "Repository scripts",
-      "files": 14
+      "files": 18
     },
     {
       "id": "tests",
       "label": "Property tests",
-      "files": 2
+      "files": 4
     },
     {
       "id": "mocks",
@@ -93,7 +93,7 @@
     {
       "from": "adr",
       "to": "docs-agents",
-      "links": 6
+      "links": 8
     },
     {
       "from": "adr",
@@ -108,6 +108,11 @@
     {
       "from": "adr",
       "to": "docs-data",
+      "links": 2
+    },
+    {
+      "from": "adr",
+      "to": "other",
       "links": 2
     },
     {
@@ -141,14 +146,24 @@
       "links": 2
     },
     {
+      "from": "docs-agents",
+      "to": "tests",
+      "links": 1
+    },
+    {
       "from": "github-config",
+      "to": "root",
+      "links": 1
+    },
+    {
+      "from": "other",
       "to": "root",
       "links": 1
     },
     {
       "from": "root",
       "to": "adr",
-      "links": 18
+      "links": 22
     },
     {
       "from": "root",
@@ -158,7 +173,7 @@
     {
       "from": "root",
       "to": "docs-agents",
-      "links": 29
+      "links": 30
     },
     {
       "from": "root",
@@ -177,13 +192,18 @@
     },
     {
       "from": "root",
+      "to": "other",
+      "links": 3
+    },
+    {
+      "from": "root",
       "to": "scripts",
       "links": 2
     },
     {
       "from": "scripts",
       "to": "tooling-lib",
-      "links": 1
+      "links": 2
     },
     {
       "from": "tests",
@@ -193,12 +213,12 @@
     {
       "from": "tests",
       "to": "semantic",
-      "links": 1
+      "links": 2
     },
     {
       "from": "tests",
       "to": "tooling-lib",
-      "links": 2
+      "links": 4
     }
   ]
 }

@@ -35,6 +35,7 @@ can change it without breaking it.
 | L5 · Delivery | hosting, previews, observability | ⛔ not chosen (D3, D6) |
 | L0+ · Retrieval & provenance | semantic index, authorship trailers, supply-chain audit | ✅ present |
 | L0+ · Verification & docs | property tests, deterministic mocks, generated architecture graph | ✅ present |
+| L0+ · Retrieval quality & boundaries | hybrid ranking with a measured gate, fail-closed schemas, declared egress | ✅ present |
 
 The `L0+` row is cross-cutting tooling: it never imports from L1–L5 and must keep working when the
 stack arrives.
@@ -66,7 +67,11 @@ stack arrives.
 12. **Optimisation never weakens a gate.** A job may be skipped only when the change classifier
     proves it safe; guard, provenance, and PR hygiene always run
     ([ADR-0007](docs/adr/0007-green-builds.md)).
-13. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
+13. **Quality is measured, not asserted.** Retrieval changes are accepted against a gold set with a
+    gate that only ratchets upward ([ADR-0009](docs/adr/0009-hybrid-retrieval.md)).
+14. **Boundaries default to "no".** Unknown config keys and undeclared network destinations fail the
+    build ([ADR-0010](docs/adr/0010-fail-closed-boundaries.md)).
+15. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
     result can be traced to the exact data that produced it
     ([ADR-0005](docs/adr/0005-artifact-storage.md)).
 
@@ -91,6 +96,11 @@ stack arrives.
 | **Component** | A directory-level node in the architecture graph (workflows, skills, semantic…). |
 | **LFS pointer** | The small tracked stub that stands in for a large binary's bytes. |
 | **Routing class** | `docs` · `ci` · `tooling` · `data` · `deps` · `code` — decides which CI jobs run. |
+| **Hybrid retrieval** | Vector cosine fused with BM25 by reciprocal rank fusion (RRF, k=60). |
+| **RRF** | Rank-based fusion: `1/(k+rank)` summed across rankings; no score scaling needed. |
+| **Gold set** | `tests/semantic-gold.json` — queries with the file that truly answers each one. |
+| **Egress allowlist** | The declared set of outbound hosts, each with a reason and a file scope. |
+| **Fail-closed** | Absent an explicit rule, the answer is "reject" — for keys and for destinations. |
 
 ## 5. Non-goals
 
@@ -120,6 +130,8 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0006 — Property tests and deterministic mocks](docs/adr/0006-testing-strategy.md) · accepted
 - [ADR-0007 — Cost- and carbon-aware CI routing](docs/adr/0007-green-builds.md) · accepted
 - [ADR-0008 — Living documentation as a verified artifact](docs/adr/0008-living-documentation.md) · accepted
+- [ADR-0009 — Hybrid retrieval with a measured quality gate](docs/adr/0009-hybrid-retrieval.md) · accepted
+- [ADR-0010 — Fail-closed boundaries and declared egress](docs/adr/0010-fail-closed-boundaries.md) · accepted
 
 ## 8. Change protocol
 
@@ -134,6 +146,9 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 | New artifact root or LFS pattern | `.gitattributes` + `docs/data/artifacts.md` + manifest regeneration |
 | Structure change (files move) | `node scripts/architecture-graph.mjs --write` |
 | New CI job | classifier rule + `docs/ci/green-builds.md` routing table |
+| New outbound destination | `scripts/check-egress.mjs` allowlist entry + a reason |
+| New structural JSON file | schema in `scripts/validate-json.mjs` + guard required-file entry |
+| Ranking change | eval run before/after recorded in the PR body (ADR-0009) |
 
 ## 9. References
 
@@ -149,3 +164,5 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - Testing strategy: [docs/ci/testing-strategy.md](docs/ci/testing-strategy.md)
 - Green builds: [docs/ci/green-builds.md](docs/ci/green-builds.md)
 - Living documentation: [docs/architecture/living-docs.md](docs/architecture/living-docs.md)
+- Retrieval quality: [docs/agents/retrieval-quality.md](docs/agents/retrieval-quality.md)
+- Data sovereignty: [docs/security/data-sovereignty.md](docs/security/data-sovereignty.md)
