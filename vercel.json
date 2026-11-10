@@ -1,0 +1,14 @@
+{
+  "buildCommand": null,
+  "cleanUrls": true,
+  "framework": null,
+  "outputDirectory": "showcase",
+  "rewrites": [
+    { "source": "/playground/:path*", "destination": "/playground/:path*" },
+    { "source": "/showcase/:path*", "destination": "/showcase/:path*" },
+    { "source": "/", "destination": "/showcase/index.html" }
+  ],
+  "headers": [
+    { "source": "/playground/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }] }
+  ]
+}
