@@ -1,0 +1,13 @@
+# Code owners — every path.
+# Merges are a human decision; agents never merge (docs/agents/permissions.md).
+* @sayedelazameydesign-crypto
+
+# Governance and agent configuration need deliberate review.
+/AGENTS.md                     @sayedelazameydesign-crypto
+/CONTEXT.md                    @sayedelazameydesign-crypto
+/.mcp.json                     @sayedelazameydesign-crypto
+/.agent/                       @sayedelazameydesign-crypto
+/.claude/                      @sayedelazameydesign-crypto
+/.github/                      @sayedelazameydesign-crypto
+/scripts/                      @sayedelazameydesign-crypto
+/docs/adr/                     @sayedelazameydesign-crypto
