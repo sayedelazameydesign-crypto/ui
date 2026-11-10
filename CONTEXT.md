@@ -187,6 +187,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0017 — Extractive context packing with measured citation retention](docs/adr/0017-context-packing.md) · accepted
 - [ADR-0018 — An evaluation set that can resolve what it claims](docs/adr/0018-evaluation-resolution.md) · accepted
 - [ADR-0019 — Adversarial input: shapes a scanner can hold, and a stated limit](docs/adr/0019-adversarial-inputs.md) · accepted
+- [ADR-0020 — Apache-2.0, with a NOTICE that states what is actually shipped](docs/adr/0020-license.md) · accepted
 
 ## 8. Change protocol
 

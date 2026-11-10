@@ -108,7 +108,7 @@ node scripts/artifact-manifest.mjs --check
 
 | القدرة | كيف نُفِّذت هنا | الحالة |
 | --- | --- | --- |
-| **بحث هجين مُقاس** | متجه + BM25 بدمج RRF، وتوسيع استعلام عربي من معجم محلي (87 مدخلاً)؛ **58 استعلاماً ذهبياً** (43 إنجليزي · 15 عربي) وفاصل ثقة مُبلَّغ عنه | ✅ R@1 **0.64** · R@3 **0.74** · MRR **0.69** — فاصل 95% لـ R@1: 0.52–0.76 |
+| **بحث هجين مُقاس** | متجه + BM25 بدمج RRF، وتوسيع استعلام عربي من معجم محلي (87 مدخلاً)؛ **58 استعلاماً ذهبياً** (43 إنجليزي · 15 عربي) وفاصل ثقة مُبلَّغ عنه | ✅ R@1 **0.64** · R@3 **0.74** · MRR **0.68** — فاصل 95% لـ R@1: 0.52–0.76 |
 | **بوابة جودة** | `semantic/eval.mjs` يفشل تحت R@3 0.90 أو MRR 0.75 — سقف يزيد ولا ينقص | ✅ مفعّلة في الحارس و CI |
 | **تحقق صارم (fail-closed)** | مخطّطات JSON لمفاتيح `.mcp.json` والسجلات؛ أي مفتاح غير معروف خطأ لا تحذير | ✅ مع اختبارات سلبية |
 | **سيادة البيانات** | قائمة وجهات مسموحة بـ«سبب» و«ملف مسموح»؛ أي URL جديد يفشل البناء | ✅ 8 وجهات معلنة، 0 مخالفة |
@@ -181,8 +181,14 @@ node scripts/playground-server.mjs        # ثم افتح /playground/
 1. تثبيت **نظام التصميم** أولاً: الرموز (ألوان، مسافات، خطوط) واستراتيجية RTL — قرار D2.
 2. اختيار حزمة التقنيات عبر ADR جديد يُلغي [ADR-0002](docs/adr/0002-defer-stack-choice.md).
 3. تفعيل حماية الفرع `main` على GitHub: مراجعة إلزامية + منع الدفع المباشر.
-4. اختيار **الترخيص** (D5) وإضافة ملف `LICENSE` — أداة الفحص تنبّه حالياً لغيابه.
+4. ~~اختيار الترخيص (D5)~~ — تم: **Apache-2.0** مع `NOTICE` ([ADR-0020](docs/adr/0020-license.md)).
 5. إضافة `.env.example` عند أول حاجة لتهيئة بيئة.
+
+### الترخيص
+
+**Apache-2.0** ([`LICENSE`](LICENSE) · [`NOTICE`](NOTICE) · [ADR-0020](docs/adr/0020-license.md)). يمنح
+الترخيص براءة اختراع صريحة — وهو ما تطلبه سياسة الاعتماديات من كل اعتمادية ([ADR-0004](docs/adr/0004-zero-trust-dependencies.md)) —
+بصيغة `SPDX: Apache-2.0`. نص الترخيص مثبَّت ببصمة SHA-256 في الحارس، فلا يتغيّر بصمت.
 
 ---
 
@@ -279,7 +285,7 @@ node scripts/artifact-manifest.mjs --check
 
 | Capability | Implementation | State |
 | --- | --- | --- |
-| **Measured hybrid retrieval** | vector + BM25 fused by RRF, Arabic query expansion from an 87-entry glossary, **58-case** bilingual gold set with a reported interval | ✅ R@1 **0.64** · R@3 **0.74** · MRR **0.69** — 95% CI for R@1: 0.52–0.76 |
+| **Measured hybrid retrieval** | vector + BM25 fused by RRF, Arabic query expansion from an 87-entry glossary, **58-case** bilingual gold set with a reported interval | ✅ R@1 **0.64** · R@3 **0.74** · MRR **0.68** — 95% CI for R@1: 0.52–0.76 |
 | **Quality gate** | `semantic/eval.mjs` fails below R@3 0.90 / MRR 0.75 — a floor that only ratchets up | ✅ in guard and CI |
 | **Fail-closed validation** | explicit JSON schemas for `.mcp.json` and the ledgers; unknown keys are errors | ✅ negative-tested |
 | **Data sovereignty** | egress allowlist where each host needs a reason and a permitted file scope | ✅ 8 declared hosts, 0 violations |
@@ -384,8 +390,15 @@ The browser imports the **same** `scripts/semantic/core.mjs` the CLI uses, and
 1. Specify the **design system** first: tokens (colour, space, type) and the RTL strategy — D2.
 2. Choose the stack through a new ADR superseding [ADR-0002](docs/adr/0002-defer-stack-choice.md).
 3. Enable `main` branch protection on GitHub: required review, no direct pushes.
-4. Choose the **licence** (D5) and add a `LICENSE` file — the audit currently warns about the gap.
+4. ~~Choose the licence (D5)~~ — done: **Apache-2.0** with a `NOTICE` ([ADR-0020](docs/adr/0020-license.md)).
 5. Add `.env.example` at the first need for environment configuration.
+
+### Licence
+
+**Apache-2.0** ([`LICENSE`](LICENSE) · [`NOTICE`](NOTICE) · [ADR-0020](docs/adr/0020-license.md)). The
+patent grant is the reason: this repository demands exactly that of every dependency it accepts
+([ADR-0004](docs/adr/0004-zero-trust-dependencies.md)). Declared as `SPDX: Apache-2.0`, and the licence
+text is pinned by SHA-256 in the guard so it cannot change silently.
 
 ---
 

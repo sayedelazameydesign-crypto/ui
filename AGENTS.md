@@ -26,7 +26,7 @@
 | I broke something. Now what? | `node scripts/snapshot.mjs restore <id>` — verified, guarded ([state](docs/agents/state-and-rollback.md)). |
 | How do I fit this into a context window? | `node scripts/context-pack.mjs "…" --budget 800` — extractive, cited, measured ([packing](docs/agents/context-packing.md)). |
 | What happened to this checkout? | `node scripts/ledger.mjs tail` — hash-chained audit trail ([ADR-0015](docs/adr/0015-state-snapshots-and-ledger.md)). |
-| Can the guards actually fail? | `node scripts/mutation-test.mjs` — 4/4 mutants killed ([ADR-0016](docs/adr/0016-mutation-testing.md)). |
+| Can the guards actually fail? | `node scripts/mutation-test.mjs` — 10/10 mutants killed, including one per guard family ([ADR-0016](docs/adr/0016-mutation-testing.md)). |
 | How fast is retrieval? | `node scripts/bench.mjs` — p50/p95 per mode, no invented comparisons ([benchmarks](docs/benchmarks.md)). |
 | May I download a model? | Only via `semantic/model.mjs` with a checksum pinned in the manifest — never in CI ([local model](docs/agents/local-model.md)). |
 | Where do datasets and model weights go? | Git LFS + `artifacts.manifest.json` ([artifacts](docs/data/artifacts.md)). |
@@ -300,7 +300,7 @@ When in doubt: **read-only beats write, ask beats assume.**
 | D2 | Styling & design tokens (Tailwind v4, CSS variables, RTL strategy) | open |
 | D3 | Hosting target (Vercel / Cloudflare / other) | open |
 | D4 | Whether agents may open PRs autonomously vs. draft-only | open |
-| D5 | Repository licence (MIT vs. Apache-2.0) — no `LICENSE` file yet | open |
+| D5 | Repository licence (MIT vs. Apache-2.0) | **decided**: Apache-2.0 + `NOTICE` ([ADR-0020](docs/adr/0020-license.md)) |
 | D6 | Preview hosting target for per-PR sandboxes (see `docs/ci/ephemeral-environments.md`) | open |
 | D7 | Artifact remote for large data (LFS quota vs. dataset registry) — see `docs/data/artifacts.md` | open |
 | D8 | Neural cross-encoder reranker for R@1 ≥ 0.85 — the load policy is enforced ([ADR-0013](docs/adr/0013-opt-in-model-load.md)); still missing: a pinned checksum and the ONNX runtime | **open** (policy done) |

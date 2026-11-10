@@ -86,10 +86,24 @@ if (existsSync(manifestPath)) {
   }
 }
 
-// Repository licence: undecided today (open decision D5), but silently licence-less
-// code is worse than a deliberate choice.
-if (!["LICENSE", "LICENSE.md", "LICENSE.txt", "COPYING"].some((f) => existsSync(f))) {
-  add("warn", "no-license-file", "no LICENSE file at the repository root — the licence is an open decision (AGENTS.md §9)", "");
+// Repository licence: D5 was decided (Apache-2.0, ADR-0020). The file existing is
+// the minimum; a licence that does not say what we think it says is worse than a
+// missing one, so the text is checked rather than assumed.
+const LICENSE_FILES = ["LICENSE", "LICENSE.md", "LICENSE.txt", "COPYING"];
+const licenseFile = LICENSE_FILES.find((f) => existsSync(f));
+if (!licenseFile) {
+  add("warn", "no-license-file", "no LICENSE file at the repository root — the licence is decided (ADR-0020), the file is missing", "");
+} else {
+  // The header, not the whole file: the appendix mentions "Apache License" in a
+  // sentence about applying it, so a full-text match would accept a licence whose
+  // title had been changed.
+  const header = readFileSync(licenseFile, "utf8").split("\n").slice(0, 5).join("\n");
+  if (!/^Apache License$/im.test(header) || !/^Version 2\.0,/m.test(header)) {
+    add("high", "license-mismatch", `${licenseFile} does not contain the Apache-2.0 text this repository declares (ADR-0020)`, licenseFile);
+  }
+  if (!existsSync("NOTICE")) {
+    add("warn", "no-notice-file", "Apache-2.0 ships with a NOTICE in this repository (ADR-0020) — it is missing", "");
+  }
 }
 
 /* ------------------------------------------------------------------ */

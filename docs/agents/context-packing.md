@@ -34,14 +34,14 @@ Three decisions worth naming:
 - **Citations are ranges.** Each passage is `path:line` → the exact source lines, re-read from disk at
   pack time, so a citation cannot drift from what the file says.
 
-## 3. Measured (58 gold cases, corpus 591 KiB, 678 chunks)
+## 3. Measured (58 gold cases, corpus 601 KiB, 685 chunks)
 
 | budget | passages | tokens used | answer@budget | vs corpus | vs top-40 |
 | --- | --- | --- | --- | --- | --- |
-| 400 | 6.3 | 388 | **79%** | 503× | **29.9×** |
-| 800 | 12.4 | 786 | **90%** | 246× | 14.6× |
-| 1 600 | 24.5 | 1 578 | 98% | 122× | 7.3× |
-| 3 200 | 31.4 | 2 033 | 98% | 95× | 5.6× |
+| 400 | 6.3 | 387 | **79%** | 511× | **30.1×** |
+| 800 | 12.4 | 785 | **91%** | 250× | 14.7× |
+| 1 600 | 24.4 | 1 579 | 98% | 124× | 7.3× |
+| 3 200 | 31.4 | 2 042 | 98% | 96× | 5.6× |
 
 `answer@budget` = the gold file for that query is cited somewhere in the pack. `vs top-40` = the
 unpacked candidate set most tools send as-is, divided by the pack size. **The honest headline is the
@@ -84,6 +84,11 @@ count would shift these numbers by ±10–20%.
 6. a gap marker appears **exactly** when kept sentences are not contiguous;
 7. no packed passage carries a block-severity codepoint — every passage is neutralised before it is
    embedded, budgeted, or rendered ([adversarial inputs](../security/adversarial-inputs.md)).
+
+These properties build the index on demand. They used to return `true` when `.index/` was absent, which
+made the suite pass without exercising anything — a mutant that broke the token budget "survived" and
+exposed it. A test that can skip itself is not a test; the suite now fails loudly instead
+(`node scripts/property-test.mjs --only context`).
 
 ## 6. Limits, stated plainly
 

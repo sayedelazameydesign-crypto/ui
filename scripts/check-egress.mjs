@@ -13,7 +13,7 @@
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { extname } from "node:path";
+import { basename, extname } from "node:path";
 
 const JSON_OUT = process.argv.includes("--json");
 const LIST = process.argv.includes("--list");
@@ -63,6 +63,10 @@ const ALLOWLIST = {
     why: "attack fixture: a data-carrying markdown link the scanner must flag; never fetched",
     files: ["^tests/adversarial/cases\\.json$"],
   },
+  "www.apache.org": {
+    why: "canonical Apache-2.0 licence reference in the licence and NOTICE text — a string, never requested",
+    files: ["^LICENSE$", "^NOTICE$"],
+  },
   "www.w3.org": {
     why: "XML namespace identifier (SVG elements) — a name string, never a request",
     files: ["^playground/"],
@@ -85,12 +89,19 @@ const TEXT_EXTENSIONS = new Set([
   ".md", ".mjs", ".js", ".cjs", ".ts", ".yml", ".yaml", ".json", ".sh", ".html", ".css", ".txt", ".jsonc",
 ]);
 
+// Extensionless text files are still text. A URL written into a licence or a
+// NOTICE is as visible to a reader as one in a script, and skipping these files
+// made the allowlist entry for them unreachable — a rule nobody can trip is not
+// a rule.
+const TEXT_NAMES = new Set(["LICENSE", "NOTICE", "COPYING", "Dockerfile", "Makefile"]);
+
 const files = execFileSync("git", ["ls-files"], { encoding: "utf8" }).split("\n").filter(Boolean);
 const violations = [];
 const seenHosts = new Map();
 
 for (const file of files) {
-  if (!TEXT_EXTENSIONS.has(extname(file)) || GENERATED.some((pattern) => pattern.test(file))) continue;
+  const isText = TEXT_EXTENSIONS.has(extname(file)) || TEXT_NAMES.has(basename(file));
+  if (!isText || GENERATED.some((pattern) => pattern.test(file))) continue;
   let content;
   try {
     content = readFileSync(file, "utf8");
