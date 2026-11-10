@@ -34,14 +34,14 @@ Three decisions worth naming:
 - **Citations are ranges.** Each passage is `path:line` → the exact source lines, re-read from disk at
   pack time, so a citation cannot drift from what the file says.
 
-## 3. Measured (58 gold cases, corpus 601 KiB, 685 chunks)
+## 3. Measured (58 gold cases, whole-repository corpus)
 
 | budget | passages | tokens used | answer@budget | vs corpus | vs top-40 |
 | --- | --- | --- | --- | --- | --- |
-| 400 | 6.3 | 387 | **79%** | 511× | **30.1×** |
-| 800 | 12.4 | 785 | **91%** | 250× | 14.7× |
-| 1 600 | 24.4 | 1 579 | 98% | 124× | 7.3× |
-| 3 200 | 31.4 | 2 042 | 98% | 96× | 5.6× |
+| 400 | 6.3 | 387 | **79%** | 513× | **30×** |
+| 800 | 12.4 | 786 | **90%** | 251× | 14.7× |
+| 1 600 | 24.4 | 1 578 | 98% | 124× | 7.3× |
+| 3 200 | 31.5 | 2 055 | 98% | 95× | 5.6× |
 
 `answer@budget` = the gold file for that query is cited somewhere in the pack. `vs top-40` = the
 unpacked candidate set most tools send as-is, divided by the pack size. **The honest headline is the

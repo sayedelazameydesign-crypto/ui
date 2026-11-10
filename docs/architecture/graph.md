@@ -4,7 +4,7 @@
 > Regenerate with `node scripts/architecture-graph.mjs --write`.
 > `guard` and the `architecture` workflow fail when this file is stale.
 
-**140 tracked files · 16 components · 32 directed links**
+**141 tracked files · 16 components · 32 directed links**
 
 ## Component map
 
@@ -67,7 +67,7 @@ graph LR
 | `scripts` — Repository scripts | 33 |
 | `adr` — Decision records | 20 |
 | `github-config` — GitHub config & templates | 17 |
-| `agent-harness` — Agent harness (.agent) | 15 |
+| `agent-harness` — Agent harness (.agent) | 16 |
 | `root` — Root docs & config | 15 |
 | `workflows` — CI workflows | 10 |
 | `docs-agents` — Agent docs | 9 |
