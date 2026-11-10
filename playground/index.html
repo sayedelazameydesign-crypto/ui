@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>بحث دلالي · Semantic search — ui</title>
+<meta name="description" content="Zero-install, offline hybrid retrieval over this repository. نفس المحرك، في المتصفح، بلا خادم ولا تبعيات." />
+<style>
+  :root {
+    --bg: #0b0f14; --panel: #131a22; --line: #22303d; --text: #e8eef5; --muted: #9bb0c3;
+    --accent: #59d3a6; --accent-dim: #1f4d3d; --warn: #f0b86e; --mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.6 system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Naskh Arabic", sans-serif; }
+  header { padding: 28px 24px 8px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 6px; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 18px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  input[type="search"] { flex: 1 1 340px; padding: 13px 15px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 15px; }
+  input[type="search"]:focus { outline: 2px solid var(--accent-dim); border-color: var(--accent); }
+  button { padding: 10px 14px; border-radius: 9px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--text); cursor: pointer; font-size: 14px; }
+  button:hover { border-color: var(--accent); }
+  button[aria-pressed="true"] { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .toggle { margin-inline-start: auto; }
+  main { max-width: 900px; margin: 0 auto; padding: 18px 24px 64px; }
+  .status { color: var(--muted); font-size: 13px; min-height: 20px; margin: 14px 0 6px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 4px; }
+  .chip { font-size: 13px; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line);
+    background: transparent; color: var(--muted); cursor: pointer; }
+  .chip:hover { color: var(--text); border-color: var(--accent); }
+  ol { list-style: none; padding: 0; margin: 18px 0 0; }
+  li { border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+    padding: 14px 16px; margin-bottom: 10px; }
+  .head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .path { font-family: var(--mono); font-size: 13px; color: var(--accent); word-break: break-all; }
+  .score { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-inline-start: auto; }
+  .heading { color: var(--muted); font-size: 13px; margin: 4px 0 8px; }
+  .preview { font-size: 14px; color: #cfdae6; margin: 0; white-space: pre-wrap; }
+  .empty { color: var(--muted); padding: 22px 0; }
+  footer { border-top: 1px solid var(--line); margin-top: 30px; padding: 18px 24px 40px;
+    color: var(--muted); font-size: 12.5px; max-width: 900px; margin-inline: auto; }
+  code { font-family: var(--mono); background: #0e151c; padding: 1px 5px; border-radius: 5px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">بحث دلالي في هذا المستودع — بلا تثبيت</h1>
+  <p class="sub" id="subtitle">
+    نفس المحرك الهجين (متجهات + BM25 + دمج RRF) يعمل هنا في المتصفح: لا خادم، لا حزم، لا شبكة.
+    الفهرس مُصدَّر مسبقاً ومُكمَّم إلى int8.
+  </p>
+  <div class="row">
+    <input id="query" type="search" placeholder="مثال: من يحق له دمج طلب سحب؟" autocomplete="off" spellcheck="false" />
+    <button id="mode-hybrid" aria-pressed="true">هجين</button>
+    <button id="mode-keyword" aria-pressed="false">كلمات</button>
+    <button id="mode-vector" aria-pressed="false">متجه</button>
+    <button id="lang" class="toggle">EN</button>
+  </div>
+  <div class="chips" id="samples"></div>
+  <div class="status" id="status">جارٍ تحميل الفهرس…</div>
+</header>
+
+<main>
+  <ol id="results"></ol>
+</main>
+
+<footer>
+  <span id="footline">…</span><br />
+  الفهرس: <code id="indexmeta">—</code> · التكافؤ مقاس في <code>scripts/playground-parity.mjs</code>
+  (<span id="parity">R@3 0.94 مقابل 0.94 للمحرك</span>) · المحرك: <code>scripts/semantic/core.mjs</code>
+</footer>
+
+<script type="module">
+import { hydrate, search } from "./engine.mjs";
+
+const ui = {
+  ar: {
+    title: "بحث دلالي في هذا المستودع — بلا تثبيت",
+    subtitle: "نفس المحرك الهجين (متجهات + BM25 + دمج RRF) يعمل هنا في المتصفح: لا خادم، لا حزم، لا شبكة. الفهرس مُصدَّر مسبقاً ومُكمَّم إلى int8.",
+    placeholder: "مثال: كيف نمنع تسريب البيانات الشخصية؟",
+    modes: { hybrid: "هجين", keyword: "كلمات", vector: "متجه" },
+    ready: (n, ms) => `الفهرس جاهز · ${n} مقطعاً · تحميل ${ms} مللي ثانية`,
+    searching: "…جارٍ البحث",
+    results: (n, ms) => `${n} نتيجة في ${ms} مللي ثانية`,
+    none: "لا نتائج — جرّب كلمة عامة أكثر.",
+    samples: ["كيف نمنع تسريب البيانات الشخصية؟", "كيف نتحقق من PARTICULAR؟", "ما قواعد الخصوصية في الالتزام؟", "hybrid retrieval recall", "how are artifacts stored"],
+    foot: "هذه الصفحة تعمل بفتحها من أي خادم ملفات ساكن (بلا حزم ولا بناء)، وتقرأ فهرساً مُصدَّراً من نفس الكود.",
+    lang: "EN",
+  },
+  en: {
+    title: "Semantic search over this repository — zero install",
+    subtitle: "The same hybrid engine (vectors + BM25 + RRF fusion) running in your browser: no server, no bundler, no network. The index is pre-exported and int8-quantized.",
+    placeholder: "e.g. who may merge a pull request?",
+    modes: { hybrid: "hybrid", keyword: "keyword", vector: "vector" },
+    ready: (n, ms) => `index ready · ${n} chunks · loaded in ${ms} ms`,
+    searching: "searching…",
+    results: (n, ms) => `${n} results in ${ms} ms`,
+    none: "No hits — try a broader term.",
+    samples: ["who may merge a pull request", "how do we verify a model checksum", "what blocks a commit with PII", "hybrid retrieval recall", "كيف نمنع تسريب البيانات الشخصية؟"],
+    foot: "Served by any static file server — no bundler, no build step — reading an index exported from the same code.",
+    lang: "ع",
+  },
+};
+
+let lang = document.documentElement.lang === "ar" ? "ar" : "en";
+let mode = "hybrid";
+let index = null;
+let lastQuery = "";
+
+const $ = (id) => document.getElementById(id);
+
+function paint() {
+  const t = ui[lang];
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  $("title").textContent = t.title;
+  $("subtitle").textContent = t.subtitle;
+  $("query").placeholder = t.placeholder;
+  $("lang").textContent = t.lang;
+  for (const key of ["hybrid", "keyword", "vector"]) {
+    $(`mode-${key}`).textContent = t.modes[key];
+    $(`mode-${key}`).setAttribute("aria-pressed", String(mode === key));
+  }
+  $("samples").replaceChildren(...t.samples.map((sample) => {
+    const chip = document.createElement("button");
+    chip.className = "chip";
+    chip.textContent = sample;
+    chip.addEventListener("click", () => { $("query").value = sample; run(); });
+    return chip;
+  }));
+  if (index) run();
+}
+
+function run() {
+  const query = $("query").value.trim();
+  if (!index) return;
+  if (!query) { $("results").replaceChildren(); $("status").textContent = ""; lastQuery = ""; return; }
+  lastQuery = query;
+  $("status").textContent = ui[lang].searching;
+  const started = performance.now();
+  const hits = search(index, query, { k: 8, mode });
+  const elapsed = (performance.now() - started).toFixed(1);
+  $("status").textContent = hits.length ? ui[lang].results(hits.length, elapsed) : ui[lang].none;
+  $("results").replaceChildren(...hits.map((hit) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <div class="head">
+        <span class="path">${hit.file}:${hit.line}</span>
+        <span class="score">${hit.score.toFixed(3)} · vec ${hit.vector.toFixed(3)} · bm25 ${hit.keyword}</span>
+      </div>
+      <div class="heading">${hit.heading ? hit.heading.replace(/[<>&]/g, "") : ""}</div>
+      <p class="preview">${hit.preview.replace(/[<>&]/g, "")}</p>`;
+    return li;
+  }));
+}
+
+const startedAt = performance.now();
+try {
+  const response = await fetch("./index.json", { cache: "no-cache" });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const payload = await response.json();
+  index = hydrate(payload);
+  const loadMs = (performance.now() - startedAt).toFixed(0);
+  $("status").textContent = ui[lang].ready(index.chunks.length, loadMs);
+  $("indexmeta").textContent = `${payload.chunks.length} chunks · ${payload.dims}d · int8 · @${payload.commit}`;
+  $("footline").textContent = ui[lang].foot;
+} catch (error) {
+  $("status").textContent = lang === "ar"
+    ? `تعذّر تحميل الفهرس (${error.message}). افتح الصفحة عبر خادم ملفات ساكن: node scripts/playground-server.mjs`
+    : `Could not load the index (${error.message}). Serve the page over HTTP: node scripts/playground-server.mjs`;
+}
+
+$("query").addEventListener("input", () => run());
+for (const key of ["hybrid", "keyword", "vector"]) {
+  $(`mode-${key}`).addEventListener("click", () => { mode = key; paint(); });
+}
+$("lang").addEventListener("click", () => { lang = lang === "ar" ? "en" : "ar"; paint(); });
+paint();
+</script>
+</body>
+</html>
