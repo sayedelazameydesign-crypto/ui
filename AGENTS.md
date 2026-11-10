@@ -20,6 +20,8 @@
 | How do I find code by meaning? | `node scripts/semantic/cli.mjs search "…"` (hybrid; see [retrieval quality](docs/agents/retrieval-quality.md)). |
 | May I add an external URL or service? | Only by declaring it in `scripts/check-egress.mjs` with a reason ([sovereignty](docs/security/data-sovereignty.md)). |
 | May I commit test data? | Synthetic only. `node scripts/check-pii.mjs --staged` blocks PII and secrets ([pii guard](docs/security/pii-guard.md)). |
+| How do I demo a change? | `node scripts/playground-server.mjs` — the page imports the same `core.mjs` as the CLI ([ADR-0014](docs/adr/0014-playground-and-benchmarks.md)). |
+| How fast is retrieval? | `node scripts/bench.mjs` — p50/p95 per mode, no invented comparisons ([benchmarks](docs/benchmarks.md)). |
 | May I download a model? | Only via `semantic/model.mjs` with a checksum pinned in the manifest — never in CI ([local model](docs/agents/local-model.md)). |
 | Where do datasets and model weights go? | Git LFS + `artifacts.manifest.json` ([artifacts](docs/data/artifacts.md)). |
 | May I hand-edit a generated file? | **No.** Regenerate it (`--write`) and commit the output. |
@@ -122,12 +124,17 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
     ├── semantic/              ← offline vector index + `search` CLI
     ├── lib/property.mjs       ← property-testing primitives (generators, shrinking)
     ├── lib/schema.mjs         ← minimal fail-closed JSON schema validator
+    ├── semantic/core.mjs      ← pure primitives shared by the CLI and the browser demo
     ├── semantic/eval.mjs      ← quality gate over tests/semantic-gold.json
     ├── semantic/model.mjs     ← opt-in model install/verify (checksum-pinned, isolated)
     ├── property-test.mjs      ← property runner (seeded, shrinks failures)
     ├── mock-server.mjs        ← deterministic HTTP mocks, fault injection
     ├── change-classifier.mjs  ← CI cost/carbon routing by change class
     ├── validate-json.mjs      ← fail-closed schema validation for structural files
+    ├── bench.mjs              ← latency/memory harness (same index, same queries)
+    ├── export-playground.mjs  ← int8 index export for the zero-install demo
+    ├── playground-parity.mjs  ← demo vs engine recall parity
+    ├── playground-server.mjs  ← static server for the demo (no proxy, no bundler)
     ├── check-egress.mjs       ← egress allowlist (data sovereignty)
     ├── check-pii.mjs          ← PII/secret detection at the commit boundary
     ├── artifact-manifest.mjs  ← artifact ledger: write / check for drift
@@ -165,6 +172,9 @@ node scripts/validate-json.mjs                  # fail-closed schema validation
 node scripts/check-egress.mjs                   # declared egress destinations only
 node scripts/check-pii.mjs --staged             # PII/secrets in the staged diff (pre-commit)
 node scripts/semantic/model.mjs status          # opt-in model artifacts (never downloads)
+node scripts/bench.mjs                          # latency/memory per retrieval mode
+node scripts/playground-parity.mjs              # the browser demo answers like the engine
+node scripts/export-playground.mjs              # rebuild playground/index.json after corpus changes
 
 node scripts/architecture-graph.mjs --write     # regenerate the living architecture graph
 node scripts/artifact-manifest.mjs --write      # regenerate the artifact ledger

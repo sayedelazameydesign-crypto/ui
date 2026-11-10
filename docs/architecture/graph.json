@@ -3,9 +3,9 @@
   "generator": "scripts/architecture-graph.mjs",
   "note": "Generated from tracked files — do not edit by hand. Regenerate with --write.",
   "stats": {
-    "files": 102,
+    "files": 113,
     "components": 16,
-    "edges": 27
+    "edges": 30
   },
   "components": [
     {
@@ -16,7 +16,7 @@
     {
       "id": "agent-harness",
       "label": "Agent harness (.agent)",
-      "files": 10
+      "files": 11
     },
     {
       "id": "skills",
@@ -41,7 +41,7 @@
     {
       "id": "adr",
       "label": "Decision records",
-      "files": 13
+      "files": 14
     },
     {
       "id": "docs-agents",
@@ -66,7 +66,7 @@
     {
       "id": "semantic",
       "label": "Semantic engine",
-      "files": 5
+      "files": 6
     },
     {
       "id": "tooling-lib",
@@ -76,7 +76,7 @@
     {
       "id": "scripts",
       "label": "Repository scripts",
-      "files": 22
+      "files": 27
     },
     {
       "id": "tests",
@@ -93,7 +93,7 @@
     {
       "from": "adr",
       "to": "docs-agents",
-      "links": 12
+      "links": 13
     },
     {
       "from": "adr",
@@ -113,7 +113,7 @@
     {
       "from": "adr",
       "to": "other",
-      "links": 4
+      "links": 6
     },
     {
       "from": "adr",
@@ -143,7 +143,7 @@
     {
       "from": "docs-agents",
       "to": "other",
-      "links": 1
+      "links": 2
     },
     {
       "from": "docs-agents",
@@ -166,9 +166,14 @@
       "links": 1
     },
     {
+      "from": "other",
+      "to": "semantic",
+      "links": 1
+    },
+    {
       "from": "root",
       "to": "adr",
-      "links": 32
+      "links": 35
     },
     {
       "from": "root",
@@ -198,12 +203,22 @@
     {
       "from": "root",
       "to": "other",
-      "links": 6
+      "links": 10
     },
     {
       "from": "root",
       "to": "scripts",
       "links": 2
+    },
+    {
+      "from": "scripts",
+      "to": "other",
+      "links": 1
+    },
+    {
+      "from": "scripts",
+      "to": "semantic",
+      "links": 4
     },
     {
       "from": "scripts",
