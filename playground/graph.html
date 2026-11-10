@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>خريطة المعمارية · Architecture graph</title>
+<style>
+  :root { --bg:#0b0f14; --panel:#131a22; --line:#22303d; --text:#e8eef5; --muted:#9bb0c3;
+          --accent:#59d3a6; --link:#3b5567; --hot:#f0b86e; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text);
+    font:15px/1.6 system-ui,-apple-system,"Segoe UI",Tahoma,"Noto Naskh Arabic",sans-serif; }
+  header { padding:22px 24px 6px; max-width:1080px; margin:0 auto; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:var(--muted); font-size:13.5px; margin:0 0 14px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  input { flex:1 1 280px; padding:10px 13px; border-radius:9px; border:1px solid var(--line);
+    background:var(--panel); color:var(--text); font-size:14px; }
+  button { padding:9px 13px; border-radius:9px; border:1px solid var(--line); background:var(--panel);
+    color:var(--text); cursor:pointer; font-size:13.5px; }
+  button:hover { border-color:var(--accent); }
+  main { max-width:1080px; margin:0 auto; padding:10px 24px 40px; display:grid;
+    grid-template-columns:minmax(0,1fr) 300px; gap:18px; }
+  @media (max-width: 820px) { main { grid-template-columns:1fr; } }
+  svg { width:100%; height:auto; background:var(--panel); border:1px solid var(--line); border-radius:14px; }
+  .node circle { fill:#1d2b36; stroke:var(--accent); stroke-width:1.2; cursor:pointer; transition:fill .15s; }
+  .node:hover circle, .node.active circle { fill:var(--hot); }
+  .node text { fill:var(--text); font-size:11px; pointer-events:none; }
+  .edge { stroke:var(--link); transition:stroke .15s, opacity .15s; }
+  .edge.hot { stroke:var(--hot); }
+  aside { border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:14px 16px; height:max-content; }
+  aside h2 { font-size:14px; margin:0 0 8px; color:var(--accent); }
+  .kv { display:flex; justify-content:space-between; gap:10px; font-size:13px; padding:3px 0; color:var(--muted); }
+  .kv b { color:var(--text); font-weight:600; }
+  .detail { font-size:13px; color:var(--muted); margin-top:10px; min-height:44px; }
+  footer { max-width:1080px; margin:0 auto; padding:0 24px 40px; color:var(--muted); font-size:12.5px; }
+  code { font-family:ui-monospace,monospace; background:#0e151c; padding:1px 5px; border-radius:5px; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">خريطة معمارية حيّة — مولّدة من الكود</h1>
+  <p class="sub" id="subtitle">تُبنى آلياً من المراجع الفعلية بين الملفات، ويُفشل الحارس البناء إذا انحرفت عن الكود. لا يد بشرية في الرسم.</p>
+  <div class="row">
+    <input id="filter" placeholder="ابحث عن مكوّن…" autocomplete="off" />
+    <button id="lang">EN</button>
+  </div>
+</header>
+<main>
+  <svg id="canvas" viewBox="0 0 900 620" role="img" aria-label="architecture graph"></svg>
+  <aside>
+    <h2 id="stats-title">الإحصاءات</h2>
+    <div id="stats"></div>
+    <div class="detail" id="detail"></div>
+  </aside>
+</main>
+<footer id="foot">
+  المصدر: <code>docs/architecture/graph.json</code> · مولّد بواسطة <code>scripts/architecture-graph.mjs</code> ·
+  الحداثة مفروضة في <code>check-repo.sh</code> §8
+</footer>
+
+<script type="module">
+const texts = {
+  ar: { title: "خريطة معمارية حيّة — مولّدة من الكود", subtitle: "تُبنى آلياً من المراجع الفعلية بين الملفات، ويُفشل الحارس البناء إذا انحرفت عن الكود. لا يد بشرية في الرسم.", filter: "ابحث عن مكوّن…", lang: "EN", stats: "الإحصاءات", files: "ملفات", components: "مكوّنات", edges: "روابط", pick: "اختر مكوّناً لعرض جيرانه." },
+  en: { title: "Live architecture graph — generated from the code", subtitle: "Built automatically from real references between files; the guard fails the build if it drifts. No human draws this.", filter: "Find a component…", lang: "ع", stats: "Statistics", files: "files", components: "components", edges: "links", pick: "Pick a component to see its neighbours." },
+};
+let lang = "ar";
+
+const $ = (id) => document.getElementById(id);
+const svg = $("canvas");
+const NS = "http://www.w3.org/2000/svg";
+let graph = null;
+let active = null;
+
+function paintChrome() {
+  const t = texts[lang];
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  $("title").textContent = t.title;
+  $("subtitle").textContent = t.subtitle;
+  $("filter").placeholder = t.filter;
+  $("lang").textContent = t.lang;
+  $("stats-title").textContent = t.stats;
+  if (graph) {
+    $("stats").innerHTML = [
+      [t.files, graph.stats.files],
+      [t.components, graph.stats.components],
+      [t.edges, graph.stats.edges],
+    ].map(([k, v]) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`).join("");
+  }
+  if (!active) $("detail").textContent = texts[lang].pick;
+}
+
+function layout(nodes, width, height) {
+  const radius = Math.min(width, height) / 2 - 70;
+  const cx = width / 2;
+  const cy = height / 2;
+  return nodes.map((node, i) => {
+    const angle = (i / nodes.length) * Math.PI * 2 - Math.PI / 2;
+    return { ...node, x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+  });
+}
+
+function draw(filter = "") {
+  if (!graph) return;
+  const term = filter.trim().toLowerCase();
+  const nodes = graph.components.map((component) => ({ ...component }));
+  const placed = layout(nodes, 900, 620);
+  const positions = new Map(placed.map((node) => [node.id, node]));
+  const maxFiles = Math.max(...placed.map((node) => node.files || 1));
+
+  svg.replaceChildren();
+
+  const edgeLayer = document.createElementNS(NS, "g");
+  const nodeLayer = document.createElementNS(NS, "g");
+  const maxLinks = Math.max(...graph.edges.map((edge) => edge.links), 1);
+
+  for (const edge of graph.edges) {
+    const from = positions.get(edge.from);
+    const to = positions.get(edge.to);
+    if (!from || !to) continue;
+    const line = document.createElementNS(NS, "line");
+    line.setAttribute("x1", from.x); line.setAttribute("y1", from.y);
+    line.setAttribute("x2", to.x); line.setAttribute("y2", to.y);
+    line.setAttribute("stroke-width", String(0.6 + (edge.links / maxLinks) * 2.2));
+    line.setAttribute("opacity", "0.55");
+    line.setAttribute("class", "edge");
+    line.dataset.from = edge.from;
+    line.dataset.to = edge.to;
+    edgeLayer.append(line);
+  }
+
+  for (const node of placed) {
+    const matches = !term || node.id.toLowerCase().includes(term) || (node.label || "").toLowerCase().includes(term);
+    const group = document.createElementNS(NS, "g");
+    group.setAttribute("class", `node${active === node.id ? " active" : ""}`);
+    group.setAttribute("opacity", matches ? "1" : "0.18");
+
+    const radius = 6 + 16 * Math.sqrt((node.files || 1) / maxFiles);
+    const circle = document.createElementNS(NS, "circle");
+    circle.setAttribute("cx", node.x); circle.setAttribute("cy", node.y); circle.setAttribute("r", radius.toFixed(1));
+    const label = document.createElementNS(NS, "text");
+    const outward = node.x > 450 ? 1 : -1;
+    label.setAttribute("x", node.x + outward * (radius + 5));
+    label.setAttribute("y", node.y + 4);
+    label.setAttribute("text-anchor", outward > 0 ? "start" : "end");
+    label.textContent = node.id;
+
+    group.append(circle, label);
+    group.addEventListener("click", () => select(node));
+    group.addEventListener("mouseenter", () => highlight(node.id));
+    group.addEventListener("mouseleave", () => highlight(active));
+    nodeLayer.append(group);
+  }
+
+  svg.append(edgeLayer, nodeLayer);
+  return { placed, edgeLayer };
+}
+
+function highlight(id) {
+  for (const line of svg.querySelectorAll(".edge")) {
+    const related = id && (line.dataset.from === id || line.dataset.to === id);
+    line.classList.toggle("hot", Boolean(related));
+    line.setAttribute("opacity", id ? (related ? "1" : "0.12") : "0.55");
+  }
+}
+
+function select(node) {
+  active = node.id;
+  draw($("filter").value);
+  highlight(active);
+  const neighbours = graph.edges
+    .filter((edge) => edge.from === node.id || edge.to === node.id)
+    .map((edge) => `${edge.from === node.id ? edge.to : edge.from} (${edge.links})`);
+  $("detail").innerHTML = `<b>${node.id}</b> · ${node.files} ${texts[lang].files}<br />${
+    neighbours.length ? neighbours.join(" · ") : texts[lang].pick
+  }`;
+  location.hash = encodeURIComponent(node.id);
+}
+
+try {
+  const response = await fetch("../docs/architecture/graph.json", { cache: "no-cache" });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  graph = await response.json();
+  paintChrome();
+  draw();
+  const fromHash = decodeURIComponent(location.hash.replace("#", ""));
+  const initial = graph.components.find((component) => component.id === fromHash);
+  if (initial) select(initial);
+} catch (error) {
+  $("detail").textContent = `Could_not_load_graph(${error.message})`.replaceAll("_", " ");
+}
+
+$("filter").addEventListener("input", (event) => draw(event.target.value));
+$("lang").addEventListener("click", () => { lang = lang === "ar" ? "en" : "ar"; paintChrome(); if (active) select({ id: active, files: graph.components.find((c) => c.id === active)?.files ?? 0 }); });
+</script>
+</body>
+</html>

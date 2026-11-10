@@ -55,6 +55,10 @@ const ALLOWLIST = {
     why: "LFS pointer spec identifier read from pointer files — a string format, not a request",
     files: ["^scripts/artifact-manifest\.mjs$"],
   },
+  "www.w3.org": {
+    why: "XML namespace identifier (SVG elements) — a name string, never a request",
+    files: ["^playground/"],
+  },
   "huggingface.co": {
     why: "opt-in model weights only — requires --allow-network and a checksum pinned in the manifest; never used by CI",
     files: ["^scripts/semantic/model\\.mjs$", "^scripts/semantic/models\\.manifest\\.json$", "^docs/agents/local-model\\.md$"],
