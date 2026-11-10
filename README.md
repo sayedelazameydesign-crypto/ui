@@ -148,10 +148,13 @@ node scripts/check-egress.mjs --list        # الوجهات المعلنة وأ
 | **اختبار الطفرات للحرّاس** | `mutation-test.mjs` — 4 طفرات، خط أساس قبل كل طفرة | ✅ 4/4 مقتولة |
 | **خريطة معمارية تفاعلية** | `playground/graph.html` من `graph.json` | ✅ تُبنى من الكود، والحارس يفشل إذا انحرفت |
 
+| **ضغط السياق بالاستخلاص** | `context-pack.mjs` — جمل مستخرجة حرفياً بمراجع `file:line` وفجوات معلّمة | ✅ 400 توكن: 94% من الإجابات باقية · أصغر 31× من إرسال المرشحات |
+
 ```bash
 node scripts/snapshot.mjs save --label "قبل التجربة"
 node scripts/ledger.mjs verify
 node scripts/mutation-test.mjs
+node scripts/context-pack.mjs "من يحق له دمج طلب سحب" --budget 800
 ```
 
 
@@ -319,10 +322,13 @@ postings cut the hybrid path from 2.12 ms to 0.38 ms with **identical** ranking
 | **Mutation testing for the guards** | `mutation-test.mjs` — 4 mutants, baseline measured first | ✅ 4/4 killed |
 | **Interactive architecture graph** | `playground/graph.html` from `graph.json` | ✅ generated from the code; the guard fails on drift |
 
+| **Extractive context packing** | `context-pack.mjs` — verbatim sentences, `file:line` citations, marked gaps | ✅ at 400 tokens: 94% answer retention, 31× smaller than the candidates |
+
 ```bash
 node scripts/snapshot.mjs save --label "before the experiment"
 node scripts/ledger.mjs verify
 node scripts/mutation-test.mjs
+node scripts/context-pack.mjs "who may merge a pull request" --budget 800
 ```
 
 
@@ -357,7 +363,9 @@ The browser imports the **same** `scripts/semantic/core.mjs` the CLI uses, and
   does not exist by design: a failing test never deletes your work.
 - The audit ledger is **per-machine** and local; the anchor is what makes truncation detectable, and it
   is only as current as the last commit that carried it.
-- Mutation testing has **4 mutants**, not exhaustive coverage: it proves the key guards are load-bearing,
+- Context packing is **lossy by design**: at 400 tokens one gold case in eighteen loses its answering
+  file; the token count is a `chars / 4` estimate, not a tokenizer.
+- Mutation testing has **5 mutants**, not exhaustive coverage: it proves the key guards are load-bearing,
   not that every branch is.
 - The playground is a **demo**, not a product: no ranking feedback loop, no query log, no
   multi-user concurrency, and it loads the whole index into memory (fine at 445 chunks, not at 50k).

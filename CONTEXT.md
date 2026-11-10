@@ -81,7 +81,9 @@ stack arrives.
     Git ([ADR-0015](docs/adr/0015-state-snapshots-and-ledger.md)).
 19. **History is self-verifying.** Every recorded action is hash-chained; an anchor makes truncation
     detectable too.
-20. **Defaults follow the measurement.** A component that loses on the eval (the lexical reranker)
+20. **Context is compressed by extraction.** Packs quote sources verbatim, cite `file:line`, and mark
+    omitted text with `…` ([ADR-0017](docs/adr/0017-context-packing.md)).
+21. **Defaults follow the measurement.** A component that loses on the eval (the lexical reranker)
     ships off by default and is documented as a negative result ([ADR-0011](docs/adr/0011-local-reranker-experiment.md)).
 15. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
     result can be traced to the exact data that produced it
@@ -127,6 +129,9 @@ stack arrives.
 | **Baseline** | The unmutated behaviour — measured first, so a broken test cannot look like a pass. |
 | **Anchor** | A committed record of the ledger's length and head hash; defeats tail truncation. |
 | **Snapshot** | A hash-recorded copy of derived state, restorable byte-for-byte. |
+| **Pack** | A cited, extractive subset of the corpus sized to a token budget. |
+| **answer@budget** | The gold file for a query is still cited somewhere in the pack. |
+| **Gap marker** | ` … ` where sentences were skipped, so an extract never reads as complete text. |
 
 ## 5. Non-goals
 
@@ -164,6 +169,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0014 — A playground that cannot lie, and a benchmark harness](docs/adr/0014-playground-and-benchmarks.md) · accepted
 - [ADR-0015 — Snapshots for derived state, and a tamper-evident ledger](docs/adr/0015-state-snapshots-and-ledger.md) · accepted
 - [ADR-0016 — Mutation testing for the guards](docs/adr/0016-mutation-testing.md) · accepted
+- [ADR-0017 — Extractive context packing with measured citation retention](docs/adr/0017-context-packing.md) · accepted
 
 ## 8. Change protocol
 
@@ -205,4 +211,5 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - Local model policy: [docs/agents/local-model.md](docs/agents/local-model.md)
 - Benchmarks: [docs/benchmarks.md](docs/benchmarks.md) · Demo: [playground/index.html](playground/index.html)
 - State and rollback: [docs/agents/state-and-rollback.md](docs/agents/state-and-rollback.md)
+- Context packing: [docs/agents/context-packing.md](docs/agents/context-packing.md)
 - Architecture graph (interactive): [playground/graph.html](playground/graph.html)

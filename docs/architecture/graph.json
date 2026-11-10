@@ -3,7 +3,7 @@
   "generator": "scripts/architecture-graph.mjs",
   "note": "Generated from tracked files — do not edit by hand. Regenerate with --write.",
   "stats": {
-    "files": 122,
+    "files": 127,
     "components": 16,
     "edges": 30
   },
@@ -16,7 +16,7 @@
     {
       "id": "agent-harness",
       "label": "Agent harness (.agent)",
-      "files": 12
+      "files": 13
     },
     {
       "id": "skills",
@@ -41,12 +41,12 @@
     {
       "id": "adr",
       "label": "Decision records",
-      "files": 16
+      "files": 17
     },
     {
       "id": "docs-agents",
       "label": "Agent docs",
-      "files": 8
+      "files": 9
     },
     {
       "id": "docs-ci",
@@ -76,12 +76,12 @@
     {
       "id": "scripts",
       "label": "Repository scripts",
-      "files": 30
+      "files": 31
     },
     {
       "id": "tests",
       "label": "Property tests",
-      "files": 6
+      "files": 7
     },
     {
       "id": "mocks",
@@ -93,7 +93,7 @@
     {
       "from": "adr",
       "to": "docs-agents",
-      "links": 15
+      "links": 17
     },
     {
       "from": "adr",
@@ -173,7 +173,7 @@
     {
       "from": "root",
       "to": "adr",
-      "links": 41
+      "links": 44
     },
     {
       "from": "root",
@@ -183,7 +183,7 @@
     {
       "from": "root",
       "to": "docs-agents",
-      "links": 34
+      "links": 36
     },
     {
       "from": "root",
@@ -218,7 +218,7 @@
     {
       "from": "scripts",
       "to": "semantic",
-      "links": 6
+      "links": 7
     },
     {
       "from": "scripts",
@@ -228,17 +228,17 @@
     {
       "from": "tests",
       "to": "scripts",
-      "links": 4
+      "links": 5
     },
     {
       "from": "tests",
       "to": "semantic",
-      "links": 3
+      "links": 4
     },
     {
       "from": "tests",
       "to": "tooling-lib",
-      "links": 6
+      "links": 7
     }
   ]
 }
