@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ui — مستودع واجهات المستخدم • توكيلي وجاهز لـ 2026</title>
+<meta name="description" content="مستودع واجهات المستخدم — أساس توكيلي (Agentic-First) جاهز لعام 2026. بحث هجين مُقاس، بوابة جودة حتمية، توثيق حي، واستعادة مشفّرة.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@500;600;700&display=swap');
+  :root{
+    --bg:#080B10; --bg2:#0F1520; --panel:#111A28; --panel2:#172539; --line:#1F3347; --line2:#2A4A66;
+    --text:#EAF0F7; --muted:#8EA3B8; --dim:#5C738C;
+    --accent:#3EE8A8; --accent2:#2AD4F0; --accent3:#FFB86B; --violet:#8B7DFF;
+    --radius:18px; --radius-lg:26px; --shadow: 0 20px 60px rgba(0,0,0,.55), 0 2px 0 rgba(255,255,255,.06) inset;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.8 'IBM Plex Sans Arabic', system-ui, sans-serif;overflow-x:hidden}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .mono{font-family:'IBM Plex Mono', ui-monospace, monospace}
+  .eng{font-family:'Instrument Sans', sans-serif;letter-spacing:-.02em}
+  /* NAV */
+  nav{position:sticky;top:0;z-index:50;background:rgba(8,11,16,.72);backdrop-filter:blur(16px) saturate(1.2);border-bottom:1px solid rgba(31,51,71,.6)}
+  .nav-inner{max-width:1180px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:18px;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#07131A;font:800 14px 'Instrument Sans',sans-serif;box-shadow:0 4px 16px rgba(62,232,168,.4)}
+  .brand b{font-size:15px}
+  .brand span{color:var(--muted);font-size:12px;display:block;line-height:1}
+  .nav-links{display:flex;gap:18px;align-items:center;font-size:13px}
+  .nav-links a{color:var(--muted)}
+  .nav-links a:hover{color:var(--text)}
+  .btn{appearance:none;border:1px solid var(--line2);background:var(--panel);color:var(--text);padding:9px 14px;border-radius:999px;font:600 13px 'IBM Plex Sans Arabic',sans-serif;cursor:pointer;transition:.2s}
+  .btn:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06131A;border-color:transparent;box-shadow:0 8px 24px rgba(62,232,168,.35)}
+  .btn.primary:hover{filter:brightness(1.06)}
+  /* HERO */
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .hero-bg{position:absolute;inset:0;background:
+    radial-gradient(900px 600px at 85% -10%, rgba(62,232,168,.18), transparent 60%),
+    radial-gradient(800px 500px at -10% 20%, rgba(42,212,240,.14), transparent 60%),
+    radial-gradient(900px 600px at 50% 120%, rgba(139,125,255,.10), transparent 60%),
+    linear-gradient(180deg, #0B1018 0%, #080B10 100%)}
+  .grid-lines{position:absolute;inset:0;opacity:.3;background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);background-size:48px 48px;mask-image:radial-gradient(80% 60% at 50% 0%, black 40%, transparent 75%)}
+  .hero-inner{position:relative;max-width:1180px;margin:0 auto;padding:56px 24px 28px;display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:center}
+  .kicker{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:rgba(62,232,168,.10);border:1px solid rgba(62,232,168,.22);color:var(--accent);font:600 12px 'IBM Plex Sans Arabic',sans-serif}
+  .kicker i{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5;transform:scale(1.1)}}
+  h1{margin:14px 0 10px;font:700 42px/1.15 'IBM Plex Sans Arabic',sans-serif;letter-spacing:-.02em}
+  h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{color:var(--muted);font-size:16px;max-width:56ch;margin:0}
+  .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .hero-stats{display:flex;gap:14px;margin-top:20px;flex-wrap:wrap}
+  .stat-mini{background:rgba(17,26,40,.9);border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:120px}
+  .stat-mini b{display:block;font:700 18px 'Instrument Sans',sans-serif;color:var(--text);line-height:1}
+  .stat-mini span{font-size:11px;color:var(--muted)}
+  /* HERO CARD */
+  .hero-card{background:linear-gradient(180deg, rgba(23,37,57,.95), rgba(17,26,40,.95));border:1px solid var(--line2);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden}
+  .card-head{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
+  .dots{display:flex;gap:6px}
+  .dots i{width:10px;height:10px;border-radius:50%;background:var(--line2)}
+  .dots i:nth-child(1){background:#FF5F56}.dots i:nth-child(2){background:#FFBD2E}.dots i:nth-child(3){background:#27C93F}
+  .card-body{padding:16px}
+  .search-row{display:flex;gap:8px}
+  .search-row input{flex:1;padding:12px 14px;border-radius:12px;border:1px solid var(--line2);background:#0D1420;color:var(--text);font:14px 'IBM Plex Sans Arabic',sans-serif}
+  .search-row input:focus{outline:2px solid rgba(62,232,168,.3);border-color:var(--accent)}
+  .search-row button{padding:10px 14px;border-radius:12px;border:1px solid var(--line2);background:var(--panel2);color:var(--text);cursor:pointer}
+  .search-row button.active{background:rgba(62,232,168,.15);border-color:var(--accent);color:var(--accent)}
+  .search-hints{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+  .chip{font:12px 'IBM Plex Sans Arabic',sans-serif;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:transparent;cursor:pointer}
+  .chip:hover{border-color:var(--accent);color:var(--text)}
+  .results{margin-top:10px;display:grid;gap:8px}
+  .result{border:1px solid var(--line);background:#0D1420;border-radius:12px;padding:10px 12px}
+  .result .head{display:flex;justify-content:space-between;gap:8px;font:12px 'IBM Plex Mono',monospace;color:var(--accent)}
+  .result p{margin:6px 0 0;color:#C8D6E6;font-size:13px}
+  .status-line{margin-top:8px;font:12px 'IBM Plex Mono',monospace;color:var(--muted)}
+  /* SECTIONS */
+  section{max-width:1180px;margin:0 auto;padding:40px 24px}
+  .section-kicker{color:var(--accent);font:700 12px 'IBM Plex Sans Arabic',sans-serif;letter-spacing:.08em}
+  h2{margin:6px 0 10px;font:700 28px/1.25 'IBM Plex Sans Arabic',sans-serif}
+  .lead{color:var(--muted);max-width:70ch}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:18px}
+  .card{background:linear-gradient(180deg, var(--panel), #0E1826);border:1px solid var(--line);border-radius:var(--radius);padding:16px;position:relative;overflow:hidden}
+  .card::after{content:'';position:absolute;inset:auto -1px -1px -1px;height:1px;background:linear-gradient(90deg, transparent, rgba(62,232,168,.6), transparent);opacity:.6}
+  .icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:16px;margin-bottom:10px}
+  .card h3{margin:0 0 6px;font:600 15px 'IBM Plex Sans Arabic',sans-serif}
+  .card p{margin:0;color:var(--muted);font-size:13px;line-height:1.7}
+  .badge{display:inline-flex;padding:3px 8px;border-radius:999px;font:600 11px 'IBM Plex Mono',monospace;border:1px solid rgba(62,232,168,.25);background:rgba(62,232,168,.10);color:var(--accent)}
+  /* METRICS */
+  .metrics{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:18px}
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .metric{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .metric b{font:700 24px 'Instrument Sans',sans-serif;display:block}
+  .metric small{color:var(--muted);font-size:12px}
+  .metric em{font-style:normal;color:var(--accent)}
+  .table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .table-wrap header{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{color:var(--muted);font-weight:600;text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
+  td{padding:10px 12px;border-bottom:1px solid rgba(31,51,71,.6)}
+  td.mono{font-family:'IBM Plex Mono',monospace}
+  tr:last-child td{border-bottom:0}
+  /* ARCH */
+  .arch{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-top:16px}
+  .arch-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .arch-card pre{margin:0;background:#0A111B;border:1px solid var(--line);border-radius:12px;padding:12px;overflow:auto;font:12px/1.6 'IBM Plex Mono',monospace;color:#B9C9DA}
+  .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .pill{padding:6px 10px;border-radius:999px;background:#0D1420;border:1px solid var(--line);font:12px 'IBM Plex Mono',monospace;color:var(--muted)}
+  /* TIMELINE */
+  .timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+  .step{border-right:2px solid var(--line);padding-right:12px;position:relative}
+  .step::before{content:'';position:absolute;right:-7px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(62,232,168,.18)}
+  .step h4{margin:0 0 4px;font:600 14px 'IBM Plex Sans Arabic',sans-serif}
+  .step p{margin:0;color:var(--muted);font-size:13px}
+  /* FOOTER CTA */
+  .cta{margin-top:18px;background:linear-gradient(135deg, rgba(62,232,168,.14), rgba(42,212,240,.12), rgba(139,125,255,.10));border:1px solid rgba(62,232,168,.25);border-radius:22px;padding:18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .cta b{font:700 18px 'IBM Plex Sans Arabic',sans-serif}
+  .cta span{color:var(--muted);font-size:13px;display:block}
+  footer{border-top:1px solid var(--line);padding:22px 24px;color:var(--dim);font-size:12px;max-width:1180px;margin:0 auto}
+  footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  @media (max-width:980px){
+    .hero-inner, .metrics, .arch{grid-template-columns:1fr}
+    .cards{grid-template-columns:repeat(2,1fr)}
+    .timeline{grid-template-columns:1fr}
+    h1{font-size:32px}
+  }
+  @media (max-width:600px){
+    .cards{grid-template-columns:1fr}
+    .nav-links{display:none}
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <div class="brand">
+      <div class="logo">ui</div>
+      <div><b>مستودع واجهات المستخدم</b><span class="mono">sayedelazameydesign-crypto/ui · L0 baseline</span></div>
+    </div>
+    <div class="nav-links">
+      <a href="#capabilities">القدرات</a>
+      <a href="#quality">الجودة المقاسة</a>
+      <a href="#architecture">المخطط</a>
+      <a href="#playground">التجربة</a>
+      <a href="#docs">التوثيق</a>
+    </div>
+    <div style="display:flex;gap:8px">
+      <a class="btn" href="/playground/">جرّب البحث</a>
+      <a class="btn primary" href="https://github.com/sayedelazameydesign-crypto/ui" target="_blank">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="grid-lines"></div>
+  <div class="hero-inner">
+    <div>
+      <span class="kicker"><i></i> أساس توكيلي • واجهة للإنسان والوكيل • RTL-first</span>
+      <h1>مستودع واجهات المستخدم<br><em>جاهز لعام 2026</em> — بلا ضجيج، بمعايير قابلة للقياس</h1>
+      <p>ليست مجرد واجهة. هذه <b>بيئة عمل مشتركة بين الإنسان والوكيل الذكي</b>: كل قاعدة قابلة للقراءة آليًا، وكل وعد قابل للفحص بسكربت واحد — <span class="mono">scripts/check-repo.sh</span>. لا مفاتيح، لا شبكة، لا بناء.</p>
+      <div class="hero-actions">
+        <a class="btn primary" href="#playground">جرّب البحث الهجين الآن</a>
+        <a class="btn" href="#quality">اعرض الأرقام الحقيقية</a>
+        <span class="mono" style="align-self:center;color:var(--muted);font-size:12px">Apache-2.0 · 148 ملف متتبع · 148 ملف</span>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-mini"><b>R@1 0.64</b><span>62% إجابات صحيحة في المركز الأول — 58 استعلام ذهبي</span></div>
+        <div class="stat-mini"><b>p50 0.65ms</b><span>1,471 استعلام/ثانية — بلا شبكة</span></div>
+        <div class="stat-mini"><b>10/10</b><span>طفرات الحماية مقتولة — الحراس يعملون</span></div>
+      </div>
+    </div>
+    <div class="hero-card" id="live-demo">
+      <div class="card-head">
+        <div style="display:flex;gap:8px;align-items:center"><div class="dots"><i></i><i></i><i></i></div><span class="mono" style="font-size:12px;color:var(--muted)">playground · نفس المحرك في المتصفح</span></div>
+        <span class="badge">هجين · RRF</span>
+      </div>
+      <div class="card-body">
+        <div class="search-row">
+          <input id="q" placeholder="مثال: من يحق له دمج طلب سحب؟">
+          <button id="btn-hybrid" class="active">هجين</button>
+          <button id="btn-vector">متجه</button>
+          <button id="btn-keyword">كلمات</button>
+        </div>
+        <div class="search-hints" id="hints"></div>
+        <div class="status-line" id="status">جارٍ تحميل الفهرس…</div>
+        <div class="results" id="results"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="capabilities">
+  <div class="section-kicker">القدرات — 12 قدرة منجزة</div>
+  <h2>كل ادعاء له أمر يُعيد قياسه</h2>
+  <p class="lead">لا تسويق. كل قدرة لها ملف، أمر تشغيل، وبوابة فشل. إن لم تستطع إعادة القياس، فهو وعد لا يُحسب.</p>
+  <div class="cards">
+    <div class="card">
+      <div class="icon" style="background:rgba(62,232,168,.14);border:1px solid rgba(62,232,168,.3)">🔍</div>
+      <h3>بحث هجين مُقاس</h3>
+      <p>متجه (256 بُعد hashing) + BM25 بدمج RRF. <span class="mono">58 استعلامًا ذهبيًا</span> مع فاصل ثقة bootstrap.</p>
+      <div style="margin-top:8px"><span class="badge">R@1 0.60–0.66 · R@3 0.74–0.76</span></div>
+    </div>
+    <div class="card">
+      <div class="icon" style="background:rgba(42,212,240,.14);border:1px solid rgba(42,212,240,.3)">🛡️</div>
+      <h3>حارس حتمي fail-closed</h3>
+      <p>فحص الأسرار، الروابط، ثنائية اللغة، والـ JSON schemas — يفشل عند مفتاح مجهول أو وجهة غير معلنة.</p>
+      <div style="margin-top:8px"><span class="badge">scripts/check-repo.sh</span></div>
+    </div>
+    <div class="card">
+      <div class="icon" style="background:rgba(255,184,107,.14);border:1px solid rgba(255,184,107,.3)">🔐</div>
+      <h3>سيادة بيانات + حارس خصوصية</h3>
+      <p>قائمة وجهات مسموحة بـ “سبب وملف”، و فحص PII (بريد، هاتف مصري، رقم قومي، بطاقات Luhn).</p>
+      <div style="margin-top:8px"><span class="badge">8 وجهات · 10 قواعد</span></div>
+    </div>
+    <div class="card">
+      <div class="icon" style="background:rgba(139,125,255,.14);border:1px solid rgba(139,125,255,.3)">📦</div>
+      <h3>لقطات واستعادة + دفتر تدقيق</h3>
+      <p>SHA-256 لكل ملف + بصمة شجرة Git. سلسلة hash-chained ترفض التعديل والبتر بصمت.</p>
+      <div style="margin-top:8px"><span class="badge">snapshot & ledger</span></div>
+    </div>
+    <div class="card">
+      <div class="icon" style="background:rgba(62,232,168,.14);border:1px solid rgba(62,232,168,.3)">🧪</div>
+      <h3>اختبار خصائص + محاكاة حتمية</h3>
+      <p>19 خاصية بمولدات قابلة للتكرار، ومحاكاة API بمُحاكاة أعطال حتمية.</p>
+      <div style="margin-top:8px"><span class="badge">property-test · mock-server</span></div>
+    </div>
+    <div class="card">
+      <div class="icon" style="background:rgba(42,212,240,.14);border:1px solid rgba(42,212,240,.3)">🗺️</div>
+      <h3>توثيق حي ومخطط تفاعلي</h3>
+      <p>مخطط Mermaid + JSON مُولّد من الروابط والاستيرادات — الحارس يفشل عند التقادم.</p>
+      <div style="margin-top:8px"><span class="badge">architecture-graph</span></div>
+    </div>
+    <div class="card">
+      <div class="icon" style="background:rgba(139,125,255,.14);border:1px solid rgba(139,125,255,.3)">🧬</div>
+      <h3>اختبار الطفرات للحراس</h3>
+      <p>10 طفرات؛ خط أساس قبل كل طفرة — إثبات أن الحراس قادرون على الفشل.</p>
+      <div style="margin-top:8px"><span class="badge">10/10 مقتولة</span></div>
+    </div>
+    <div class="card">
+      <div class="icon" style="background:rgba(255,184,107,.14);border:1px solid rgba(255,184,107,.3)">🌿</div>
+      <h3>حوسبة خضراء وتوجيه التكلفة</h3>
+      <p>مُصنّف تغييرات يقرر أي وظائف CI تعمل — إلغاء التشغيلات المتجاوزة ومهلات زمنية.</p>
+      <div style="margin-top:8px"><span class="badge">change-classifier</span></div>
+    </div>
+  </div>
+  <div class="cards" style="grid-template-columns:repeat(4,1fr);margin-top:12px">
+    <div class="card"><h3>أصل الكود</h3><p>ترويسات AI-Assisted-By / Human-Authored + تحقق في CI — <span class="mono">provenance.yml</span></p></div>
+    <div class="card"><h3>تبعيات عديمة الثقة</h3><p>تثبيت، سكربتات تنصيب، قفل، صلاحيات CI + Dependabot</p></div>
+    <div class="card"><h3>بيئات معزولة مؤقتة</h3><p>.devcontainer غير جذري مع cap-drop=ALL + بناء preview معزول</p></div>
+    <div class="card"><h3>ضغط السياق بالاستخلاص</h3><p>جمل حرفية بمراجع file:line — 400 توكن يحتفظ بـ 79% من الإجابات</p></div>
+  </div>
+</section>
+
+<section id="quality">
+  <div class="section-kicker">الجودة المقاسة — لا أرقام تسويقية</div>
+  <h2>المشكلة: كم إجابة صحيحة تصل إلى القمة، وبأي كلفة؟</h2>
+  <p class="lead">نقيس على <b>58 استعلامًا ذهبيًا</b> (43 إنجليزي · 15 عربي). كل تشغيل يطبع فاصل ثقة bootstrap — العينة الواحدة = 1.7 نقطة. البوابة: R@1 ≥ 0.60 · R@3 ≥ 0.72 · MRR ≥ 0.66 (تزيد فقط).</p>
+  <div class="metrics">
+    <div>
+      <div class="metric-grid">
+        <div class="metric"><b><em>0.64</em> R@1</b><small>هجين على 58 استعلام — و<span class="eng">0.78</span> على الـ18 الأصلية بنفس المحرك</small></div>
+        <div class="metric"><b><em>0.74</em> R@3</b><small>مقابل 0.55 للمتجه وحده</small></div>
+        <div class="metric"><b class="eng">0.65ms <em>p50</em></b><small>1,471 استعلام/ثانية · hybrid</small></div>
+        <div class="metric"><b class="eng">1.6 MB</b><small>623 مقطع · 111 ملف · +8 MB ذاكرة</small></div>
+      </div>
+      <div class="cta" style="margin-top:12px">
+        <div><b>نتيجة سلبية موثقة</b><span>معيد ترتيب معجمي جُرّب في 4 تهيئات ثم أُعيد قياسه على 58 استعلام: R@1 0.50 مقابل 0.62 — لذا هو مُعطّل افتراضياً. الهدف 0.85 (D8) أُغلق كغير قابل للتحقيق محلياً.</span></div>
+        <a class="btn" href="https://github.com/sayedelazameydesign-crypto/ui/blob/main/docs/adr/0023-close-d8.md" target="_blank">اقرأ ADR-0023</a>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <header><b class="mono">bench.mjs — نفس الفهرس، نفس الاستعلامات</b><span class="mono" style="font-size:11px;color:var(--muted)">node scripts/bench.mjs</span></header>
+      <table>
+        <thead><tr><th>الوضع</th><th>p50</th><th>p95</th><th>q/s</th></tr></thead>
+        <tbody>
+          <tr><td>هجين (RRF)</td><td class="mono">0.654 ms</td><td class="mono">0.932 ms</td><td class="mono">1,471</td></tr>
+          <tr><td>متجه فقط</td><td class="mono">0.497 ms</td><td class="mono">0.572 ms</td><td class="mono">1,970</td></tr>
+          <tr><td>كلمات (BM25)</td><td class="mono">0.470 ms</td><td class="mono">0.548 ms</td><td class="mono">2,084</td></tr>
+          <tr><td>هجين + إعادة ترتيب معجمي</td><td class="mono">8.776 ms</td><td class="mono">10.82 ms</td><td class="mono">109</td></tr>
+        </tbody>
+      </table>
+      <div style="padding:10px 12px;color:var(--muted);font-size:12px">المعجمي يكلف 8× أكثر لنتيجة <b>أسوأ</b> — لذا هو مُعطّل. التسريع الحقيقي: postings قلصت المسار الهجين من 2.12 ms إلى 0.38 ms بترتيب مطابق.</div>
+    </div>
+  </div>
+  <div class="table-wrap" style="margin-top:12px">
+    <header><b>الصيغة — لا سحر</b><span class="mono" style="font-size:11px;color:var(--muted)">RRF k=60</span></header>
+    <div style="padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <pre style="margin:0;background:#0A111B;border:1px solid var(--line);border-radius:10px;padding:10px;font:12px 'IBM Plex Mono',monospace;color:#B9C9DA">score(d) = Σ_r w_r / (60 + rank_r(d))
+BM25(tf,dl) = idf·tf·(k₁+1) / (tf+k₁·(1−b+b·dl/avgdl))
+k₁=1.2, b=0.75 · RRF k=60</pre>
+      <div style="color:var(--muted);font-size:13px">دالة ترتيب واحدة لا تكفي. ندمج ترتيب المتجهات وترتيب BM25 بـ RRF — بلا موازنة درجات هشة. وتوسيع الاستعلام العربي من معجم محلي (87 مدخلاً).</div>
+    </div>
+  </div>
+</section>
+
+<section id="architecture">
+  <div class="section-kicker">المخطط المعماري — مُولّد، لا مرسوم يدويًا</div>
+  <h2>16 مكوّنًا · 32 رابطًا موجهًا · 148 ملف</h2>
+  <p class="lead">المخطط مُستخرج من الروابط والاستيرادات الحقيقية. الحارس يفشل إذا انحرف الملف عن الكود — <span class="mono">node scripts/architecture-graph.mjs --check</span></p>
+  <div class="arch">
+    <div class="arch-card">
+      <b>أثقل الروابط</b>
+      <table style="margin-top:8px">
+        <thead><tr><th>من</th><th>إلى</th><th>المراجع</th></tr></thead>
+        <tbody>
+          <tr><td>root</td><td>adr</td><td class="mono">70</td></tr>
+          <tr><td>root</td><td>docs-agents</td><td class="mono">37</td></tr>
+          <tr><td>adr</td><td>docs-agents</td><td class="mono">31</td></tr>
+          <tr><td>docs-agents</td><td>adr</td><td class="mono">19</td></tr>
+          <tr><td>scripts</td><td>semantic</td><td class="mono">7</td></tr>
+          <tr><td>tests</td><td>tooling-lib</td><td class="mono">8</td></tr>
+        </tbody>
+      </table>
+      <div class="pill-row">
+        <span class="pill">scripts — 33 ملف</span><span class="pill">adr — 23</span><span class="pill">agent-harness — 19</span><span class="pill">github-config — 17</span>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <a class="btn" href="/playground/graph.html" target="_blank">افتح الخريطة التفاعلية</a>
+        <a class="btn" href="https://github.com/sayedelazameydesign-crypto/ui/blob/main/docs/architecture/graph.md" target="_blank">اعرض graph.md</a>
+      </div>
+    </div>
+    <div class="arch-card">
+      <b class="mono">graph LR — Mermaid</b>
+      <pre>graph LR
+  root["Root docs & config"]
+  adr["Decision records — 23"]
+  semantic["Semantic engine — 6"]
+  scripts["Repository scripts — 33"]
+  tests["Property tests — 9"]
+  workflows["CI workflows — 10"]
+  root -->|70| adr
+  root -->|37| docs_agents
+  adr -->|31| docs_agents
+  scripts -->|7| semantic
+  tests -->|8| tooling_lib
+  tests -->|7| scripts</pre>
+      <div style="margin-top:10px;color:var(--muted);font-size:12px">الطبقات: L0 (الحكم) → L0+ (التوثيق والأدوات) — الطبقة لا تستورد ممن فوقها. L0 يبقى مستقلاً عن حزمة التقنيات.</div>
+    </div>
+  </div>
+</section>
+
+<section id="playground">
+  <div class="section-kicker">التجربة — نفس المحرك، في المتصفح</div>
+  <h2>جرّب البحث الهجين بلا تثبيت</h2>
+  <p class="lead">الصفحة تستورد <span class="mono">scripts/semantic/core.mjs</span> نفسه الذي يستخدمه الـ CLI. والتكافؤ مُقاس: <span class="mono">playground-parity.mjs</span> يفشل إن اختلف الترتيبان (الحالي: 0.74 مقابل 0.74).</p>
+  <div style="display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:14px">
+    <div class="arch-card">
+      <b>افتح المعاينة الكاملة</b>
+      <p style="color:var(--muted);font-size:13px">صفحة واحدة، بلا حزم ولا بناء ولا شبكة. الفهرس مُصدّر مسبقاً ومُكمّم إلى int8 (1.6 MB).</p>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <a class="btn primary" href="/playground/" target="_blank">افتح /playground/</a>
+        <a class="btn" href="/playground/graph.html" target="_blank">الخريطة التفاعلية</a>
+        <span class="mono" style="align-self:center;color:var(--muted);font-size:11px">node scripts/playground-server.mjs</span>
+      </div>
+      <div style="margin-top:12px;background:#0A111B;border:1px solid var(--line);border-radius:12px;padding:10px" class="mono" dir="ltr" style="text-align:left">node scripts/semantic/cli.mjs index
+node scripts/semantic/cli.mjs search "صلاحيات الوكيل الممنوعة" -k 3
+node scripts/semantic/eval.mjs --timing
+node scripts/context-pack.mjs "من يحق له دمج طلب سحب" --budget 800</div>
+    </div>
+    <div class="arch-card">
+      <b>حدود صادقة</b>
+      <ul style="margin:8px 0 0;padding:0 18px 0 0;color:var(--muted);font-size:13px;line-height:1.9">
+        <li>الحارس يثبت <b>الاتفاقيات</b> لا الصحة — المراجعة تظل ضرورية</li>
+        <li>الـ index يستخدم hashing embeddings — دقيق على مفردات هذا المستودع</li>
+        <li>السماح بـ egress نصي — عنوان يُركّب وقت التشغيل قد يفلت (الوكيل هو الحل)</li>
+        <li>كشف PII نمطي — يلتقط الهاتف والرقم القومي، لا الأسماء في النثر</li>
+        <li>الـ playground يحمّل الفهرس كاملاً في الذاكرة — ممتاز عند 623 مقطع، لا عند 50k</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="docs">
+  <div class="section-kicker">التوثيق — ثنائي التوجيه</div>
+  <h2>للبشر وللوكلاء — كلٌ يقرأ ما يلزمه</h2>
+  <div class="cards" style="grid-template-columns:repeat(3,1fr)">
+    <div class="card">
+      <h3>للبشر</h3>
+      <p><span class="mono">README.md</span> — نظرة عامة، دورة عمل، قدرات<br><span class="mono">CONTRIBUTING.md</span> — فروع → فحص → PR<br><span class="mono">SECURITY.md</span> — إبلاغ خاص وأقل صلاحية</p>
+    </div>
+    <div class="card">
+      <h3>للوكلاء</h3>
+      <p><span class="mono">AGENTS.md</span> — الميثاق الملزم (20+ قاعدة)<br><span class="mono">CONTEXT.md</span> — المعمارية والثوابت<br><span class="mono">.agent/capabilities.yaml</span> — مسموح/يستأذن/ممنوع</p>
+    </div>
+    <div class="card">
+      <h3>القرارات</h3>
+      <p><span class="mono">docs/adr/</span> — 23 سجلاً غير قابل للتعديل<br>من agentic-first إلى إغلاق D8<br><span class="mono">docs/agents/provenance.md</span> — من كتب السطر</p>
+    </div>
+  </div>
+  <div class="timeline">
+    <div class="step"><h4>1. اختر الفهم أولاً</h4><p>ثبّت نظام التصميم (رموز، ألوان، خطوط) واستراتيجية RTL — القرار D2</p></div>
+    <div class="step"><h4>2. اختر الحزمة عبر ADR</h4><p>ADR جديد يلغي ADR-0002 (تأجيل اختيار الحزمة) — قرار مُوثّق لا ارتجال</p></div>
+    <div class="step"><h4>3. فعّل الحماية</h4><p>حماية فرع main على GitHub: مراجعة إلزامية + منع الدفع المباشر + التواقيع</p></div>
+  </div>
+  <div class="cta">
+    <div><b>جاهز للانتقال من L0 إلى L1؟</b><span>الأساس الحاكم مكتمل — حان وقت اختيار نظام التصميم وحزمة التقنيات. افتح ADR جديد وابدأ.</span></div>
+    <div style="display:flex;gap:8px">
+      <a class="btn primary" href="https://github.com/sayedelazameydesign-crypto/ui/issues/new" target="_blank">افتح اقتراح</a>
+      <a class="btn" href="https://github.com/sayedelazameydesign-crypto/ui/blob/main/CONTEXT.md" target="_blank">اقرأ CONTEXT.md</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="row">
+    <div>© 2026 sayedelazameydesign-crypto/ui · <span class="mono">Apache-2.0</span> مع <span class="mono">NOTICE</span> — مثبت ببصمة SHA-256 في الحارس · بُني ليُصان</div>
+    <div class="mono">main · L0 baseline · hybrid search · measured quality · fail-closed · RTL-first</div>
+  </div>
+</footer>
+
+<script type="module">
+import { hydrate, search } from "./playground/engine.mjs";
+const hints = ["كيف نمنع تسريب البيانات الشخصية؟","من يحق له دمج طلب سحب","ما قواعد الخصوصية في الالتزام؟","hybrid retrieval recall","how are artifacts stored"];
+const $=id=>document.getElementById(id);
+let index=null, mode="hybrid";
+$("hints").replaceChildren(...hints.map(t=>{const b=document.createElement("button");b.className="chip";b.textContent=t;b.onclick=()=>{$("q").value=t;run();};return b;}));
+function setMode(m){mode=m; ["hybrid","vector","keyword"].forEach(k=>$("btn-"+k).classList.toggle("active",k===m)); if($("q").value.trim()) run();}
+$("btn-hybrid").onclick=()=>setMode("hybrid");
+$("btn-vector").onclick=()=>setMode("vector");
+$("btn-keyword").onclick=()=>setMode("keyword");
+function run(){
+  const q=$("q").value.trim(); if(!index||!q){$("results").replaceChildren(); return;}
+  const t0=performance.now(); const hits=search(index,q,{k:5,mode}); const ms=(performance.now()-t0).toFixed(1);
+  $("status").textContent = hits.length ? `${hits.length} نتيجة في ${ms} ms — وضع ${mode}` : "لا نتائج — جرّب كلمة أعم";
+  $("results").replaceChildren(...hits.map(h=>{
+    const d=document.createElement("div"); d.className="result";
+    d.innerHTML=`<div class="head"><span>${h.file}:${h.line}</span><span>${h.score.toFixed(3)} · vec ${h.vector.toFixed(3)} · bm25 ${h.keyword}</span></div><div style="color:var(--muted);font-size:11px;margin-top:2px" class="mono">${(h.heading||"").replace(/[<>&]/g,"")}</div><p>${h.preview.replace(/[<>&]/g,"")}</p>`;
+    return d;
+  }));
+}
+$("q").addEventListener("input", run);
+// load index
+try{
+  const r=await fetch("./playground/index.json"); if(!r.ok) throw new Error(r.status);
+  const payload=await r.json(); index=hydrate(payload); $("status").textContent=`الفهرس جاهز · ${index.chunks.length} مقطع · ${payload.dims}d · نفس المحرك في المتصفح`;
+}catch(e){ $("status").textContent=`تعذر تحميل الفهرس (${e.message}) — افتح عبر خادم HTTP`; }
+</script>
+</body>
+</html>
