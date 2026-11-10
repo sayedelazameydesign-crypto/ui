@@ -49,31 +49,49 @@ function baselineCommit() {
   return introduced ?? "";
 }
 
+const isAncestor = (ancestor, descendant) => {
+  try {
+    execFileSync("git", ["merge-base", "--is-ancestor", ancestor, descendant], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/** Resolve a ref to a commit SHA, falling back when a local remote-tracking ref is absent. */
+function resolveStart(ref) {
+  for (const candidate of [ref, ref.replace(/^origin\//, ""), "origin/main", "main", "HEAD~1"]) {
+    if (!candidate) continue;
+    const sha = git(["rev-parse", "--verify", "--quiet", `${candidate}^{commit}`], { allowFail: true });
+    if (sha) return { sha, via: candidate === ref ? null : candidate };
+  }
+  return { sha: "", via: null };
+}
+
 /**
- * An explicit range must not resurrect pre-policy history: when the requested
- * start is older than the baseline, clamp to the baseline. CI passes
- * `origin/main..HEAD`, which otherwise includes commits that predate the policy.
+ * Two corrections to a raw range before any commit is judged:
+ *  1. resolve the start to a SHA, so a missing `origin/main` cannot throw;
+ *  2. clamp to the policy baseline, so pre-policy history is never re-judged.
+ * CI passes `origin/main..HEAD`; without this, adoption would fail its own gate.
  */
-function clampToBaseline(range) {
+function normalizeRange(raw) {
+  if (!raw || !raw.includes("..")) return { range: raw, note: null };
+  const [startRaw, endRaw = "HEAD"] = raw.split("..");
+  const { sha: start, via } = resolveStart(startRaw);
+  if (!start) return { range: `${startRaw}..${endRaw}`, note: `could not resolve ${startRaw}` };
+
   const baseline = baselineCommit();
-  if (!baseline || !range.includes("..")) return range;
-  const [start, end] = range.split("..");
-  if (!start || !end) return range;
-  const isAncestor = (ancestor, descendant) => {
-    try {
-      execFileSync("git", ["merge-base", "--is-ancestor", ancestor, descendant], { stdio: "ignore" });
-      return true;
-    } catch {
-      return false;
-    }
-  };
-  // The baseline is inside the requested range only if start is its ancestor.
-  return isAncestor(start, baseline) ? `${baseline}..${end}` : range;
+  const clamped = baseline && isAncestor(start, baseline) && isAncestor(baseline, endRaw);
+  const range = clamped ? `${baseline}..${endRaw}` : `${start}..${endRaw}`;
+  const notes = [];
+  if (via) notes.push(`resolved ${startRaw} → ${via}`);
+  if (clamped) notes.push("clamped to policy baseline");
+  return { range, note: notes.join("; ") || null };
 }
 
 function resolveRange() {
   const explicit = arg("range");
-  if (typeof explicit === "string") return clampToBaseline(explicit);
+  if (typeof explicit === "string") return normalizeRange(explicit).range;
   const base = baselineCommit();
   if (base) return `${base}..HEAD`;
   const upstream = git(["rev-parse", "--verify", "--quiet", "origin/main"], { allowFail: true });
@@ -93,7 +111,11 @@ const range = resolveRange();
 const FS = "\x1f";
 const RS = "\x1e";
 
-const metaRaw = git(["log", range, `--format=%H${FS}%an${FS}%ae${FS}%aI${FS}%s${FS}%b${RS}`]);
+// --no-merges: GitHub's own "Merge branch ... into ..." commit carries no trailer,
+// and nobody authored it. Reviewing it as undeclared provenance would fail every PR.
+const metaRaw = git(["log", range, "--no-merges", `--format=%H${FS}%an${FS}%ae${FS}%aI${FS}%s${FS}%b${RS}`]);
+const mergeCount = Number(git(["rev-list", "--count", "--merges", range], { allowFail: true }) || 0);
+const rangeNote = normalizeRange(range).note;
 
 function statsFor(sha) {
   const raw = git(["show", "--numstat", "--format=", sha]);
@@ -171,11 +193,20 @@ const summary = commits.reduce(
 const aiShare = summary.added ? Math.round((summary.aiAdded / summary.added) * 100) : 0;
 
 if (JSON_OUT) {
-  console.log(JSON.stringify({ range, baseline: baselineCommit() || "none", strict: STRICT, summary, commits }, null, 2));
+  console.log(
+    JSON.stringify(
+      { range, note: rangeNote, baseline: baselineCommit() || "none", mergeCommitsSkipped: mergeCount, strict: STRICT, summary, commits },
+      null,
+      2,
+    ),
+  );
 } else {
   const pad = (s, n) => String(s).padEnd(n);
   console.log(`provenance range: ${range}`);
-  console.log(`baseline commit : ${baselineCommit() || "none (whole history checked)"}\n`);
+  console.log(`baseline commit : ${baselineCommit() || "none (whole history checked)"}`);
+  if (rangeNote) console.log(`range note      : ${rangeNote}`);
+  if (mergeCount) console.log(`merge commits   : ${mergeCount} skipped (auto-generated)`);
+  console.log("");
   console.log(`${pad("commit", 10)}${pad("provenance", 14)}${pad("tool/model", 28)}review`);
   console.log("-".repeat(72));
   for (const c of commits.length ? commits : []) {
