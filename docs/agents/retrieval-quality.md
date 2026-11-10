@@ -62,12 +62,32 @@ The same run also shows the effect of two fixes measured rather than guessed:
 ## 4. The gate (a ratchet, not a wish)
 
 ```bash
-node scripts/semantic/eval.mjs --min-recall 0.9 --min-mrr 0.75   # defaults
+node scripts/semantic/eval.mjs --min-r1 0.65 --min-recall 0.9 --min-mrr 0.75   # defaults
 ```
 
-CI and the guard fail when hybrid drops below R@3 **0.90** or MRR **0.75**. The floor sits just
-under the measured values: high enough to catch a regression, low enough not to flake on a new
-document. When quality improves, the floor is raised in the same commit — never lowered silently.
+CI and the guard fail when hybrid drops below R@1 **0.65**, R@3 **0.90** or MRR **0.75**. Each floor
+sits just under the measured value: high enough to catch a regression, low enough not to flake on a
+new document. The R@1 floor is a **floor, not a goal** — the goal is 0.85 (decision D8), and raising
+this number is the definition of progress. Floors only move up.
+
+## 4a. The reranker that lost (decision D8)
+
+`R@1` 0.67 versus `R@3` 0.94 means the answer is nearly always in the window but often not first. A
+feature-based reranker was implemented (`rerankScore`, top-20 window, weights fixed a priori) and
+measured in four configurations:
+
+| Blend · weights | R@1 | R@3 | MRR |
+| --- | --- | --- | --- |
+| **none (fused order)** | **0.67** | **0.94** | **0.79** |
+| 0.50 · a-priori | 0.61 | 0.83 | 0.73 |
+| 0.70 · a-priori | 0.67 | 0.83 | 0.77 |
+| 0.70 · rarity-first | 0.56 | 0.89 | 0.71 |
+| 0.85 · rarity-first | 0.61 | 0.89 | 0.76 |
+
+All worse. It is therefore **off by default** (`--rerank` to try it) and the negative result is kept
+as evidence in [ADR-0011](../adr/0011-local-reranker-experiment.md). Lexical features reward passages
+that *discuss* the topic and displace passages that *answer* it — exactly the gap a semantic
+cross-encoder exists to close, and exactly the thing this offline contract cannot download.
 
 ## 5. Known failure, stated plainly
 
@@ -95,7 +115,7 @@ embedding provider would add per-token charges and egress — both deliberately 
 | --- | --- |
 | Hashing embeddings, no neural model | no world knowledge, no paraphrase beyond the glossary |
 | BM25 with a fixed k1/b | not tuned per document type |
-| No cross-encoder reranker | top-5 is good, top-1 is 67% — a reranker is the next real gain |
+| No cross-encoder reranker | top-5 is good, top-1 is 67%; the lexical substitute measurably failed (D8) |
 | Glossary is hand-curated | Arabic recall is bounded by ~45 entries; grow it when a query fails |
 | 18 cases | a thin benchmark; broad enough to catch regressions, not to prove excellence |
 | Benchmark contamination is a standing risk | tests/fixtures are excluded from the index; any doc quoting a gold query can still match it |

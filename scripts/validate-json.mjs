@@ -123,6 +123,31 @@ const TARGETS = [
     },
   },
   {
+    file: ".pii-allowlist.json",
+    schema: {
+      type: "object",
+      required: ["version", "allow"],
+      properties: {
+        version: { type: "integer", minimum: 1 },
+        note: { type: "string" },
+        allow: {
+          type: "array",
+          items: {
+            type: "object",
+            required: ["file", "rule", "reason"],
+            properties: {
+              file: { type: "string", minLength: 3 },
+              prefix: { type: "string", minLength: 3 },
+              rule: { type: "string", pattern: "^[a-z-]+$" },
+              // A reason shorter than 10 chars is not a reason.
+              reason: { type: "string", minLength: 10 },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
     file: "tests/semantic-gold.json",
     schema: {
       type: "object",

@@ -422,7 +422,97 @@ function rankedIndexes(scores) {
     .map((s) => s.i);
 }
 
-export async function search(index, query, { k = 5, mode = "hybrid", provider = index.provider } = {}) {
+/* ------------------------------------------------------------------ */
+/* Reranker: a cross-encoder substitute without model weights          */
+/* ------------------------------------------------------------------ */
+
+// A true neural cross-encoder needs downloaded weights (~50-500 MB) and a
+// runtime. That would break the offline, zero-egress, deterministic contract
+// this index is built on. Instead the top candidates are rescored with lexical
+// and structural features a cross-encoder would learn anyway: how much of the
+// query the passage covers, how rare those terms are, and whether the heading
+// or the file path names the thing being asked about.
+//
+// MEASURED OUTCOME (2026-11-10, 18 gold cases, 389 chunks): this reranker is a
+// net loss and is therefore OPT-IN. Four configurations were tried and none beat
+// the plain fused order (R@1 0.67 / R@3 0.94 / MRR 0.79):
+//   blend 0.5 · a-priori weights  → R@1 0.61 · R@3 0.83 · MRR 0.73
+//   blend 0.7 · a-priori weights  → R@1 0.67 · R@3 0.83 · MRR 0.77
+//   blend 0.7 · rarity-first      → R@1 0.56 · R@3 0.89 · MRR 0.71
+//   blend 0.85 · rarity-first     → R@1 0.61 · R@3 0.89 · MRR 0.76
+// Lexical features cannot separate "passage about the topic" from "passage that
+// answers the question"; they promote term-dense files. A real cross-encoder
+// needs weights, which the offline contract forbids by default.
+//
+// The weights are fixed *a priori*, not fitted to the gold set — fitting them
+// there would be training on the test set. They are stated here so any change
+// is reviewable.
+export const RERANK_WEIGHTS = Object.freeze({
+  coverage: 0.3,     // share of distinct query terms present
+  rarity: 0.3,       // same, weighted by IDF: rare terms are the informative ones
+  density: 0.15,     // term frequency saturation inside the chunk
+  heading: 0.15,     // the passage's own heading names the query term
+  path: 0.1,         // the file name names the query term
+});
+
+export const RERANK_TOP = 20; // rescore window: beyond this the fused order is noise
+export const RERANK_BLEND = 0.5; // fused rank and feature score weigh equally
+
+/**
+ * @returns {{ score: number, features: Record<string, number> }}
+ */
+export function rerankScore(index, chunk, queryTokens) {
+  const wanted = [...new Set(queryTokens)];
+  if (!wanted.length) return { score: 0, features: {} };
+
+  const terms = new Map(chunk.terms ?? []);
+  const headingTokens = new Set(tokenize(chunk.heading ?? ""));
+  const pathTokens = new Set(tokenize((chunk.file ?? "").replace(/[/._-]/g, " ")));
+  const dfMap = new Map(index.stats?.df ?? []);
+  const N = index.stats?.documents ?? 0;
+
+  let matched = 0;
+  let matchedIdf = 0;
+  let totalIdf = 0;
+  let tfSum = 0;
+  let headingHit = 0;
+  let pathHit = 0;
+
+  for (const token of wanted) {
+    const tf = terms.get(token) ?? 0;
+    const df = dfMap.get(token) ?? 0;
+    const idf = N && df ? Math.log(1 + (N - df + 0.5) / (df + 0.5)) : 1;
+    totalIdf += idf;
+    if (headingTokens.has(token)) headingHit += 1;
+    if (pathTokens.has(token)) pathHit += 1;
+    if (tf > 0) {
+      matched += 1;
+      matchedIdf += idf;
+      tfSum += tf;
+    }
+  }
+
+  const features = {
+    coverage: matched / wanted.length,
+    rarity: totalIdf ? matchedIdf / totalIdf : 0,
+    // Saturating density: 3 occurrences already says "this passage is about it".
+    density: Math.min(1, tfSum / (3 * wanted.length)),
+    heading: headingHit / wanted.length,
+    path: pathHit / wanted.length,
+  };
+
+  const score = Object.entries(RERANK_WEIGHTS).reduce(
+    (sum, [name, weight]) => sum + weight * (features[name] ?? 0),
+    0,
+  );
+  return { score, features };
+}
+
+export async function search(
+  index,
+  query,
+  { k = 5, mode = "hybrid", provider = index.provider, rerank = false, rerankTop = RERANK_TOP } = {},
+) {
   if (!providers[provider]) throw new Error(`unknown provider: ${provider}`);
   if (!MODES.includes(mode)) throw new Error(`unknown mode: ${mode} (expected ${MODES.join(" | ")})`);
 
@@ -454,7 +544,26 @@ export async function search(index, query, { k = 5, mode = "hybrid", provider = 
       .sort((a, b) => b.score - a.score || a.i - b.i);
   }
 
-  const top = fused.slice(0, k);
+  // Rerank a window of candidates, then blend: the fused order still carries the
+  // signal, the features correct it where lexical evidence is decisive.
+  let ordering = fused;
+  const featureScores = new Map();
+  if (rerank && fused.length > 1) {
+    const window = fused.slice(0, Math.max(k, rerankTop));
+    const rest = fused.slice(window.length);
+    const maxFused = window[0]?.score || 1;
+    const rescored = window
+      .map(({ i, score }) => {
+        const { score: feature, features } = rerankScore(index, index.chunks[i], queryTokens);
+        featureScores.set(i, features);
+        return { i, score, feature, blended: RERANK_BLEND * (score / maxFused) + (1 - RERANK_BLEND) * feature };
+      })
+      .sort((a, b) => b.blended - a.blended || a.i - b.i)
+      .map(({ i, score }) => ({ i, score }));
+    ordering = [...rescored, ...rest];
+  }
+
+  const top = ordering.slice(0, k);
   const max = top[0]?.score || 1;
 
   return top.map(({ i, score }) => {
@@ -463,6 +572,8 @@ export async function search(index, query, { k = 5, mode = "hybrid", provider = 
       score: Number((score / max).toFixed(4)),
       raw: Number(score.toFixed(6)),
       mode,
+      reranked: rerank && fused.length > 1,
+      features: featureScores.get(i),
       vector: Number(vectorScores[i].toFixed(4)),
       keyword: Number(keywordScores[i].toFixed(4)),
       expanded: expansions,

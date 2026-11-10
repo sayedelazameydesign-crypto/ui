@@ -59,3 +59,12 @@ jobs:
           severity: CRITICAL,HIGH
           format: table
           exit-code: "1"
+
+      # Trivy finds secrets; it does not know what personal data means in this
+      # repository. This is the same scanner the pre-commit hook runs, so a
+      # `--no-verify` commit still fails here.
+      - name: Personal data and secrets (blocking, repo policy)
+        run: node scripts/check-pii.mjs
+
+      - name: Egress allowlist (blocking, repo policy)
+        run: node scripts/check-egress.mjs

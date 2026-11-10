@@ -71,6 +71,10 @@ stack arrives.
     gate that only ratchets upward ([ADR-0009](docs/adr/0009-hybrid-retrieval.md)).
 14. **Boundaries default to "no".** Unknown config keys and undeclared network destinations fail the
     build ([ADR-0010](docs/adr/0010-fail-closed-boundaries.md)).
+15. **Only synthetic data enters the repository.** The pre-commit scan blocks PII and secrets in the
+    staged diff; exemptions need a written reason ([ADR-0012](docs/adr/0012-pii-dlp-guard.md)).
+16. **Defaults follow the measurement.** A component that loses on the eval (the lexical reranker)
+    ships off by default and is documented as a negative result ([ADR-0011](docs/adr/0011-local-reranker-experiment.md)).
 15. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
     result can be traced to the exact data that produced it
     ([ADR-0005](docs/adr/0005-artifact-storage.md)).
@@ -101,6 +105,10 @@ stack arrives.
 | **Gold set** | `tests/semantic-gold.json` — queries with the file that truly answers each one. |
 | **Egress allowlist** | The declared set of outbound hosts, each with a reason and a file scope. |
 | **Fail-closed** | Absent an explicit rule, the answer is "reject" — for keys and for destinations. |
+| **PII** | Personal data: names, addresses, phones, national IDs, card numbers, credentials. |
+| **Staged blob** | What `git commit` will record — not necessarily what is on disk. |
+| **Masking** | Replacing a matched value with a shape-preserving placeholder so logs never leak it. |
+| **Negative result** | A measured, documented experiment that did not improve the gate's numbers. |
 
 ## 5. Non-goals
 
@@ -132,6 +140,8 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0008 — Living documentation as a verified artifact](docs/adr/0008-living-documentation.md) · accepted
 - [ADR-0009 — Hybrid retrieval with a measured quality gate](docs/adr/0009-hybrid-retrieval.md) · accepted
 - [ADR-0010 — Fail-closed boundaries and declared egress](docs/adr/0010-fail-closed-boundaries.md) · accepted
+- [ADR-0011 — A local reranker was attempted, measured, and left off](docs/adr/0011-local-reranker-experiment.md) · accepted (negative result)
+- [ADR-0012 — PII and secret detection at the commit boundary](docs/adr/0012-pii-dlp-guard.md) · accepted
 
 ## 8. Change protocol
 
@@ -148,6 +158,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 | New CI job | classifier rule + `docs/ci/green-builds.md` routing table |
 | New outbound destination | `scripts/check-egress.mjs` allowlist entry + a reason |
 | New structural JSON file | schema in `scripts/validate-json.mjs` + guard required-file entry |
+| New detector rule | `scripts/check-pii.mjs` + a property that proves masking still holds |
 | Ranking change | eval run before/after recorded in the PR body (ADR-0009) |
 
 ## 9. References
@@ -166,3 +177,4 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - Living documentation: [docs/architecture/living-docs.md](docs/architecture/living-docs.md)
 - Retrieval quality: [docs/agents/retrieval-quality.md](docs/agents/retrieval-quality.md)
 - Data sovereignty: [docs/security/data-sovereignty.md](docs/security/data-sovereignty.md)
+- PII guard: [docs/security/pii-guard.md](docs/security/pii-guard.md)

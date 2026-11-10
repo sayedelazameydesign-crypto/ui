@@ -19,6 +19,7 @@
 | How do I declare authorship? | Trailer: `AI-Assisted-By: <tool>` or `Human-Authored: true` ([provenance](docs/agents/provenance.md)). |
 | How do I find code by meaning? | `node scripts/semantic/cli.mjs search "…"` (hybrid; see [retrieval quality](docs/agents/retrieval-quality.md)). |
 | May I add an external URL or service? | Only by declaring it in `scripts/check-egress.mjs` with a reason ([sovereignty](docs/security/data-sovereignty.md)). |
+| May I commit test data? | Synthetic only. `node scripts/check-pii.mjs --staged` blocks PII and secrets ([pii guard](docs/security/pii-guard.md)). |
 | Where do datasets and model weights go? | Git LFS + `artifacts.manifest.json` ([artifacts](docs/data/artifacts.md)). |
 | May I hand-edit a generated file? | **No.** Regenerate it (`--write`) and commit the output. |
 
@@ -75,7 +76,12 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
 16. **Quality claims need a measured gate.** Retrieval changes must keep
     `node scripts/semantic/eval.mjs` green (hybrid R@3 ≥ 0.90, MRR ≥ 0.75). Raising the floor is
     allowed; lowering it silently is not.
-17. **Never weaken a gate to make a run faster.** Routing may skip work only when the classifier
+17. **No real personal data, ever.** Only synthetic fixtures. Exemptions go in
+    `.pii-allowlist.json` **with a reason** — never by skipping the check
+    ([PII guard](docs/security/pii-guard.md)).
+18. **A negative result is a result.** Report the measurement and ship the default that the numbers
+    support (`--rerank` is off for exactly this reason, see [ADR-0011](docs/adr/0011-local-reranker-experiment.md)).
+19. **Never weaken a gate to make a run faster.** Routing may skip work only when the classifier
     proves the change is docs-only ([green builds](docs/ci/green-builds.md)).
 
 ---
@@ -118,6 +124,7 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
     ├── change-classifier.mjs  ← CI cost/carbon routing by change class
     ├── validate-json.mjs      ← fail-closed schema validation for structural files
     ├── check-egress.mjs       ← egress allowlist (data sovereignty)
+    ├── check-pii.mjs          ← PII/secret detection at the commit boundary
     ├── artifact-manifest.mjs  ← artifact ledger: write / check for drift
     ├── architecture-graph.mjs ← living architecture graph: write / check
     ├── provenance.mjs         ← AI/human authorship report
@@ -151,6 +158,7 @@ node scripts/change-classifier.mjs              # what the current diff should r
 node scripts/semantic/eval.mjs                  # retrieval quality gate (recall@k, MRR)
 node scripts/validate-json.mjs                  # fail-closed schema validation
 node scripts/check-egress.mjs                   # declared egress destinations only
+node scripts/check-pii.mjs --staged             # PII/secrets in the staged diff (pre-commit)
 
 node scripts/architecture-graph.mjs --write     # regenerate the living architecture graph
 node scripts/artifact-manifest.mjs --write      # regenerate the artifact ledger
@@ -246,8 +254,8 @@ When in doubt: **read-only beats write, ask beats assume.**
 | D5 | Repository licence (MIT vs. Apache-2.0) — no `LICENSE` file yet | open |
 | D6 | Preview hosting target for per-PR sandboxes (see `docs/ci/ephemeral-environments.md`) | open |
 | D7 | Artifact remote for large data (LFS quota vs. dataset registry) — see `docs/data/artifacts.md` | open |
-| D8 | Adopt a neural embedder or cross-encoder reranker (improves R@1, adds model weight) | open |
-| D9 | Runtime egress proxy for real enforcement (the allowlist is intent, a proxy is control) | open |
+| D8 | Neural cross-encoder reranker for R@1 ≥ 0.85 — needs model weights; the lexical substitute measurably failed ([ADR-0011](docs/adr/0011-local-reranker-experiment.md)) | **open** |
+| D9 | Runtime egress proxy for real enforcement (the allowlist is intent, a proxy is control); the commit-boundary PII guard now exists ([ADR-0012](docs/adr/0012-pii-dlp-guard.md)) | partly done |
 
 Do not pre-empt these by scaffolding a framework. Propose, then wait.
 
