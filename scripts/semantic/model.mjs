@@ -145,6 +145,60 @@ export function removeModel(root, manifest, entry) {
 }
 
 /**
+ * The enablement plan: what is done, what is missing, and the exact next command.
+ * Pure (takes root + manifest) so it can be property-tested without touching disk.
+ *
+ * @returns {{ ready: boolean, steps: Array<{ id: string, title: string, state: "done"|"pending"|"blocked", detail: string, command?: string }> }}
+ */
+export function planSteps(root, manifest) {
+  const entry = (manifest.models ?? []).find((m) => m.role === "rerank");
+  if (!entry) {
+    return { ready: false, steps: [{ id: "declare", title: "Declare a rerank model", state: "blocked", detail: "no entry with role \"rerank\" in the manifest" }] };
+  }
+
+  const pinned = Boolean(entry.sha256 && /^[a-f0-9]{64}$/.test(entry.sha256));
+  const check = verifyModel(root, manifest, entry);
+  const runtimeInstalled = existsSync(join(root, "node_modules", "onnxruntime-node"));
+
+  const steps = [
+    {
+      id: "pin",
+      title: "Pin the artifact checksum",
+      state: pinned ? "done" : "pending",
+      detail: pinned
+        ? `sha256 ${entry.sha256.slice(0, 12)}… pinned for ${entry.id}`
+        : `sha256 is null: download the file out-of-band, compare against the publisher's hash, then record it in ${MANIFEST_PATH}`,
+      command: pinned ? undefined : `sha256sum ./${entry.file}`,
+    },
+    {
+      id: "install",
+      title: "Install the verified weights into storage",
+      state: check.ok ? "done" : pinned ? "pending" : "blocked",
+      detail: check.ok ? check.detail : check.reason === "unpinned" ? "blocked until the checksum is pinned" : check.detail,
+      command: pinned && !check.ok ? `node scripts/semantic/model.mjs install --from ./${entry.file}` : undefined,
+    },
+    {
+      id: "runtime",
+      title: "Add the inference runtime",
+      state: runtimeInstalled ? "done" : "pending",
+      detail: runtimeInstalled
+        ? "onnxruntime-node is present"
+        : "onnxruntime-node is not installed; adding it is a separate, reviewable dependency decision",
+      command: runtimeInstalled ? undefined : "npm install --save-dev onnxruntime-node",
+    },
+    {
+      id: "measure",
+      title: "Measure, then decide",
+      state: check.ok && runtimeInstalled ? "pending" : "blocked",
+      detail: "run the eval with both rerankers and keep the default only if the numbers justify it",
+      command: "node scripts/semantic/eval.mjs && node scripts/semantic/eval.mjs --rerank",
+    },
+  ];
+
+  return { ready: steps.every((step) => step.state === "done") || (check.ok && runtimeInstalled), steps };
+}
+
+/**
  * Is a neural reranker usable right now? Returns the honest reasons when not.
  * The neural path is never enabled implicitly: the caller must ask for it.
  */
@@ -213,7 +267,31 @@ async function main() {
     return;
   }
 
-  if (command === "status") return report(root, manifest);
+  if (command === "status") {
+    if (flag("json")) {
+      const models = (manifest.models ?? []).map((entry) => ({ ...entry, check: verifyModel(root, manifest, entry) }));
+      console.log(JSON.stringify({ policy: manifest.policy, models, neural: neuralStatus(root) }, null, 2));
+      return;
+    }
+    return report(root, manifest);
+  }
+
+  if (command === "plan") {
+    const plan = planSteps(root, manifest);
+    if (flag("json")) {
+      console.log(JSON.stringify(plan, null, 2));
+      return;
+    }
+    const mark = { done: "\x1b[32m✓\x1b[0m", pending: "\x1b[33m·\x1b[0m", blocked: "\x1b[31m✗\x1b[0m" };
+    console.log(`neural rerank enablement plan · ${plan.ready ? "ready" : "not ready"}\n`);
+    plan.steps.forEach((step, i) => {
+      console.log(`${mark[step.state]} ${i + 1}. ${step.title} — ${step.state}`);
+      console.log(`     ${step.detail}`);
+      if (step.command) console.log(`     \x1b[2m$ ${step.command}\x1b[0m`);
+    });
+    console.log("\nthe default search path is unchanged until every step is done.");
+    return;
+  }
 
   const id = value("id");
   const entries = id ? manifest.models.filter((m) => m.id === id) : manifest.models;
@@ -261,7 +339,7 @@ async function main() {
     return;
   }
 
-  console.error(`unknown command: ${command} (status | verify | install | remove)`);
+  console.error(`unknown command: ${command} (status | plan | verify | install | remove)`);
   process.exitCode = 2;
 }
 

@@ -78,7 +78,36 @@ If the two hashes disagree, **stop** — do not "fix" the manifest to match the 
 | Nothing prevents a future manifest edit from changing a pinned hash | that is a security-relevant diff and must be reviewed as one |
 | `--allow-network` trusts the URL | the URL is pinned in the manifest, but a compromised manifest can point elsewhere |
 
-## 4. Why the neural path is still not enabled
+## 4. The enablement plan (machine-readable)
+
+```bash
+node scripts/semantic/model.mjs plan          # four steps, each with its state and next command
+node scripts/semantic/model.mjs plan --json   # same, for tooling
+node scripts/semantic/model.mjs status --json # artifact + neural availability, machine-readable
+```
+
+```
+neural rerank enablement plan · not ready
+
+· 1. Pin the artifact checksum — pending
+     sha256 is null: download the file out-of-band, compare against the publisher's hash,
+     then record it in scripts/semantic/models.manifest.json
+     $ sha256sum ./minilm-l6-v2-rerank.onnx
+✗ 2. Install the verified weights into storage — blocked
+     blocked until the checksum is pinned
+· 3. Add the inference runtime — pending
+     onnxruntime-node is not installed; adding it is a separate, reviewable dependency decision
+     $ npm install --save-dev onnxruntime-node
+✗ 4. Measure, then decide — blocked
+     $ node scripts/semantic/eval.mjs && node scripts/semantic/eval.mjs --rerank
+```
+
+The plan is a **pure function** of the manifest and the filesystem, and it is property-tested against
+the progression it describes: unpinned blocks installation; once weights verify, the only remaining
+blocker is the runtime. A plan that claims "ready" without both is a test failure, not a surprise in
+production.
+
+## 5. Why the neural path is still not enabled
 
 Two of the three prerequisites are met by this phase: the **policy** exists and is enforced, and the
 **loader** is implemented and tested. What is missing is (a) a pinned checksum — nobody has verified
@@ -88,7 +117,7 @@ change the default install footprint.
 That is why the measured `R@1` is still **0.667**, and why the only honest statement about 0.85 is:
 *the machinery is ready; the artifact is not.*
 
-## 5. Related decisions
+## 6. Related decisions
 
 - [ADR-0011](../adr/0011-local-reranker-experiment.md) — the lexical reranker that lost
 - [ADR-0013](../adr/0013-opt-in-model-load.md) — this opt-in load policy
