@@ -15,6 +15,9 @@ coverage/
 .env.*
 !.env.example
 
+# Generated semantic index (derived state — rebuild, never commit)
+.index/
+
 # Agent session scratch (see docs/agents/memory-protocol.md)
 .agent/tasks/*
 !.agent/tasks/.gitkeep

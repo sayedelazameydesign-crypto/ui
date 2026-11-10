@@ -1,0 +1,58 @@
+name: semantic-index
+
+# Builds the vector index for the repository and proves it is queryable.
+# Offline and deterministic: local provider, no API key, no model download.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: semantic-index-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  index:
+    name: Build & query the semantic index
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Self-check
+        run: node scripts/semantic/cli.mjs doctor
+
+      - name: Build index
+        run: node scripts/semantic/cli.mjs index
+
+      - name: Smoke query (must return at least one hit)
+        run: |
+          node scripts/semantic/cli.mjs search "agent permission matrix" -k 3
+          node scripts/semantic/cli.mjs search "agent permission matrix" --json > hits.json
+          count=$(node -e "console.log(JSON.parse(require('fs').readFileSync('hits.json','utf8')).results.length)")
+          echo "hits: $count"
+          if [ "$count" -lt 1 ]; then
+            echo "::error::semantic search returned no results — index or tokenizer regressed"
+            exit 1
+          fi
+
+      - name: Upload index artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: semantic-index
+          path: .index/semantic.json
+          retention-days: 7
+          if-no-files-found: error
