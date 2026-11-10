@@ -45,6 +45,7 @@
 | [`docs/data/artifacts.md`](docs/data/artifacts.md) | الجميع | LFS وسجل حالة البيانات |
 | [`docs/ci/testing-strategy.md`](docs/ci/testing-strategy.md) | الجميع | اختبارات الخصائص والمحاكاة |
 | [`docs/architecture/graph.md`](docs/architecture/graph.md) | الجميع | مخطط معماري مُولَّد |
+| [`docs/security/adversarial-inputs.md`](docs/security/adversarial-inputs.md) | الجميع | مدخلات عدائية: نقاط ترميز مخفية، اتجاه معكوس، أوامر موجَّهة للقارئ — وحدودها المعلنة |
 
 ### دورة العمل
 
@@ -66,7 +67,7 @@ git push -u origin HEAD
 | صلاحيات أقل ما يمكن | [`.agent/capabilities.yaml`](.agent/capabilities.yaml) + [مصفوفة الصلاحيات](docs/agents/permissions.md) |
 | مهارات وذاكرة مستمرة | `.claude/skills/` + [`.agent/memory/`](.agent/memory) + [بروتوكول الذاكرة](docs/agents/memory-protocol.md) |
 | أدوات عبر MCP بأمان | [`.mcp.json`](.mcp.json) + [سياسة MCP](docs/agents/mcp-policy.md) |
-| حماية من حقن الأوامر | [سياسة MCP §4](docs/agents/mcp-policy.md) |
+| حماية من حقن الأوامر | [سياسة MCP §4](docs/agents/mcp-policy.md) + [فحص المدخلات العدائية](docs/security/adversarial-inputs.md) |
 | فحص أمني آلي | Trivy + Dependabot + فحص أسرار إلزامي في CI |
 | بوابة جودة حتمية | `scripts/check-repo.sh` + `guard` workflow + `pr-hygiene` |
 
@@ -149,7 +150,7 @@ node scripts/check-egress.mjs --list        # الوجهات المعلنة وأ
 | **اختبار الطفرات للحرّاس** | `mutation-test.mjs` — 4 طفرات، خط أساس قبل كل طفرة | ✅ 4/4 مقتولة |
 | **خريطة معمارية تفاعلية** | `playground/graph.html` من `graph.json` | ✅ تُبنى من الكود، والحارس يفشل إذا انحرفت |
 
-| **ضغط السياق بالاستخلاص** | `context-pack.mjs` — جمل مستخرجة حرفياً بمراجع `file:line` وفجوات معلّمة | ✅ 400 توكن: 81% من الإجابات باقية · أصغر 29× من إرسال المرشحات (58 استعلاماً) |
+| **ضغط السياق بالاستخلاص** | `context-pack.mjs` — جمل مستخرجة حرفياً بمراجع `file:line` وفجوات معلّمة | ✅ 400 توكن: 79% من الإجابات باقية · أصغر 30× من إرسال المرشحات (58 استعلاماً) |
 
 ```bash
 node scripts/snapshot.mjs save --label "قبل التجربة"
@@ -215,6 +216,7 @@ choice is deliberately deferred (see [ADR-0002](docs/adr/0002-defer-stack-choice
 | [`docs/data/artifacts.md`](docs/data/artifacts.md) | everyone | LFS lanes and the artifact ledger |
 | [`docs/ci/testing-strategy.md`](docs/ci/testing-strategy.md) | everyone | Properties and mocks |
 | [`docs/architecture/graph.md`](docs/architecture/graph.md) | everyone | Generated architecture map |
+| [`docs/security/adversarial-inputs.md`](docs/security/adversarial-inputs.md) | everyone | Adversarial input: hidden codepoints, reordered text, reader-directed directives — and their stated limits |
 
 ### Workflow
 
@@ -236,7 +238,7 @@ git push -u origin HEAD
 | Least privilege | [`.agent/capabilities.yaml`](.agent/capabilities.yaml) + [permission matrix](docs/agents/permissions.md) |
 | Skills & durable memory | `.claude/skills/` + [`.agent/memory/`](.agent/memory) + [memory protocol](docs/agents/memory-protocol.md) |
 | Safe tool access (MCP) | [`.mcp.json`](.mcp.json) + [MCP policy](docs/agents/mcp-policy.md) |
-| Prompt-injection defence | [MCP policy §4](docs/agents/mcp-policy.md) |
+| Prompt-injection defence | [MCP policy §4](docs/agents/mcp-policy.md) + [adversarial input scan](docs/security/adversarial-inputs.md) |
 | Automated security | Trivy, Dependabot, blocking secret scan in CI |
 | Deterministic quality gate | `scripts/check-repo.sh`, `guard` and `pr-hygiene` workflows |
 
@@ -324,7 +326,7 @@ postings cut the hybrid path from 2.12 ms to 0.38 ms with **identical** ranking
 | **Mutation testing for the guards** | `mutation-test.mjs` — 4 mutants, baseline measured first | ✅ 4/4 killed |
 | **Interactive architecture graph** | `playground/graph.html` from `graph.json` | ✅ generated from the code; the guard fails on drift |
 
-| **Extractive context packing** | `context-pack.mjs` — verbatim sentences, `file:line` citations, marked gaps | ✅ at 400 tokens: 81% answer retention, 29× smaller than the candidates (58 cases) |
+| **Extractive context packing** | `context-pack.mjs` — verbatim sentences, `file:line` citations, marked gaps | ✅ at 400 tokens: 79% answer retention, 30× smaller than the candidates (58 cases) |
 
 ```bash
 node scripts/snapshot.mjs save --label "before the experiment"

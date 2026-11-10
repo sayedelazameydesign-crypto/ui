@@ -20,3 +20,14 @@ if ! node scripts/check-pii.mjs --staged; then
   printf '  why: docs/security/pii-guard.md\n'
   exit 1
 fi
+
+# Adversarial inputs: warn-only on purpose. A blocked commit on a legitimate
+# Persian ZWNJ or a policy quoting an attack would train people to use
+# --no-verify, which disables the PII guard above as well. CI blocks.
+if ! node scripts/adversarial-scan.mjs --staged >/tmp/.adversarial-staged.log 2>&1; then
+  printf '\n\033[33m! staged content has an adversarial finding (warn-only locally)\033[0m\n'
+  sed -n '3,12p' /tmp/.adversarial-staged.log
+  printf '  fix: remove the codepoint, or add a reviewed entry to .adversarial-allowlist.json\n'
+  printf '  why: docs/security/adversarial-inputs.md\n'
+  printf '  CI blocks on this; the commit is allowed so a false positive cannot stop your work.\n'
+fi

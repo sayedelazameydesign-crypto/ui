@@ -3,7 +3,7 @@
   "generator": "scripts/architecture-graph.mjs",
   "note": "Generated from tracked files — do not edit by hand. Regenerate with --write.",
   "stats": {
-    "files": 129,
+    "files": 137,
     "components": 16,
     "edges": 32
   },
@@ -11,12 +11,12 @@
     {
       "id": "root",
       "label": "Root docs & config",
-      "files": 12
+      "files": 13
     },
     {
       "id": "agent-harness",
       "label": "Agent harness (.agent)",
-      "files": 14
+      "files": 15
     },
     {
       "id": "skills",
@@ -41,7 +41,7 @@
     {
       "id": "adr",
       "label": "Decision records",
-      "files": 18
+      "files": 19
     },
     {
       "id": "docs-agents",
@@ -76,12 +76,12 @@
     {
       "id": "scripts",
       "label": "Repository scripts",
-      "files": 31
+      "files": 33
     },
     {
       "id": "tests",
       "label": "Property tests",
-      "files": 7
+      "files": 9
     },
     {
       "id": "mocks",
@@ -113,7 +113,7 @@
     {
       "from": "adr",
       "to": "other",
-      "links": 6
+      "links": 7
     },
     {
       "from": "adr",
@@ -143,7 +143,7 @@
     {
       "from": "docs-agents",
       "to": "other",
-      "links": 1
+      "links": 3
     },
     {
       "from": "docs-agents",
@@ -163,12 +163,12 @@
     {
       "from": "other",
       "to": "adr",
-      "links": 1
+      "links": 2
     },
     {
       "from": "other",
       "to": "docs-agents",
-      "links": 1
+      "links": 2
     },
     {
       "from": "other",
@@ -183,7 +183,7 @@
     {
       "from": "root",
       "to": "adr",
-      "links": 49
+      "links": 53
     },
     {
       "from": "root",
@@ -213,7 +213,7 @@
     {
       "from": "root",
       "to": "other",
-      "links": 11
+      "links": 16
     },
     {
       "from": "root",
@@ -238,7 +238,7 @@
     {
       "from": "tests",
       "to": "scripts",
-      "links": 5
+      "links": 7
     },
     {
       "from": "tests",
@@ -248,7 +248,7 @@
     {
       "from": "tests",
       "to": "tooling-lib",
-      "links": 7
+      "links": 8
     }
   ]
 }

@@ -55,6 +55,14 @@ const ALLOWLIST = {
     why: "LFS pointer spec identifier read from pointer files — a string format, not a request",
     files: ["^scripts/artifact-manifest\.mjs$"],
   },
+  "collect.example.net": {
+    why: "attack fixture: a URL the adversarial scanner must flag; never fetched",
+    files: ["^tests/adversarial/cases\\.json$"],
+  },
+  "example.com": {
+    why: "attack fixture: a data-carrying markdown link the scanner must flag; never fetched",
+    files: ["^tests/adversarial/cases\\.json$"],
+  },
   "www.w3.org": {
     why: "XML namespace identifier (SVG elements) — a name string, never a request",
     files: ["^playground/"],

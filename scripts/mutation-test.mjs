@@ -76,6 +76,42 @@ const MUTANTS = [
     detect: { kind: "property", only: "semantic" },
     quick: false,
   },
+  {
+    id: "sanitiser-disabled",
+    file: "scripts/security/adversarial.mjs",
+    find: '    if (cls && CLASSES[cls].severity === "block") {',
+    replace: '    if (false && cls && CLASSES[cls].severity === "block") {',
+    breaks: "neutralisation: invisible and bidi codepoints would reach the packed context",
+    detect: { kind: "property", only: "adversarial" },
+    quick: false,
+  },
+  {
+    id: "joiner-flagged-everywhere",
+    file: "scripts/security/adversarial.mjs",
+    find: '      if (cls === "joiner-codepoint" && !/[A-Za-z]/.test(line[i - 1] ?? "") && !/[A-Za-z]/.test(line[i + 1] ?? "")) cls = null;',
+    replace: '      // MUTANT: flag joiners regardless of script',
+    breaks: "the joiner exemption: every Persian word with a ZWNJ would be reported",
+    detect: { kind: "property", only: "adversarial" },
+    quick: false,
+  },
+  {
+    id: "excerpt-raw-bytes",
+    file: "scripts/security/adversarial.mjs",
+    find: '  return slice.replace(/[\\u0000-\\u001f\\u007f-\\u009f\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\u00ad]/gu, (c) => escapeForReport(c));',
+    replace: '  return slice; // MUTANT: report the raw bytes',
+    breaks: "report escaping: a finding would print the codepoint it is reporting on",
+    detect: { kind: "property", only: "adversarial" },
+    quick: false,
+  },
+  {
+    id: "negation-ignored",
+    file: "scripts/security/adversarial.mjs",
+    find: '        if (!match || negated(line, match.index)) continue;',
+    replace: '        if (!match) continue; // MUTANT: no negation suppression',
+    breaks: "negation suppression: a policy saying \"never reveal your API keys\" would be an injection",
+    detect: { kind: "property", only: "adversarial" },
+    quick: false,
+  },
 ];
 
 function runDetector(mutant, root) {

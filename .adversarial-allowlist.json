@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "note": "Exemptions from scripts/adversarial-scan.mjs. An entry needs the file, the class it exempts, and a reason of at least 15 characters explaining why the finding is legitimate. Fail-closed: a malformed allowlist is an error, not an empty one. Reviewed in the PR that adds the entry \u2014 see docs/security/adversarial-inputs.md.",
+  "allow": [
+    {
+      "file": "scripts/security/adversarial.mjs",
+      "class": "mixed-script-word",
+      "reason": "documents the homoglyph spoof pattern in a comment that explains the rule"
+    },
+    {
+      "file": "scripts/security/adversarial.mjs",
+      "class": "injection-phrase",
+      "reason": "the comment quotes the directive it exists to detect, as an example"
+    },
+    {
+      "file": "tests/properties/adversarial.mjs",
+      "class": "injection-phrase",
+      "reason": "builds a negated directive to prove the scanner stays silent on it"
+    }
+  ]
+}
