@@ -49,6 +49,9 @@ jobs:
             exit 1
           fi
 
+      - name: Retrieval quality gate (recall@k, MRR)
+        run: node scripts/semantic/eval.mjs --k 5 --min-recall 0.9 --min-mrr 0.75
+
       - name: Upload index artifact
         uses: actions/upload-artifact@v7
         with:

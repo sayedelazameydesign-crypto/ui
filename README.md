@@ -10,7 +10,7 @@
 [![provenance](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/provenance.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/provenance.yml)
 [![dependency-audit](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/dependency-audit.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/dependency-audit.yml)
 
-`main` · `L0 baseline` · `AGENTS.md` · `semantic index` · `provenance` · `properties` · `living docs` · `RTL-first`
+`main` · `L0 baseline` · `AGENTS.md` · `hybrid search` · `measured quality` · `fail-closed` · `RTL-first`
 
 </div>
 
@@ -101,6 +101,21 @@ node scripts/mock-server.mjs --port 4010
 node scripts/change-classifier.mjs --files "README.md"
 node scripts/architecture-graph.mjs --check
 node scripts/artifact-manifest.mjs --check
+```
+
+### طبقة الجودة والحدود
+
+| القدرة | كيف نُفِّذت هنا | الحالة |
+| --- | --- | --- |
+| **بحث هجين مُقاس** | متجه + BM25 بدمج RRF، وتوسيع استعلام عربي من معجم محلي؛ مجموعة ذهبية من 18 استعلاماً | ✅ R@3 = **0.94** و MRR = **0.79** مقابل 0.67/0.62 للمتجه وحده |
+| **بوابة جودة** | `semantic/eval.mjs` يفشل تحت R@3 0.90 أو MRR 0.75 — سقف يزيد ولا ينقص | ✅ مفعّلة في الحارس و CI |
+| **تحقق صارم (fail-closed)** | مخطّطات JSON لمفاتيح `.mcp.json` والسجلات؛ أي مفتاح غير معروف خطأ لا تحذير | ✅ مع اختبارات سلبية |
+| **سيادة البيانات** | قائمة وجهات مسموحة بـ«سبب» و«ملف مسموح»؛ أي URL جديد يفشل البناء | ✅ 8 وجهات معلنة، 0 مخالفة |
+
+```bash
+node scripts/semantic/eval.mjs --timing     # R@1/R@3/MRR + كلفة كل 1000 استعلام
+node scripts/validate-json.mjs              # تحقق صارم
+node scripts/check-egress.mjs --list        # الوجهات المعلنة وأسبابها
 ```
 
 ### حالة المزامنة
@@ -209,6 +224,21 @@ node scripts/architecture-graph.mjs --check
 node scripts/artifact-manifest.mjs --check
 ```
 
+### Quality & boundaries layer
+
+| Capability | Implementation | State |
+| --- | --- | --- |
+| **Measured hybrid retrieval** | vector + BM25 fused by RRF, Arabic query expansion from a local glossary, 18-case gold set | ✅ R@3 **0.94**, MRR **0.79** vs 0.67/0.62 for vector-only |
+| **Quality gate** | `semantic/eval.mjs` fails below R@3 0.90 / MRR 0.75 — a floor that only ratchets up | ✅ in guard and CI |
+| **Fail-closed validation** | explicit JSON schemas for `.mcp.json` and the ledgers; unknown keys are errors | ✅ negative-tested |
+| **Data sovereignty** | egress allowlist where each host needs a reason and a permitted file scope | ✅ 8 declared hosts, 0 violations |
+
+```bash
+node scripts/semantic/eval.mjs --timing     # R@1/R@3/MRR + cost per 1k queries
+node scripts/validate-json.mjs              # fail-closed validation
+node scripts/check-egress.mjs --list        # declared destinations and why
+```
+
 ### Honest limits
 
 - The guard proves **conventions**, not correctness — review still matters.
@@ -222,6 +252,10 @@ node scripts/artifact-manifest.mjs --check
 - "Green" here means **runner-minutes avoided**, measured. Carbon accounting would be fabrication
   without telemetry.
 - The architecture graph is static-reference only; runtime topology is out of scope.
+- Retrieval is **measured but thin**: 18 gold cases, top-1 at 0.67, one documented Arabic failure —
+  the numbers are reported, not smoothed. A neural reranker is the next real gain (D8).
+- The egress allowlist is **textual**: a URL assembled at runtime would evade it. A proxy is the
+  runtime control (D9), and there is no PII classification or DLP yet.
 - No model calls are made by CI. Everything in `.github/workflows/` is deterministic and auditable.
 
 ### Next steps

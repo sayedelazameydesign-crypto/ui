@@ -9,7 +9,7 @@
 // Offline by default (EMBED_PROVIDER=local). EMBED_PROVIDER=openai opts into a
 // remote provider and requires OPENAI_API_KEY — see docs/agents/semantic-search.md.
 
-import { buildIndex, saveIndex, loadIndex, search, indexSummary, activeProvider, DEFAULT_INDEX, gitRoot } from "./lib.mjs";
+import { buildIndex, saveIndex, loadIndex, search, indexSummary, activeProvider, DEFAULT_INDEX, INDEX_VERSION, MODES, gitRoot } from "./lib.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] ?? "help";
@@ -39,11 +39,12 @@ async function cmdIndex() {
   const s = indexSummary(index);
   console.log(`${bold("indexed")} ${s.files} files → ${bold(String(s.chunks))} chunks in ${Date.now() - t0}ms`);
   console.log(`  provider : ${s.provider} (dims ${s.dims})`);
+  console.log(`  terms    : ${s.terms} unique · avg length ${s.avgLength}`);
   console.log(`  commit   : ${s.commit}`);
   console.log(`  output   : ${target}`);
 }
 
-const VALUE_FLAGS = new Set(["k", "index", "out", "query", "provider"]);
+const VALUE_FLAGS = new Set(["k", "index", "out", "query", "provider", "mode"]);
 
 /** Positional words only: skips flags and the values that belong to them. */
 function positionals() {
@@ -70,10 +71,11 @@ async function cmdSearch() {
     process.exit(2);
   }
   const index = loadIndex(typeof flag("index") === "string" ? flag("index") : DEFAULT_INDEX, gitRoot());
-  const results = await search(index, query, { k: numberFlag("k", 5) });
+  const mode = typeof flag("mode") === "string" ? flag("mode") : "hybrid";
+  const results = await search(index, query, { k: numberFlag("k", 5), mode });
 
   if (flag("json")) {
-    console.log(JSON.stringify({ query, provider: index.provider, commit: index.commit, results }, null, 2));
+    console.log(JSON.stringify({ query, mode, provider: index.provider, commit: index.commit, results }, null, 2));
     return;
   }
 
@@ -85,8 +87,10 @@ async function cmdSearch() {
   for (const r of results) {
     const where = `${r.file}:${r.line}`;
     const heading = r.heading ? dim(` § ${r.heading}`) : "";
+    const parts = dim(`vec ${r.vector.toFixed(3)} · bm25 ${r.keyword.toFixed(3)}`);
     console.log(`${score(r.score)}  ${bold(where)}${heading}`);
-    console.log(`       ${dim(r.preview.slice(0, 150))}`);
+    console.log(`       ${dim(r.preview.slice(0, 140))}`);
+    console.log(`       ${parts}`);
   }
 }
 
@@ -107,7 +111,11 @@ async function cmdDoctor() {
   const requireIndex = argv.includes("--require-index");
   try {
     const index = loadIndex(DEFAULT_INDEX, gitRoot());
-    checks.push(["index", `${indexSummary(index).chunks} chunks @ ${index.commit || "?"}`, index.version === 2]);
+    // Compare against the constant, never a literal: a version bump must not silently
+    // turn the self-check into a permanent failure.
+    const current = index.version === INDEX_VERSION;
+    const note = current ? "" : ` (stale v${index.version}, expected v${INDEX_VERSION} — rebuild)`;
+    checks.push(["index", `${indexSummary(index).chunks} chunks @ ${index.commit || "?"}${note}`, current]);
   } catch (e) {
     // Before the first build there is legitimately no index; only fail if asked.
     checks.push(["index", `absent — run "index" (${e.message.split("—")[0].trim()})`, !requireIndex]);
@@ -122,10 +130,12 @@ function help() {
   console.log(`semantic — meaning-based search over this repository
 
   node scripts/semantic/cli.mjs index [--out <path>]      build the vector index
-  node scripts/semantic/cli.mjs search <query> [-k N]     query it
+  node scripts/semantic/cli.mjs search <query> [-k N] [--mode hybrid|vector|keyword]
+  node scripts/semantic/eval.mjs                          quality gate (recall@k, MRR)
   node scripts/semantic/cli.mjs stats                     index summary
   node scripts/semantic/cli.mjs doctor [--require-index]  environment self-check
 
+Modes: hybrid (default, RRF over vector + BM25) · vector · keyword
 Default provider: local (offline, deterministic). No network, no API key.`);
 }
 

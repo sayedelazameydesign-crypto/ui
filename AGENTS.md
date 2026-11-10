@@ -17,7 +17,8 @@
 | Do I need to run checks? | **Yes** — `scripts/check-repo.sh` must pass before you finish. |
 | Where does project knowledge live? | `CONTEXT.md` + `docs/adr/` — update them with the code. |
 | How do I declare authorship? | Trailer: `AI-Assisted-By: <tool>` or `Human-Authored: true` ([provenance](docs/agents/provenance.md)). |
-| How do I find code by meaning? | `node scripts/semantic/cli.mjs search "…"` ([semantic search](docs/agents/semantic-search.md)). |
+| How do I find code by meaning? | `node scripts/semantic/cli.mjs search "…"` (hybrid; see [retrieval quality](docs/agents/retrieval-quality.md)). |
+| May I add an external URL or service? | Only by declaring it in `scripts/check-egress.mjs` with a reason ([sovereignty](docs/security/data-sovereignty.md)). |
 | Where do datasets and model weights go? | Git LFS + `artifacts.manifest.json` ([artifacts](docs/data/artifacts.md)). |
 | May I hand-edit a generated file? | **No.** Regenerate it (`--write`) and commit the output. |
 
@@ -66,7 +67,15 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
     `artifacts.manifest.json` are outputs: change the input, run the generator, commit the result.
 13. **Large binaries go through LFS.** Declare the pattern in `.gitattributes` *before* the first
     commit of that type, then record it with `node scripts/artifact-manifest.mjs --write`.
-14. **Never weaken a gate to make a run faster.** Routing may skip work only when the classifier
+14. **Declare every outbound destination.** A URL not present in `scripts/check-egress.mjs` fails
+    the guard. Data does not leave the machine by accident
+    ([sovereignty policy](docs/security/data-sovereignty.md)).
+15. **Structural JSON is fail-closed.** A new key in `.mcp.json` or a manifest must be added to the
+    schema in `scripts/validate-json.mjs`; unknown keys are errors, not warnings.
+16. **Quality claims need a measured gate.** Retrieval changes must keep
+    `node scripts/semantic/eval.mjs` green (hybrid R@3 ≥ 0.90, MRR ≥ 0.75). Raising the floor is
+    allowed; lowering it silently is not.
+17. **Never weaken a gate to make a run faster.** Routing may skip work only when the classifier
     proves the change is docs-only ([green builds](docs/ci/green-builds.md)).
 
 ---
@@ -102,9 +111,13 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
     ├── check-repo.sh          ← deterministic repository guard (runs locally and in CI)
     ├── semantic/              ← offline vector index + `search` CLI
     ├── lib/property.mjs       ← property-testing primitives (generators, shrinking)
+    ├── lib/schema.mjs         ← minimal fail-closed JSON schema validator
+    ├── semantic/eval.mjs      ← quality gate over tests/semantic-gold.json
     ├── property-test.mjs      ← property runner (seeded, shrinks failures)
     ├── mock-server.mjs        ← deterministic HTTP mocks, fault injection
     ├── change-classifier.mjs  ← CI cost/carbon routing by change class
+    ├── validate-json.mjs      ← fail-closed schema validation for structural files
+    ├── check-egress.mjs       ← egress allowlist (data sovereignty)
     ├── artifact-manifest.mjs  ← artifact ledger: write / check for drift
     ├── architecture-graph.mjs ← living architecture graph: write / check
     ├── provenance.mjs         ← AI/human authorship report
@@ -135,6 +148,9 @@ node scripts/dead-code-report.mjs               # orphan candidates (never auto-
 node scripts/property-test.mjs --runs 300       # invariants over generated input
 node scripts/mock-server.mjs --port 4010        # deterministic service mocks (no egress)
 node scripts/change-classifier.mjs              # what the current diff should run in CI
+node scripts/semantic/eval.mjs                  # retrieval quality gate (recall@k, MRR)
+node scripts/validate-json.mjs                  # fail-closed schema validation
+node scripts/check-egress.mjs                   # declared egress destinations only
 
 node scripts/architecture-graph.mjs --write     # regenerate the living architecture graph
 node scripts/artifact-manifest.mjs --write      # regenerate the artifact ledger
@@ -230,6 +246,8 @@ When in doubt: **read-only beats write, ask beats assume.**
 | D5 | Repository licence (MIT vs. Apache-2.0) — no `LICENSE` file yet | open |
 | D6 | Preview hosting target for per-PR sandboxes (see `docs/ci/ephemeral-environments.md`) | open |
 | D7 | Artifact remote for large data (LFS quota vs. dataset registry) — see `docs/data/artifacts.md` | open |
+| D8 | Adopt a neural embedder or cross-encoder reranker (improves R@1, adds model weight) | open |
+| D9 | Runtime egress proxy for real enforcement (the allowlist is intent, a proxy is control) | open |
 
 Do not pre-empt these by scaffolding a framework. Propose, then wait.
 
