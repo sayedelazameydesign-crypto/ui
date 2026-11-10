@@ -166,7 +166,7 @@ try {
   index = hydrate(payload);
   const loadMs = (performance.now() - startedAt).toFixed(0);
   $("status").textContent = ui[lang].ready(index.chunks.length, loadMs);
-  $("indexmeta").textContent = `${payload.chunks.length} chunks · ${payload.dims}d · int8 · @${payload.commit}`;
+  $("indexmeta").textContent = `${payload.chunks.length} chunks · ${payload.dims}d · int8`;
   $("footline").textContent = ui[lang].foot;
 } catch (error) {
   $("status").textContent = lang === "ar"

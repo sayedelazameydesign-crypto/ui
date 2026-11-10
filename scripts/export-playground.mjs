@@ -62,7 +62,8 @@ const chunks = index.chunks.map((chunk) => {
 const payload = {
   version: index.version,
   generator: "scripts/export-playground.mjs",
-  commit: index.commit,
+  // No commit hash here on purpose: an exported artifact that embeds HEAD can
+  // never be "current" after it is committed, so `--check` would fail forever.
   dims: index.dims,
   quantization: {
     scheme: "int8",
@@ -96,4 +97,4 @@ writeFileSync(target, serialised);
 
 const kb = (bytes) => `${(bytes / 1024).toFixed(0)} KiB`;
 console.log(`exported ${indexSummary(index).chunks} chunks → ${OUT} (${kb(Buffer.byteLength(serialised))})`);
-console.log(`dims ${index.dims} · int8 quantized · ${clippedTotal} clipped component(s) · commit ${index.commit}`);
+console.log(`dims ${index.dims} · int8 quantized · ${clippedTotal} clipped component(s)`);
