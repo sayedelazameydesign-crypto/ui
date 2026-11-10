@@ -1,0 +1,73 @@
+name: license-compliance
+
+# Licence hygiene: repository licence + third-party licence gate on dependency changes.
+# The dependency gate activates only when a manifest exists (L0 today — ADR-0002).
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: license-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository-license:
+    name: Repository licence state
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Report
+        run: |
+          found=""
+          for candidate in LICENSE LICENSE.md LICENSE.txt COPYING; do
+            if [ -f "$candidate" ]; then found="$candidate"; break; fi
+          done
+          if [ -n "$found" ]; then
+            echo "::notice::repository licence file: $found"
+          else
+            echo "::warning::No LICENSE file yet — the licence is an open decision (AGENTS.md §9). \
+            Add one before distributing code or accepting external contributions."
+          fi
+
+  dependency-licenses:
+    name: Third-party licence gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: hashFiles('package.json') != ''
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          allow-licenses: >-
+            MIT, Apache-2.0, ISC, BSD-2-Clause, BSD-3-Clause, MPL-2.0,
+            0BSD, Unlicense, CC0-1.0, BlueOak-1.0.0
+          deny-licenses: GPL-3.0, AGPL-3.0, SSPL-1.0, BUSL-1.1
+          comment-summary-in-pr: on-failure
+
+  dormant-notice:
+    name: Explain dormancy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: hashFiles('package.json') == ''
+    steps:
+      - name: Say why nothing was gated
+        run: |
+          echo "No dependency manifest exists yet (L0, ADR-0002), so there is nothing to license-gate."
+          echo "Repository licence state is still checked above; the third-party gate activates with the stack."
