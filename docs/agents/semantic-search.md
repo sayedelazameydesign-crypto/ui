@@ -34,7 +34,7 @@ stale index in Git is worse than none.
 | Stage | Implementation |
 | --- | --- |
 | Sources | `git ls-files`, text extensions only, files < 400 KB, `node_modules`/`.index` excluded |
-| Chunking | Markdown split on headings (heading kept as context); code split into 45-line windows with 10-line overlap |
+| Chunking | Markdown split on headings, and long sections into 16-line windows with 4-line overlap (heading kept as context); code split into 45-line windows with 10-line overlap |
 | Tokenising | Unicode-aware (`\p{L}`), so Arabic works; Arabic diacritics, alef variants, `ال` prefix and common suffixes are normalised |
 | Embedding | Signed hashing trick (FNV-1a) over unigrams + bigrams, sublinear term frequency, L2-normalised → 256 dense dims |
 | Keyword index | Per-chunk term frequencies + document frequencies; BM25 (k1=1.2, b=0.75) |

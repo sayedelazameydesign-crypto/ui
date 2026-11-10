@@ -39,7 +39,7 @@ export {
   bm25Scores,
 };
 
-export const INDEX_VERSION = 3;
+export const INDEX_VERSION = 4; // 4 = windowed markdown sections
 export const DEFAULT_INDEX = ".index/semantic.json";
 
 const TEXT_EXTENSIONS = new Set([
@@ -87,6 +87,22 @@ export function listTrackedFiles(root = gitRoot()) {
     });
 }
 
+// A long section is a bad unit for retrieval: permission matrices and capability
+// tables live in sections of forty rows, and BM25's length normalisation then
+// buries the one row that answers the question. Sections are therefore emitted
+// as overlapping windows, the same way code already was.
+//
+// MEASURED (2026-11-10, 58 gold cases, everything else held still):
+// R@1 0.552 → 0.586 · R@3 0.690 → 0.690 · MRR 0.625 → 0.648.
+// The window is deliberately larger than a table row: a row alone ("Merge a pull
+// request | ⛔ | ⛔") carries no subject, so the surrounding context has to travel
+// with it. Overlap is what keeps a sentence that straddles the boundary intact.
+export const MD_WINDOW = 16; // lines per chunk inside a long section
+export const MD_OVERLAP = 4; // lines shared with the previous window
+// Sections up to this length are emitted whole; longer ones are windowed. The bound
+// is exported because it is a contract the property tests assert, not an accident.
+export const MD_CHUNK_MAX = MD_WINDOW + MD_OVERLAP;
+
 function chunkMarkdown(content) {
   const lines = content.split("\n");
   const chunks = [];
@@ -94,22 +110,33 @@ function chunkMarkdown(content) {
   let buffer = [];
   let start = 1; // 1-based: a document with no heading still starts at line 1
 
-  const flush = (end) => {
-    const text = buffer.join("\n").trim();
-    if (text.length > 60) chunks.push({ heading, start, end, text });
+  const emit = (text, from, to) => {
+    if (text.trim().length > 60) chunks.push({ heading, start: from, end: to, text: text.trim() });
+  };
+
+  const flush = () => {
+    if (buffer.length <= MD_CHUNK_MAX) {
+      emit(buffer.join("\n"), start, start + buffer.length - 1);
+    } else {
+      for (let i = 0; i < buffer.length; i += MD_WINDOW - MD_OVERLAP) {
+        const window = buffer.slice(i, i + MD_WINDOW);
+        emit(window.join("\n"), start + i, start + i + window.length - 1);
+        if (i + MD_WINDOW >= buffer.length) break; // the tail is already inside this window
+      }
+    }
     buffer = [];
   };
 
   lines.forEach((line, i) => {
     const m = /^(#{1,6})\s+(.*)$/u.exec(line);
     if (m) {
-      if (buffer.length) flush(i - 1);
+      if (buffer.length) flush();
       heading = m[2].trim();
       start = i + 1;
     }
     buffer.push(line);
   });
-  if (buffer.length) flush(lines.length);
+  if (buffer.length) flush();
   return chunks;
 }
 

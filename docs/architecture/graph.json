@@ -3,9 +3,9 @@
   "generator": "scripts/architecture-graph.mjs",
   "note": "Generated from tracked files — do not edit by hand. Regenerate with --write.",
   "stats": {
-    "files": 127,
+    "files": 129,
     "components": 16,
-    "edges": 30
+    "edges": 32
   },
   "components": [
     {
@@ -16,7 +16,7 @@
     {
       "id": "agent-harness",
       "label": "Agent harness (.agent)",
-      "files": 13
+      "files": 14
     },
     {
       "id": "skills",
@@ -41,7 +41,7 @@
     {
       "id": "adr",
       "label": "Decision records",
-      "files": 17
+      "files": 18
     },
     {
       "id": "docs-agents",
@@ -93,7 +93,7 @@
     {
       "from": "adr",
       "to": "docs-agents",
-      "links": 17
+      "links": 20
     },
     {
       "from": "adr",
@@ -133,7 +133,7 @@
     {
       "from": "docs-agents",
       "to": "adr",
-      "links": 5
+      "links": 7
     },
     {
       "from": "docs-agents",
@@ -143,7 +143,7 @@
     {
       "from": "docs-agents",
       "to": "other",
-      "links": 2
+      "links": 1
     },
     {
       "from": "docs-agents",
@@ -162,6 +162,16 @@
     },
     {
       "from": "other",
+      "to": "adr",
+      "links": 1
+    },
+    {
+      "from": "other",
+      "to": "docs-agents",
+      "links": 1
+    },
+    {
+      "from": "other",
       "to": "root",
       "links": 1
     },
@@ -173,7 +183,7 @@
     {
       "from": "root",
       "to": "adr",
-      "links": 44
+      "links": 49
     },
     {
       "from": "root",
@@ -183,7 +193,7 @@
     {
       "from": "root",
       "to": "docs-agents",
-      "links": 36
+      "links": 37
     },
     {
       "from": "root",

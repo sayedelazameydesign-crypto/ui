@@ -6,110 +6,544 @@
     {
       "id": "merge-authority",
       "query": "who is allowed to merge a pull request",
-      "expect": ["docs/agents/permissions.md"],
-      "lang": "en"
+      "expect": [
+        "docs/agents/permissions.md"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "merge-authority-ar",
       "query": "من يحق له دمج طلب السحب",
-      "expect": ["docs/agents/permissions.md", "AGENTS.md", "docs/agents/memory-protocol.md"],
-      "lang": "ar"
+      "expect": [
+        "docs/agents/permissions.md",
+        "AGENTS.md",
+        "docs/agents/memory-protocol.md"
+      ],
+      "lang": "ar",
+      "origin": "v1"
     },
     {
       "id": "provenance-declare",
       "query": "how do I declare that a commit came from an agent",
-      "expect": ["docs/agents/provenance.md"],
-      "lang": "en"
+      "expect": [
+        "docs/agents/provenance.md"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "artifact-ledger",
       "query": "artifact sha256 ledger for datasets",
-      "expect": ["docs/data/artifacts.md"],
-      "lang": "en"
+      "expect": [
+        "docs/data/artifacts.md"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "semantic-index",
       "query": "offline vector index for the repository",
-      "expect": ["docs/agents/semantic-search.md", ".claude/skills/semantic-retrieval/SKILL.md"],
-      "lang": "en"
+      "expect": [
+        "docs/agents/semantic-search.md",
+        ".claude/skills/semantic-retrieval/SKILL.md"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "sandbox",
       "query": "ephemeral sandbox isolation per pull request",
-      "expect": ["docs/ci/ephemeral-environments.md"],
-      "lang": "en"
+      "expect": [
+        "docs/ci/ephemeral-environments.md"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "trivy",
       "query": "trivy vulnerability and secret scan job",
-      "expect": [".github/workflows/security.yml"],
-      "lang": "en"
+      "expect": [
+        ".github/workflows/security.yml"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "properties",
       "query": "property based tests that shrink failures",
-      "expect": ["docs/ci/testing-strategy.md"],
-      "lang": "en"
+      "expect": [
+        "docs/ci/testing-strategy.md"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "routing",
       "query": "which jobs are skipped when only docs change",
-      "expect": ["docs/ci/green-builds.md"],
-      "lang": "en"
+      "expect": [
+        "docs/ci/green-builds.md"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "living-docs",
       "query": "the architecture graph fails when it is stale",
-      "expect": ["docs/architecture/living-docs.md", "docs/architecture/graph.md"],
-      "lang": "en"
+      "expect": [
+        "docs/architecture/living-docs.md",
+        "docs/architecture/graph.md"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "mcp-secrets",
       "query": "mcp servers must not contain credentials",
-      "expect": ["docs/agents/mcp-policy.md"],
-      "lang": "en"
+      "expect": [
+        "docs/agents/mcp-policy.md"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "capability-matrix",
       "query": "allow ask deny matrix per agent role",
-      "expect": [".agent/capabilities.yaml"],
-      "lang": "en"
+      "expect": [
+        ".agent/capabilities.yaml"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "licence",
       "query": "dependency licence compliance gate",
-      "expect": ["docs/adr/0004-zero-trust-dependencies.md", ".github/workflows/license-compliance.yml"],
-      "lang": "en"
+      "expect": [
+        "docs/adr/0004-zero-trust-dependencies.md",
+        ".github/workflows/license-compliance.yml"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "disclosure",
       "query": "how do I report a security vulnerability privately",
-      "expect": ["SECURITY.md"],
-      "lang": "en"
+      "expect": [
+        "SECURITY.md"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "memory",
       "query": "durable memory between sessions",
-      "expect": ["docs/agents/memory-protocol.md"],
-      "lang": "en"
+      "expect": [
+        "docs/agents/memory-protocol.md"
+      ],
+      "lang": "en",
+      "origin": "v1"
     },
     {
       "id": "arabic-secrets",
       "query": "الأسرار الممنوعة في المستودع",
-      "expect": ["AGENTS.md", "SECURITY.md"],
-      "lang": "ar"
+      "expect": [
+        "AGENTS.md",
+        "SECURITY.md"
+      ],
+      "lang": "ar",
+      "origin": "v1"
     },
     {
       "id": "arabic-license",
       "query": "ترخيص المستودع المفتوح",
-      "expect": ["docs/adr/0004-zero-trust-dependencies.md", ".github/workflows/license-compliance.yml", "README.md", "CONTRIBUTING.md"],
-      "lang": "ar"
+      "expect": [
+        "docs/adr/0004-zero-trust-dependencies.md",
+        ".github/workflows/license-compliance.yml",
+        "README.md",
+        "CONTRIBUTING.md"
+      ],
+      "lang": "ar",
+      "origin": "v1"
     },
     {
       "id": "unicode-arabic",
       "query": "تطبيع الحروف العربية في البحث",
-      "expect": ["docs/agents/semantic-search.md", "scripts/semantic/lib.mjs"],
-      "lang": "ar"
+      "expect": [
+        "docs/agents/semantic-search.md",
+        "scripts/semantic/lib.mjs"
+      ],
+      "lang": "ar",
+      "origin": "v1"
+    },
+    {
+      "id": "pack-cite-ar",
+      "query": "ما الذي يبقى من الاستشهادات بعد ضغط السياق",
+      "expect": [
+        "docs/agents/context-packing.md"
+      ],
+      "lang": "ar",
+      "origin": "v2"
+    },
+    {
+      "id": "pack-not",
+      "query": "what the compression deliberately does not do",
+      "expect": [
+        "docs/agents/context-packing.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "model-weights",
+      "query": "where are the quantized model weights stored on disk",
+      "expect": [
+        "docs/agents/local-model.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "model-checksum",
+      "query": "who verifies the sha256 digest of a downloaded artifact",
+      "expect": [
+        "docs/agents/local-model.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "model-ar",
+      "query": "أين توضع أوزان النموذج المحلي",
+      "expect": [
+        "docs/agents/local-model.md"
+      ],
+      "lang": "ar",
+      "origin": "v2"
+    },
+    {
+      "id": "mcp-injection",
+      "query": "how do we defend against prompt injection from an mcp server",
+      "expect": [
+        "docs/agents/mcp-policy.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "mcp-ar",
+      "query": "هل يمكنني استخدام خادم MCP خارجي",
+      "expect": [
+        "docs/agents/mcp-policy.md"
+      ],
+      "lang": "ar",
+      "origin": "v2"
+    },
+    {
+      "id": "memory-never",
+      "query": "what must never be written into durable memory",
+      "expect": [
+        "docs/agents/memory-protocol.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "memory-tiers-ar",
+      "query": "ما هي طبقات الذاكرة الثلاث",
+      "expect": [
+        "docs/agents/memory-protocol.md"
+      ],
+      "lang": "ar",
+      "origin": "v2"
+    },
+    {
+      "id": "perm-escalate",
+      "query": "when must an agent stop and ask a human",
+      "expect": [
+        "docs/agents/permissions.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "provenance-baseline",
+      "query": "which existing commits are grandfathered into the baseline",
+      "expect": [
+        "docs/agents/provenance.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "provenance-limits",
+      "query": "can provenance prove a human wrote the code",
+      "expect": [
+        "docs/agents/provenance.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "provenance-ar",
+      "query": "كيف أثبت أن الكود كتبه وكيل",
+      "expect": [
+        "docs/agents/provenance.md"
+      ],
+      "lang": "ar",
+      "origin": "v2"
+    },
+    {
+      "id": "snapshot-restore",
+      "query": "how do I roll the working tree back to a saved snapshot",
+      "expect": [
+        "docs/agents/state-and-rollback.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "snapshot-anchor",
+      "query": "where is the ledger anchor file kept",
+      "expect": [
+        "docs/agents/state-and-rollback.md",
+        "scripts/ledger.mjs"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "rollback-guard",
+      "query": "why is automatic rollback refused",
+      "expect": [
+        "docs/agents/state-and-rollback.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "rollback-ar",
+      "query": "كيف أحفظ نسخة من حالة المستودع",
+      "expect": [
+        "docs/agents/state-and-rollback.md"
+      ],
+      "lang": "ar",
+      "origin": "v2"
+    },
+    {
+      "id": "egress-hosts",
+      "query": "which hosts is the repository allowed to contact",
+      "expect": [
+        "docs/security/data-sovereignty.md",
+        "scripts/check-egress.mjs"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "fail-closed",
+      "query": "what does fail closed mean for a validator",
+      "expect": [
+        "docs/security/data-sovereignty.md",
+        "docs/adr/0010-fail-closed-boundaries.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "pii-patterns",
+      "query": "which secrets and personal data does the pre-commit check block",
+      "expect": [
+        "docs/security/pii-guard.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "pii-exemption",
+      "query": "how does an exemption from the secret check get approved",
+      "expect": [
+        "docs/security/pii-guard.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "pii-ar",
+      "query": "ما الذي يمنعه فحص الأسرار قبل الالتزام",
+      "expect": [
+        "docs/security/pii-guard.md"
+      ],
+      "lang": "ar",
+      "origin": "v2"
+    },
+    {
+      "id": "lfs-lane",
+      "query": "when does a binary belong in git lfs instead of a commit",
+      "expect": [
+        "docs/data/artifacts.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "manifest-state",
+      "query": "what is recorded about a dataset artifact",
+      "expect": [
+        "docs/data/artifacts.md",
+        "artifacts.manifest.json"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "preview-proof",
+      "query": "what must a preview environment prove before a merge",
+      "expect": [
+        "docs/ci/ephemeral-environments.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "sandbox-isolation",
+      "query": "how isolated is a sandbox container and what can it reach",
+      "expect": [
+        "docs/ci/ephemeral-environments.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "classifier-docs",
+      "query": "which jobs are skipped when only documentation changed",
+      "expect": [
+        "docs/ci/green-builds.md",
+        "scripts/change-classifier.mjs"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "mock-server",
+      "query": "how do I start the deterministic mock server",
+      "expect": [
+        "docs/ci/testing-strategy.md",
+        "scripts/mock-server.mjs"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "mutation-ar",
+      "query": "كم طفرة قتلها اختبار الطفرات",
+      "expect": [
+        "docs/adr/0016-mutation-testing.md"
+      ],
+      "lang": "ar",
+      "origin": "v2"
+    },
+    {
+      "id": "graph-components",
+      "query": "how many components does the architecture graph contain",
+      "expect": [
+        "docs/architecture/graph.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "generated-files",
+      "query": "which files are generated and must not be hand edited",
+      "expect": [
+        "docs/architecture/living-docs.md",
+        "docs/architecture/graph.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "guard-checks",
+      "query": "how many checks does the repository guard script run",
+      "expect": [
+        "scripts/check-repo.sh"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "guard-ar",
+      "query": "ما الذي يفحصه سكربت الحماية",
+      "expect": [
+        "scripts/check-repo.sh"
+      ],
+      "lang": "ar",
+      "origin": "v2"
+    },
+    {
+      "id": "bench-latency",
+      "query": "what is the measured latency of a hybrid query",
+      "expect": [
+        "docs/benchmarks.md",
+        "scripts/bench.mjs"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "bench-ar",
+      "query": "ما هو زمن استجابة البحث الهجين",
+      "expect": [
+        "docs/benchmarks.md"
+      ],
+      "lang": "ar",
+      "origin": "v2"
+    },
+    {
+      "id": "parity",
+      "query": "does the browser playground rank the same as the engine",
+      "expect": [
+        "scripts/playground-parity.mjs",
+        "playground/engine.mjs"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "index-rebuild",
+      "query": "how do I rebuild the semantic index",
+      "expect": [
+        "docs/agents/semantic-search.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "index-ar",
+      "query": "كيف أبني فهرس البحث من جديد",
+      "expect": [
+        "docs/agents/semantic-search.md"
+      ],
+      "lang": "ar",
+      "origin": "v2"
+    },
+    {
+      "id": "egress-enforce",
+      "query": "how is the egress allowlist enforced in ci",
+      "expect": [
+        "scripts/check-egress.mjs",
+        "docs/security/data-sovereignty.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
+    },
+    {
+      "id": "property-run",
+      "query": "how do I add a new property to the suite",
+      "expect": [
+        "docs/ci/testing-strategy.md"
+      ],
+      "lang": "en",
+      "origin": "v2"
     }
   ]
 }

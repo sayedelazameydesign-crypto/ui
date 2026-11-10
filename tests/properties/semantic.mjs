@@ -1,7 +1,9 @@
 // Properties for the semantic engine: tokeniser and embedder contract.
 // These are invariants, not examples — they hold for every generated input.
 
-import { tokenize, normalizeToken, embedLocal, cosine, fnv1a, chunkFile, bm25Scores, DEFAULT_DIMS } from "../../scripts/semantic/lib.mjs";
+import {
+  tokenize, normalizeToken, embedLocal, cosine, fnv1a, chunkFile, bm25Scores, DEFAULT_DIMS, MD_CHUNK_MAX,
+} from "../../scripts/semantic/lib.mjs";
 import { gen } from "../../scripts/lib/property.mjs";
 
 const vectorGen = gen.arrayOf(gen.text({ maxLength: 12 }), { maxLength: 6 });
@@ -116,6 +118,33 @@ export default [
       return chunks.every(
         (c) => c.start >= 1 && c.end <= lines.length && c.start <= c.end && c.preview.length > 0,
       );
+    },
+  },
+  {
+    // The windowing rule is only safe if nothing falls between two windows. This is
+    // the property that makes MD_WINDOW/MD_OVERLAP refactorable: change the numbers
+    // and either the coverage still holds or the test fails.
+    name: "every line of a long markdown section is inside at least one chunk",
+    generators: { range: gen.lineRange({ maxLines: 120 }) },
+    property: ({ range }) => {
+      const body = Array.from({ length: range.total }, (_, i) => `line ${i} has enough words to be kept`);
+      const content = ["# heading", ...body].join("\n");
+      const chunks = chunkFile("doc.md", content);
+      if (!chunks.length) return true; // a document shorter than the minimum chunk is allowed to vanish
+      const covered = new Set();
+      for (const chunk of chunks) for (let line = chunk.start; line <= chunk.end; line += 1) covered.add(line);
+      // Line 1 is the heading; every other line must be reachable.
+      for (let line = 2; line <= range.total + 1; line += 1) if (!covered.has(line)) return false;
+      return true;
+    },
+  },
+  {
+    name: "a markdown chunk never exceeds MD_CHUNK_MAX lines",
+    generators: { range: gen.lineRange({ maxLines: 120 }) },
+    property: ({ range }) => {
+      const body = Array.from({ length: range.total }, (_, i) => `line ${i} has enough words to be kept`);
+      const content = ["# heading", ...body].join("\n");
+      return chunkFile("doc.md", content).every((c) => c.end - c.start + 1 <= MD_CHUNK_MAX);
     },
   },
   {
