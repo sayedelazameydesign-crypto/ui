@@ -9,7 +9,7 @@
 // Offline by default (EMBED_PROVIDER=local). EMBED_PROVIDER=openai opts into a
 // remote provider and requires OPENAI_API_KEY — see docs/agents/semantic-search.md.
 
-import { buildIndex, saveIndex, loadIndex, search, indexSummary, activeProvider, DEFAULT_INDEX, MODES, gitRoot } from "./lib.mjs";
+import { buildIndex, saveIndex, loadIndex, search, indexSummary, activeProvider, DEFAULT_INDEX, INDEX_VERSION, MODES, gitRoot } from "./lib.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] ?? "help";
@@ -111,7 +111,11 @@ async function cmdDoctor() {
   const requireIndex = argv.includes("--require-index");
   try {
     const index = loadIndex(DEFAULT_INDEX, gitRoot());
-    checks.push(["index", `${indexSummary(index).chunks} chunks @ ${index.commit || "?"}`, index.version === 2]);
+    // Compare against the constant, never a literal: a version bump must not silently
+    // turn the self-check into a permanent failure.
+    const current = index.version === INDEX_VERSION;
+    const note = current ? "" : ` (stale v${index.version}, expected v${INDEX_VERSION} — rebuild)`;
+    checks.push(["index", `${indexSummary(index).chunks} chunks @ ${index.commit || "?"}${note}`, current]);
   } catch (e) {
     // Before the first build there is legitimately no index; only fail if asked.
     checks.push(["index", `absent — run "index" (${e.message.split("—")[0].trim()})`, !requireIndex]);
