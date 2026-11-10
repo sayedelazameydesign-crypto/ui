@@ -4,7 +4,7 @@
 > Regenerate with `node scripts/architecture-graph.mjs --write`.
 > `guard` and the `architecture` workflow fail when this file is stale.
 
-**127 tracked files · 16 components · 31 directed links**
+**129 tracked files · 16 components · 32 directed links**
 
 ## Component map
 
@@ -26,7 +26,7 @@ graph LR
   scripts["Repository scripts"]
   tests["Property tests"]
   mocks["Service mocks"]
-  adr -->|17| docs_agents
+  adr -->|20| docs_agents
   adr -->|3| docs_arch
   adr -->|4| docs_ci
   adr -->|2| docs_data
@@ -34,16 +34,17 @@ graph LR
   adr -->|5| root
   agent_harness -->|4| docs_agents
   agent_harness -->|1| root
-  docs_agents -->|5| adr
+  docs_agents -->|7| adr
   docs_agents -->|2| agent_harness
   docs_agents -->|1| other
   docs_agents -->|2| root
   docs_agents -->|1| tests
   github_config -->|1| root
+  other -->|1| adr
   other -->|1| docs_agents
   other -->|1| root
   other -->|1| semantic
-  root -->|44| adr
+  root -->|49| adr
   root -->|4| agent_harness
   root -->|37| docs_agents
   root -->|3| docs_arch
@@ -64,9 +65,9 @@ graph LR
 | Component | Files |
 | --- | --- |
 | `scripts` — Repository scripts | 31 |
-| `adr` — Decision records | 17 |
+| `adr` — Decision records | 18 |
 | `github-config` — GitHub config & templates | 17 |
-| `agent-harness` — Agent harness (.agent) | 13 |
+| `agent-harness` — Agent harness (.agent) | 14 |
 | `root` — Root docs & config | 12 |
 | `workflows` — CI workflows | 10 |
 | `docs-agents` — Agent docs | 9 |
@@ -84,16 +85,16 @@ graph LR
 
 | From | To | References |
 | --- | --- | --- |
-| `root` | `adr` | 44 |
+| `root` | `adr` | 49 |
 | `root` | `docs-agents` | 37 |
-| `adr` | `docs-agents` | 17 |
+| `adr` | `docs-agents` | 20 |
 | `root` | `other` | 11 |
 | `root` | `docs-ci` | 8 |
+| `docs-agents` | `adr` | 7 |
 | `scripts` | `semantic` | 7 |
 | `tests` | `tooling-lib` | 7 |
 | `adr` | `other` | 6 |
 | `adr` | `root` | 5 |
-| `docs-agents` | `adr` | 5 |
 | `tests` | `scripts` | 5 |
 | `adr` | `docs-ci` | 4 |
 | `agent-harness` | `docs-agents` | 4 |

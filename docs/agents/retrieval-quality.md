@@ -57,7 +57,7 @@ node scripts/semantic/eval.mjs --rebuild       # re-index first
 
 ## 3. Measured results
 
-Corpus: **611 chunks from 108 files** (tests, fixtures and generated mirrors excluded — see §2 of
+Corpus: **618 chunks from 110 files** (tests, fixtures and generated mirrors excluded — see §2 of
 [`semantic-search.md`](semantic-search.md)). Measured on this commit, not estimated:
 
 | Mode | R@1 | R@3 | R@5 | MRR | ms/query |
