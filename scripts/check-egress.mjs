@@ -55,6 +55,10 @@ const ALLOWLIST = {
     why: "LFS pointer spec identifier read from pointer files — a string format, not a request",
     files: ["^scripts/artifact-manifest\.mjs$"],
   },
+  "huggingface.co": {
+    why: "opt-in model weights only — requires --allow-network and a checksum pinned in the manifest; never used by CI",
+    files: ["^scripts/semantic/model\\.mjs$", "^scripts/semantic/models\\.manifest\\.json$", "^docs/agents/local-model\\.md$"],
+  },
   "api.openai.com": {
     why: "OPT-IN embedding provider — refuses to run without an explicit key and is never used by CI",
     files: ["^scripts/semantic/lib\\.mjs$"],

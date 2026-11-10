@@ -4,8 +4,10 @@
 //  • Closed by default: an object with `properties` rejects unknown keys unless
 //    `additionalProperties: true` is set explicitly. A typo must fail, not pass.
 //  • Every error carries a JSON path, so a message points at the offending key.
-//  • Supported keywords only; anything else is ignored deliberately rather than
-//    half-implemented (a validator that silently skips rules is worse than none).
+//  • Supported keywords only: type · nullable · enum · minLength · pattern ·
+//    minimum · items · minItems · required · properties · additionalProperties.
+//    Anything else is ignored deliberately rather than half-implemented (a
+//    validator that silently skips rules is worse than none).
 
 const typeOf = (value) => {
   if (value === null) return "null";
@@ -26,6 +28,10 @@ function matchesType(value, expected) {
  */
 export function validate(value, schema, path = "$") {
   const errors = [];
+
+  // `nullable: true` is the only way to accept null: a field whose absence is
+  // meaningful (an unpinned checksum) must say so instead of looking optional.
+  if (value === null && schema.nullable) return errors;
 
   if (schema.type && !matchesType(value, schema.type)) {
     errors.push(`${path}: expected ${schema.type}, got ${typeOf(value)}`);

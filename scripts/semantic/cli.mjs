@@ -72,7 +72,12 @@ async function cmdSearch() {
   }
   const index = loadIndex(typeof flag("index") === "string" ? flag("index") : DEFAULT_INDEX, gitRoot());
   const mode = typeof flag("mode") === "string" ? flag("mode") : "hybrid";
-  const results = await search(index, query, { k: numberFlag("k", 5), mode });
+  // Neural reranking is opt-in and refuses to fall back silently: if the weights
+  // or the runtime are missing, the caller gets the reason, not worse results.
+  const rerankOptions = flag("enable-neural-rerank")
+    ? { rerank: true, rerankProvider: "neural" }
+    : { rerank: false };
+  const results = await search(index, query, { k: numberFlag("k", 5), mode, ...rerankOptions });
 
   if (flag("json")) {
     console.log(JSON.stringify({ query, mode, provider: index.provider, commit: index.commit, results }, null, 2));
@@ -131,9 +136,11 @@ function help() {
 
   node scripts/semantic/cli.mjs index [--out <path>]      build the vector index
   node scripts/semantic/cli.mjs search <query> [-k N] [--mode hybrid|vector|keyword]
+                              [--enable-neural-rerank]   requires verified weights + runtime
   node scripts/semantic/eval.mjs                          quality gate (recall@k, MRR)
   node scripts/semantic/cli.mjs stats                     index summary
   node scripts/semantic/cli.mjs doctor [--require-index]  environment self-check
+  node scripts/semantic/model.mjs status|verify          opt-in model artifacts
 
 Modes: hybrid (default, RRF over vector + BM25) · vector · keyword
 Default provider: local (offline, deterministic). No network, no API key.`);

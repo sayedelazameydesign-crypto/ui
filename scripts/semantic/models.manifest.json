@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "note": "Approved model artifacts for opt-in neural reranking. Nothing here is downloaded automatically; the default runtime stays fully local. An entry is usable only when its sha256 is pinned by a human who verified the file independently. Policy: docs/agents/local-model.md · ADR-0013.",
+  "policy": {
+    "storageDir": ".models",
+    "maxBytes": 104857600,
+    "maxBytesReason": "100 MiB ceiling for a quantized reranker (owner decision, D8)",
+    "requiresChecksum": true,
+    "networkAllowedByDefault": false
+  },
+  "models": [
+    {
+      "id": "minilm-l6-rerank",
+      "role": "rerank",
+      "name": "ms-marco-MiniLM-L-6-v2 (int8 quantized, ONNX)",
+      "file": "minilm-l6-v2-rerank.onnx",
+      "url": "https://huggingface.co/Xenova/ms-marco-MiniLM-L-6-v2/resolve/main/onnx/model_quantized.onnx",
+      "bytes": 22972000,
+      "sha256": null,
+      "license": "Apache-2.0",
+      "runtime": "onnxruntime-node",
+      "maxTokens": 256,
+      "note": "Expected size is an estimate; the authoritative value is the byte count of the file you verified. sha256 stays null until someone pins it — an unpinned entry is refused by design."
+    }
+  ]
+}
