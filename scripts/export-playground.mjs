@@ -54,7 +54,9 @@ const chunks = index.chunks.map((chunk) => {
     h: chunk.heading,
     p: chunk.preview,
     n: chunk.length,
-    t: chunk.terms,
+    // `[[term, tf], …]` serialised as `term tf,term tf`. Same data, 165 KiB
+    // smaller — the exported index has to stay under the 1 MB LFS threshold.
+    t: chunk.terms.map(([term, tf]) => `${term} ${tf}`).join(","),
     v: base64,
   };
 });
@@ -65,6 +67,7 @@ const payload = {
   // No commit hash here on purpose: an exported artifact that embeds HEAD can
   // never be "current" after it is committed, so `--check` would fail forever.
   dims: index.dims,
+  termsEncoding: "term tf,term tf",
   quantization: {
     scheme: "int8",
     scale: SCALE,

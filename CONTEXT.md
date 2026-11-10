@@ -90,7 +90,11 @@ stack arrives.
 22. **A measurement states its resolution.** 58 cases means one case is 1.7 points and the 95%
     interval for R@1 is ±12; a change smaller than that is not a result
     ([ADR-0018](docs/adr/0018-evaluation-resolution.md)).
-23. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
+23. **Text an agent reads is untrusted.** Passages are neutralised before they reach a pack, and
+    hidden codepoints, bidirectional overrides, and directives addressed at the reader are reported
+    with a precise class rather than guessed at with a score
+    ([ADR-0019](docs/adr/0019-adversarial-inputs.md)).
+24. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
     result can be traced to the exact data that produced it
     ([ADR-0005](docs/adr/0005-artifact-storage.md)).
 
@@ -140,6 +144,9 @@ stack arrives.
 | **Resolution** | The smallest difference a metric can report: one case as a share of the set (1.7 points at 58 cases). |
 | **Bootstrap interval** | A seeded resampling interval for R@1, printed on every eval run so a 2-point move is not mistaken for a result ([ADR-0018](docs/adr/0018-evaluation-resolution.md)). |
 | **Gap marker** | ` … ` where sentences were skipped, so an extract never reads as complete text. |
+| **Adversarial input** | Text whose meaning to a reader differs from its meaning to an agent: invisible or reordering codepoints, escapes, homoglyphs, directives ([ADR-0019](docs/adr/0019-adversarial-inputs.md)). |
+| **Neutralisation** | Removing block-severity codepoints while preserving line count — so `file:line` citations stay valid. Not a summary and not a rewrite. |
+| **Benign sample** | A corpus entry that must stay silent: the false-positive half of the fixture, weighted as heavily as the attacks. |
 
 ## 5. Non-goals
 
@@ -179,6 +186,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0016 — Mutation testing for the guards](docs/adr/0016-mutation-testing.md) · accepted
 - [ADR-0017 — Extractive context packing with measured citation retention](docs/adr/0017-context-packing.md) · accepted
 - [ADR-0018 — An evaluation set that can resolve what it claims](docs/adr/0018-evaluation-resolution.md) · accepted
+- [ADR-0019 — Adversarial input: shapes a scanner can hold, and a stated limit](docs/adr/0019-adversarial-inputs.md) · accepted
 
 ## 8. Change protocol
 
@@ -196,6 +204,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 | New outbound destination | `scripts/check-egress.mjs` allowlist entry + a reason |
 | New structural JSON file | schema in `scripts/validate-json.mjs` + guard required-file entry |
 | New detector rule | `scripts/check-pii.mjs` + a property that proves masking still holds |
+| New adversarial class | `scripts/security/adversarial.mjs` + payload *and* benign sample in `tests/adversarial/cases.json` + a mutant |
 | New model artifact | manifest entry with pinned `sha256`, byte count, license, runtime |
 | Retrieval code change | re-run `bench.mjs` + `eval.mjs`, put both numbers in the PR, regenerate `playground/index.json` |
 | Ranking change | eval run before/after recorded in the PR body (ADR-0009) |

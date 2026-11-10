@@ -26,6 +26,8 @@ node scripts/check-egress.mjs --list   # the current contract
 | `127.0.0.1` | mock server + its workflow | loopback only |
 | `huggingface.co` | model loader + manifest + local-model doc | **opt-in weights only**: `--allow-network` plus a pinned checksum; never in CI |
 | `git-lfs.github.com` | `scripts/artifact-manifest.mjs` | LFS pointer format string, not a request |
+| `collect.example.net` | `tests/adversarial/cases.json` | an attack fixture the scanner must flag; never fetched |
+| `example.com` | `tests/adversarial/cases.json` | a data-carrying markdown link in the same fixture; never fetched |
 
 Adding a destination is a code change with a written reason — reviewed like any other. A new URL
 that appears by accident fails the guard, so "we would never send data there" becomes a check

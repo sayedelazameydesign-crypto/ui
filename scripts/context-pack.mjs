@@ -21,6 +21,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { DEFAULT_INDEX, cosine, embedLocal, gitRoot, loadIndex, search, tokenize } from "./semantic/lib.mjs";
+import { sanitizeText } from "./security/adversarial.mjs";
 
 export const CHARS_PER_TOKEN = 4; // a stated estimate, not a tokenizer
 export const estimateTokens = (text) => Math.ceil(text.length / CHARS_PER_TOKEN);
@@ -103,6 +104,7 @@ export function pack(index, root, query, hits, { budgetTokens = 1200, maxPerFile
   let duplicates = 0;
   let overBudget = 0;
   let tokens = 0;
+  let neutralized = 0;
 
   for (const hit of hits) {
     const used = perFile.get(hit.file) ?? 0;
@@ -112,7 +114,15 @@ export function pack(index, root, query, hits, { budgetTokens = 1200, maxPerFile
     const raw = chunk ? chunkText(root, chunk) : "";
     if (!raw.trim()) continue;
 
-    const { text, kept, total } = compressPassage(index, raw, queryTokens, { maxSentences });
+    // Retrieved text is untrusted input: it may carry zero-width or bidi
+    // codepoints that an agent reads and a human never sees. Neutralise before it
+    // enters the pack — line structure is preserved, so citations stay valid.
+    const compressed = compressPassage(index, raw, queryTokens, { maxSentences });
+    const cleaned = sanitizeText(compressed.text);
+    const kept = compressed.kept;
+    const total = compressed.total;
+    const text = cleaned.text;
+    neutralized += cleaned.total;
     const vector = embedLocal(text, index.dims ?? 256);
 
     if (vectors.some((other) => cosine(vector, other) > 0.95)) {
@@ -147,6 +157,7 @@ export function pack(index, root, query, hits, { budgetTokens = 1200, maxPerFile
       duplicates,
       overBudget,
       kept: chosen.length,
+      neutralized,
       tokens,
       chars: chosen.reduce((sum, node) => sum + node.text.length, 0),
       budget: budgetTokens,
@@ -161,7 +172,8 @@ export function render(query, packed) {
     `> query: ${query}`,
     `> budget: ${packed.stats.budget} tokens (estimate: ${CHARS_PER_TOKEN} chars/token)`,
     `> used: ${packed.stats.tokens} tokens · ${packed.stats.kept} passages · ` +
-      `${packed.stats.duplicates} duplicate(s) dropped · ${packed.stats.overBudget} over budget`,
+      `${packed.stats.duplicates} duplicate(s) dropped · ${packed.stats.overBudget} over budget` +
+      (packed.stats.neutralized ? ` · ${packed.stats.neutralized} invisible codepoint(s) neutralised` : ""),
     "",
   ];
   const body = packed.nodes.map(

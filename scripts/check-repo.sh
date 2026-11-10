@@ -29,7 +29,7 @@ section() { [[ $QUIET -eq 1 ]] || bold "$1"; }
 has_arabic() { LC_ALL=C grep -q "$(printf '\330')" "$1" 2>/dev/null; }
 
 # ---------------------------------------------------------------------------
-section "1/14 · Required governance files"
+section "1/15 · Required governance files"
 REQUIRED=(
   "AGENTS.md"
   "CONTEXT.md"
@@ -153,7 +153,7 @@ for f in "${REQUIRED[@]}"; do
 done
 
 # ---------------------------------------------------------------------------
-section "2/14 · Secret scan (tracked files)"
+section "2/15 · Secret scan (tracked files)"
 SECRET_PATTERNS=(
   '-----BEGIN [A-Z ]*PRIVATE KEY-----'
   'AKIA[0-9A-Z]{16}'
@@ -206,7 +206,7 @@ done < <(git ls-files)
 [[ $big_files -eq 0 ]] && ok "no oversized non-LFS blobs tracked"
 
 # ---------------------------------------------------------------------------
-section "3/14 · JSON validity"
+section "3/15 · JSON validity"
 if command -v jq >/dev/null 2>&1; then
   while IFS= read -r json; do
     if jq empty "$json" 2>/dev/null; then ok "$json parses"; else fail "$json is not valid JSON"; fi
@@ -216,7 +216,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "4/14 · Relative links resolve"
+section "4/15 · Relative links resolve"
 broken=0
 while IFS= read -r doc; do
   dir=$(dirname "$doc")
@@ -235,7 +235,7 @@ done < <(git ls-files '*.md')
 [[ $broken -eq 0 ]] && ok "all relative links resolve"
 
 # ---------------------------------------------------------------------------
-section "5/14 · Agent skills are well-formed"
+section "5/15 · Agent skills are well-formed"
 shopt -s nullglob
 skills=(.claude/skills/*/SKILL.md)
 shopt -u nullglob
@@ -251,7 +251,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "6/14 · Documentation conventions"
+section "6/15 · Documentation conventions"
 # Bilingual requirement: human-facing entry points must contain Arabic text.
 for doc in README.md AGENTS.md CONTEXT.md; do
   if has_arabic "$doc"; then
@@ -276,7 +276,7 @@ if git rev-parse --verify -q origin/main >/dev/null; then
 fi
 
 # ---------------------------------------------------------------------------
-section "7/14 · Agent tooling smoke test"
+section "7/15 · Agent tooling smoke test"
 if command -v node >/dev/null 2>&1; then
   if node scripts/semantic/cli.mjs index --out .index/semantic.json >/dev/null 2>&1; then
     ok "semantic index builds"
@@ -307,7 +307,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "8/14 · Generated artifacts are current"
+section "8/15 · Generated artifacts are current"
 if command -v node >/dev/null 2>&1; then
   if node scripts/architecture-graph.mjs --check >/dev/null 2>&1; then
     ok "architecture graph matches the repository"
@@ -331,7 +331,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "9/14 · Boundaries: schemas, egress, retrieval gate"
+section "9/15 · Boundaries: schemas, egress, retrieval gate"
 if command -v node >/dev/null 2>&1; then
   if node scripts/validate-json.mjs >/dev/null 2>&1; then
     ok "structural JSON files pass fail-closed schema validation"
@@ -355,7 +355,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "10/14 · Privacy: PII and secrets"
+section "10/15 · Privacy: PII and secrets"
 if command -v node >/dev/null 2>&1; then
   if node scripts/check-pii.mjs >/dev/null 2>&1; then
     ok "no PII or secrets in tracked files"
@@ -372,7 +372,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "11/14 · Opt-in model policy"
+section "11/15 · Opt-in model policy"
 if command -v node >/dev/null 2>&1; then
   if node scripts/semantic/model.mjs verify >/dev/null 2>&1; then
     ok "declared model artifacts verify (or are honestly absent/unpinned)"
@@ -397,7 +397,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "12/14 · Playground and benchmarks"
+section "12/15 · Playground and benchmarks"
 if command -v node >/dev/null 2>&1; then
   if node scripts/export-playground.mjs --check >/dev/null 2>&1; then
     ok "playground index matches the current corpus"
@@ -421,7 +421,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "13/14 · State capture and guard mutation"
+section "13/15 · State capture and guard mutation"
 if command -v node >/dev/null 2>&1; then
   if [[ -f .agent/ledger.jsonl ]]; then
     if node scripts/ledger.mjs verify >/dev/null 2>&1; then
@@ -449,7 +449,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "14/14 · Context packing"
+section "14/15 · Context packing"
 if command -v node >/dev/null 2>&1; then
   if node scripts/context-pack.mjs "who may merge a pull request" --budget 400 --json >/tmp/.pack-probe.json 2>/dev/null; then
     used=$(node -e 'const p=require("/tmp/.pack-probe.json");console.log(p.stats.tokens)')
@@ -464,6 +464,24 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   warn "node not installed — packing checks skipped (CI installs it)"
+fi
+
+# ---------------------------------------------------------------------------
+section "15/15 · Adversarial inputs"
+if command -v node >/dev/null 2>&1; then
+  if node scripts/adversarial-scan.mjs --corpus >/tmp/.adversarial-corpus.log 2>&1; then
+    ok "every payload caught, no benign sample flagged"
+  else
+    fail "adversarial corpus regressed — run: node scripts/adversarial-scan.mjs --corpus"
+  fi
+
+  if node scripts/adversarial-scan.mjs >/tmp/.adversarial-scan.log 2>&1; then
+    ok "tracked files are free of hidden codepoints and directives"
+  else
+    fail "tracked files contain an adversarial finding — run: node scripts/adversarial-scan.mjs"
+  fi
+else
+  warn "node not installed — adversarial checks skipped (CI installs it)"
 fi
 
 # ---------------------------------------------------------------------------

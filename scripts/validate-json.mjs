@@ -191,6 +191,101 @@ const TARGETS = [
     },
   },
   {
+    file: ".adversarial-allowlist.json",
+    schema: {
+      type: "object",
+      required: ["version", "allow"],
+      properties: {
+        version: { type: "integer", minimum: 1 },
+        note: { type: "string" },
+        allow: {
+          type: "array",
+          items: {
+            type: "object",
+            // `file` or `prefix`, exactly one: the schema cannot express "one of"
+            // with the supported keywords, so the scanner enforces it and fails closed.
+            required: ["class", "reason"],
+            properties: {
+              file: { type: "string", minLength: 3 },
+              prefix: { type: "string", minLength: 3 },
+              class: {
+                type: "string",
+                enum: [
+                  "invisible-codepoint",
+                  "bidi-control",
+                  "ansi-escape",
+                  "control-char",
+                  "joiner-codepoint",
+                  "mixed-script-word",
+                  "injection-phrase",
+                  "exfil-link",
+                ],
+              },
+              // Same rule as the PII allowlist: a short reason is not a reason.
+              reason: { type: "string", minLength: 15 },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    file: "tests/adversarial/cases.json",
+    schema: {
+      type: "object",
+      required: ["version", "cases", "benign"],
+      properties: {
+        version: { type: "integer", minimum: 1 },
+        description: { type: "string" },
+        note: { type: "string" },
+        // Every class must have a payload, so adding a detector without a fixture
+        // fails here rather than silently going untested.
+        cases: {
+          type: "array",
+          minItems: 24,
+          items: {
+            type: "object",
+            required: ["id", "class", "payload", "why"],
+            properties: {
+              id: { type: "string", pattern: "^[a-z0-9-]+$" },
+              class: {
+                type: "string",
+                enum: [
+                  "invisible-codepoint",
+                  "bidi-control",
+                  "ansi-escape",
+                  "control-char",
+                  "joiner-codepoint",
+                  "mixed-script-word",
+                  "injection-phrase",
+                  "exfil-link",
+                ],
+              },
+              payload: { type: "string", minLength: 3 },
+              why: { type: "string", minLength: 15 },
+            },
+          },
+        },
+        // The false-positive half of the corpus. A scanner with no benign samples
+        // is a scanner nobody can measure.
+        benign: {
+          type: "array",
+          minItems: 10,
+          items: {
+            type: "object",
+            required: ["id", "text", "why"],
+            properties: {
+              id: { type: "string", pattern: "^[a-z0-9-]+$" },
+              text: { type: "string", minLength: 3 },
+              why: { type: "string", minLength: 15 },
+              lang: { type: "string", enum: ["ar", "en"] },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
     file: "tests/semantic-gold.json",
     schema: {
       type: "object",

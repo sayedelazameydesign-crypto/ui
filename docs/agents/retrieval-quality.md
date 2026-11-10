@@ -57,21 +57,35 @@ node scripts/semantic/eval.mjs --rebuild       # re-index first
 
 ## 3. Measured results
 
-Corpus: **623 chunks from 111 files** (tests, fixtures and generated mirrors excluded — see §2 of
-[`semantic-search.md`](semantic-search.md)). Measured on this commit, not estimated:
+Corpus: **678 chunks from 115 files** (tests, fixtures and generated mirrors excluded — see §2 of
+[`semantic-search.md`](semantic-search.md)). Measured on this commit, not estimated — the chunk count
+moves by a chunk or two whenever documentation is edited, so re-run the command rather than trusting the
+number alone:
 
 | Mode | R@1 | R@3 | R@5 | MRR | ms/query |
 | --- | --- | --- | --- | --- | --- |
-| **hybrid** | **0.64** | **0.74** | **0.76** | **0.69** | 1.4 |
-| vector only | 0.41 | 0.55 | 0.62 | 0.49 | 0.6 |
-| keyword only | 0.47 | 0.71 | 0.81 | 0.60 | 0.5 |
+| **hybrid** | **0.64** | **0.74** | **0.78** | **0.69** | 1.1 |
+| vector only | 0.41 | 0.57 | 0.64 | 0.50 | 0.5 |
+| keyword only | 0.47 | 0.69 | 0.79 | 0.59 | 0.4 |
+
+The corpus grew from 623 chunks (111 files) to 677 (115) when the security documentation landed. The
+same engine on a larger retrieval surface:
+
+- hybrid R@1 and R@3 did not move; **MRR 0.691 → 0.686** — one case, 1.7 points;
+- vector only R@3 0.55 → 0.57, keyword only R@3 0.71 → 0.69 (two cases each);
+- `answer@budget` at 400 tokens 81% → 79% (one case);
+- the corpus size itself: 623 → 678 chunks, 111 → 115 files.
+
+No gate floor moved, and every difference is inside the ±12-point interval. The direction is the point:
+adding documentation makes retrieval harder, and the document says so instead of rounding the digits to
+whatever looks stable.
 
 Subsets, because the average is not the story:
 
 | Subset | Cases | R@1 | R@3 | MRR |
 | --- | --- | --- | --- | --- |
 | `v1` (original) | 18 | 0.78 | 0.89 | 0.84 |
-| `v2` (added) | 40 | 0.58 | 0.68 | 0.62 |
+| `v2` (added) | 40 | 0.58 | 0.68 | 0.61 |
 | English | 43 | 0.67 | 0.79 | 0.73 |
 | Arabic | 15 | 0.53 | 0.60 | 0.56 |
 
@@ -137,7 +151,7 @@ the plain fused order — and re-measured on all 58 cases:
 
 | Order | R@1 | R@3 | MRR | ms/query |
 | --- | --- | --- | --- | --- |
-| **fused (default)** | **0.64** | **0.74** | **0.69** | 1.4 |
+| **fused (default)** | **0.64** | **0.74** | **0.69** | 1.1 |
 | fused + lexical rerank (`--rerank`) | 0.500 | 0.724 | 0.618 | 10.2 |
 
 Still a loss, and now a slower one. Lexical features reward passages that *discuss* the topic and

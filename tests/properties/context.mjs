@@ -7,6 +7,7 @@ import { join } from "node:path";
 import { DEFAULT_INDEX, cosine, embedLocal, gitRoot, loadIndex } from "../../scripts/semantic/lib.mjs";
 import { pack, chunkText, compressPassage, estimateTokens } from "../../scripts/context-pack.mjs";
 import { gen } from "../../scripts/lib/property.mjs";
+import { scanText, CLASSES } from "../../scripts/security/adversarial.mjs";
 
 const root = gitRoot();
 const index = existsSync(join(root, DEFAULT_INDEX)) ? loadIndex(DEFAULT_INDEX, root) : null;
@@ -79,6 +80,18 @@ export default [
         const { text } = compressPassage(index, raw, query.toLowerCase().split(/\s+/), { maxSentences: 3, maxChars: 420 });
         return text.length <= Math.max(raw.length, 420) && estimateTokens(text) >= 1;
       });
+    },
+  },
+  {
+    // Retrieved text is untrusted: the packer is the last place before an agent
+    // reads it, so the pack must not carry a codepoint no reviewer can see.
+    name: "no packed passage carries a block-severity codepoint",
+    generators: { query: gen.pick(queries) },
+    property: ({ query }) => {
+      if (!index) return true;
+      const packed = pack(index, root, query, probeHits, { budgetTokens: 1200 });
+      const blockClasses = Object.entries(CLASSES).filter(([, meta]) => meta.severity === "block").map(([id]) => id);
+      return packed.nodes.every((node) => scanText(`${node.heading}\n${node.text}`, { classes: blockClasses }).clean);
     },
   },
   {

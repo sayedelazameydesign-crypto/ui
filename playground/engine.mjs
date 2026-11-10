@@ -16,6 +16,18 @@ import {
 export const RRF_K = 60;
 
 /** Rebuild the engine's index shape from the exported playground JSON. */
+/**
+ * Terms are exported as `term tf,term tf`: a flat string keeps the artifact under
+ * the 1 MB repository ceiling without losing term frequencies (BM25 needs them).
+ */
+function decodeTerms(encoded) {
+  if (typeof encoded !== "string") throw new Error("unsupported index: terms must be the compact string encoding");
+  return encoded ? encoded.split(",").map((pair) => {
+    const at = pair.lastIndexOf(" ");
+    return [pair.slice(0, at), Number(pair.slice(at + 1))];
+  }) : [];
+}
+
 export function hydrate(payload) {
   const chunks = payload.chunks.map((chunk) => ({
     file: chunk.f,
@@ -23,7 +35,7 @@ export function hydrate(payload) {
     heading: chunk.h,
     preview: chunk.p,
     length: chunk.n,
-    terms: chunk.t,
+    terms: decodeTerms(chunk.t),
     // int8 → float. `atob` yields a binary string, so read char codes first;
     // the 127× scale cancels in a dot product, so ranking is unchanged.
     vector: Int8Array.from(Uint8Array.from(atob(chunk.v), (c) => c.charCodeAt(0)), (b) => (b > 127 ? b - 256 : b)),
