@@ -104,11 +104,13 @@ async function cmdDoctor() {
   if (provider !== "local") {
     checks.push(["OPENAI_API_KEY", process.env.OPENAI_API_KEY ? "set" : "missing", Boolean(process.env.OPENAI_API_KEY)]);
   }
+  const requireIndex = argv.includes("--require-index");
   try {
     const index = loadIndex(DEFAULT_INDEX, gitRoot());
     checks.push(["index", `${indexSummary(index).chunks} chunks @ ${index.commit || "?"}`, index.version === 2]);
   } catch (e) {
-    checks.push(["index", e.message, false]);
+    // Before the first build there is legitimately no index; only fail if asked.
+    checks.push(["index", `absent — run "index" (${e.message.split("—")[0].trim()})`, !requireIndex]);
   }
   for (const [label, value, okFlag] of checks) {
     console.log(`${okFlag ? "\x1b[32m✓\x1b[0m" : "\x1b[31m✗\x1b[0m"} ${label.padEnd(14)} ${dim(String(value))}`);
@@ -122,7 +124,7 @@ function help() {
   node scripts/semantic/cli.mjs index [--out <path>]      build the vector index
   node scripts/semantic/cli.mjs search <query> [-k N]     query it
   node scripts/semantic/cli.mjs stats                     index summary
-  node scripts/semantic/cli.mjs doctor                    environment self-check
+  node scripts/semantic/cli.mjs doctor [--require-index]  environment self-check
 
 Default provider: local (offline, deterministic). No network, no API key.`);
 }

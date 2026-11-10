@@ -49,9 +49,31 @@ function baselineCommit() {
   return introduced ?? "";
 }
 
+/**
+ * An explicit range must not resurrect pre-policy history: when the requested
+ * start is older than the baseline, clamp to the baseline. CI passes
+ * `origin/main..HEAD`, which otherwise includes commits that predate the policy.
+ */
+function clampToBaseline(range) {
+  const baseline = baselineCommit();
+  if (!baseline || !range.includes("..")) return range;
+  const [start, end] = range.split("..");
+  if (!start || !end) return range;
+  const isAncestor = (ancestor, descendant) => {
+    try {
+      execFileSync("git", ["merge-base", "--is-ancestor", ancestor, descendant], { stdio: "ignore" });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  // The baseline is inside the requested range only if start is its ancestor.
+  return isAncestor(start, baseline) ? `${baseline}..${end}` : range;
+}
+
 function resolveRange() {
   const explicit = arg("range");
-  if (typeof explicit === "string") return explicit;
+  if (typeof explicit === "string") return clampToBaseline(explicit);
   const base = baselineCommit();
   if (base) return `${base}..HEAD`;
   const upstream = git(["rev-parse", "--verify", "--quiet", "origin/main"], { allowFail: true });

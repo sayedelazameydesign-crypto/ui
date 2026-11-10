@@ -9,7 +9,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
 
 concurrency:
   group: pr-hygiene-${{ github.event.pull_request.number }}
@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Validate title, body, and size
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const pr = context.payload.pull_request;
@@ -56,9 +56,9 @@ jobs:
             // 3. Reviewable size
             const changed = (pr.additions || 0) + (pr.deletions || 0);
             const warnAt = 400;
-            const core = [];
+            const notes = [];
             if (changed > warnAt) {
-              core.push(`Diff is ${changed} lines (budget ~${warnAt}). Consider splitting, or justify in the body.`);
+              notes.push(`Diff is ${changed} lines (budget ~${warnAt}). Consider splitting, or justify in the body.`);
             }
 
             const summary = problems.length
@@ -75,7 +75,8 @@ jobs:
               });
             }
 
+            if (notes.length) core.notice(notes.join(" | "));
             if (problems.length) {
               core.setFailed(problems.join(" | "));
             }
-            core.info(`changed lines: ${changed}`);
+            core.info(`changed lines: ${changed}${notes.length ? ` · notes: ${notes.length}` : ""}`);

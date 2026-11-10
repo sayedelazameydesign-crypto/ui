@@ -24,7 +24,7 @@ jobs:
     if: github.event.action != 'closed'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -50,7 +50,7 @@ jobs:
 
       - name: Set up Node
         if: steps.detect.outputs.present == 'true' && steps.classify.outputs.needs_preview == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
 
@@ -70,7 +70,7 @@ jobs:
 
       - name: Upload build output
         if: steps.detect.outputs.present == 'true' && steps.classify.outputs.needs_preview == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: preview-build
           path: |
@@ -82,7 +82,7 @@ jobs:
 
       - name: Explain the dormant state once
         if: steps.detect.outputs.present == 'false' && github.event.action == 'opened'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.createComment({
