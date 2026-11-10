@@ -133,7 +133,7 @@ function chunkMarkdown(content) {
   const chunks = [];
   let heading = "";
   let buffer = [];
-  let start = 0;
+  let start = 1; // 1-based: a document with no heading still starts at line 1
 
   const flush = (end) => {
     const text = buffer.join("\n").trim();
