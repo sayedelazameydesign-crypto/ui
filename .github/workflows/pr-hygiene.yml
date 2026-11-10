@@ -65,12 +65,15 @@ jobs:
               ? `### pr-hygiene\n\n${problems.map(p => `- ${p}`).join("\n")}\n`
               : `### pr-hygiene\n\nTitle, body, and diff size look reviewable.\n`;
 
-            // Informational comment; the job only fails on structural problems.
-            await github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: pr.number,
-              body: summary,
-            });
+            // Comment once per meaningful edit, never on every push (avoids noise).
+            const commentingAction = ["opened", "edited", "reopened"].includes(context.payload.action);
+            if (commentingAction) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: pr.number,
+                body: summary,
+              });
+            }
 
             if (problems.length) {
               core.setFailed(problems.join(" | "));
