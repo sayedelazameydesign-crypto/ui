@@ -25,6 +25,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Classify change (routing)
+        id: classify
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: node scripts/change-classifier.mjs --base "origin/${BASE_REF}" --head HEAD --github-output
+
+      - name: Skip notice for docs-only changes
+        if: steps.classify.outputs.needs_preview == 'false'
+        run: echo "::notice::docs-only change — no sandbox needed (docs/ci/green-builds.md)"
 
       - name: Detect runtime
         id: detect
@@ -37,18 +49,18 @@ jobs:
           fi
 
       - name: Set up Node
-        if: steps.detect.outputs.present == 'true'
+        if: steps.detect.outputs.present == 'true' && steps.classify.outputs.needs_preview == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
 
       - name: Install from lockfile only
-        if: steps.detect.outputs.present == 'true'
+        if: steps.detect.outputs.present == 'true' && steps.classify.outputs.needs_preview == 'true'
         run: |
           if [ -f package-lock.json ]; then npm ci --ignore-scripts; else npm install --ignore-scripts; fi
 
       - name: Build
-        if: steps.detect.outputs.present == 'true'
+        if: steps.detect.outputs.present == 'true' && steps.classify.outputs.needs_preview == 'true'
         run: |
           if node -e "process.exit(require('./package.json').scripts?.build ? 0 : 1)"; then
             npm run build
@@ -57,7 +69,7 @@ jobs:
           fi
 
       - name: Upload build output
-        if: steps.detect.outputs.present == 'true'
+        if: steps.detect.outputs.present == 'true' && steps.classify.outputs.needs_preview == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: preview-build
