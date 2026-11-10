@@ -25,6 +25,11 @@ const value = (name, fallback) => {
 const K = Number(value("k", 5));
 const MIN_RECALL_AT_3 = Number(value("min-recall", 0.9));
 const MIN_MRR = Number(value("min-mrr", 0.75));
+// R@1 floor = measured value (0.667) with a little headroom. The *goal* is 0.85
+// (decision D8) and is deliberately not the gate: a gate nobody passes is a
+// disabled gate. Raising this number is the definition of progress.
+const MIN_RECALL_AT_1 = Number(value("min-r1", 0.65));
+const RERANK = argv.includes("--rerank"); // default off: measured worse, see lib.mjs
 const JSON_OUT = argv.includes("--json");
 const TIMING = argv.includes("--timing");
 
@@ -54,7 +59,7 @@ for (const mode of MODES) {
   let ms = 0;
   for (const testCase of cases) {
     const started = performance.now();
-    const results = await search(index, testCase.query, { k: Math.max(K, 3), mode });
+    const results = await search(index, testCase.query, { k: Math.max(K, 3), mode, rerank: RERANK });
     ms += performance.now() - started;
     rows.push({ id: testCase.id, rank: firstHitRank(results, testCase.expect), top: results[0]?.file ?? null, expect: testCase.expect });
   }
@@ -92,7 +97,8 @@ if (JSON_OUT) {
         index: { chunks: index.chunks.length, commit: index.commit, provider: index.provider },
         modes: perMode,
         best: best.mode,
-        thresholds: { recall3: MIN_RECALL_AT_3, mrr: MIN_MRR },
+        rerank: RERANK,
+        thresholds: { recall1: MIN_RECALL_AT_1, recall3: MIN_RECALL_AT_3, mrr: MIN_MRR },
         pricing: TIMING ? { ...PRICING, costPer1kQueries: Object.fromEntries(MODES.map((m) => [m, costPer1k(m)])) } : null,
       },
       null,
@@ -101,7 +107,7 @@ if (JSON_OUT) {
   );
 } else {
   const pad = (s, n) => String(s).padEnd(n);
-  console.log(`retrieval eval · ${cases.length} cases · k=${K} · index ${index.chunks.length} chunks @ ${index.commit || "?"}\n`);
+  console.log(`retrieval eval · ${cases.length} cases · k=${K} · index ${index.chunks.length} chunks @ ${index.commit || "?"} · rerank ${RERANK ? "on" : "off"}\n`);
   console.log(`${pad("mode", 10)}${pad("R@1", 8)}${pad("R@3", 8)}${pad(`R@${K}`, 8)}${pad("MRR", 8)}ms/query`);
   console.log("-".repeat(50));
   for (const mode of MODES) {
@@ -130,11 +136,16 @@ if (JSON_OUT) {
   console.log(`\nbest mode by R@3 then MRR: ${best.mode}`);
 }
 
-const failed = hybrid.recall3 < MIN_RECALL_AT_3 || hybrid.mrr < MIN_MRR;
+const failed = hybrid.recall1 < MIN_RECALL_AT_1 || hybrid.recall3 < MIN_RECALL_AT_3 || hybrid.mrr < MIN_MRR;
 if (failed) {
   console.error(
-    `\n✗ hybrid is below the gate: R@3 ${hybrid.recall3} (min ${MIN_RECALL_AT_3}) · MRR ${hybrid.mrr} (min ${MIN_MRR})`,
+    `\n✗ hybrid is below the gate: R@1 ${hybrid.recall1} (min ${MIN_RECALL_AT_1}) · ` +
+      `R@3 ${hybrid.recall3} (min ${MIN_RECALL_AT_3}) · MRR ${hybrid.mrr} (min ${MIN_MRR})`,
   );
   process.exit(1);
 }
-if (!JSON_OUT) console.log(`✓ hybrid meets the gate: R@3 ${hybrid.recall3} · MRR ${hybrid.mrr}`);
+if (!JSON_OUT) {
+  console.log(
+    `✓ hybrid meets the gate: R@1 ${hybrid.recall1} · R@3 ${hybrid.recall3} · MRR ${hybrid.mrr}`,
+  );
+}
