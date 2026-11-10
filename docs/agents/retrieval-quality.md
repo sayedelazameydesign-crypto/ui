@@ -132,7 +132,7 @@ itself the point of that section.
 
 The candidate rows and §3a were measured against the corpus as it stood during the experiment (602
 chunks), so they keep three decimals; §3 is the final state *after* these documents were written
-(618 → 692 chunks as this file grew) and is quoted at two, because the third digit moves whenever a
+(618 → 705 chunks as this file grew) and is quoted at two, because the third digit moves whenever a
 sentence is added. Documentation is
 corpus: a table about retrieval moves the retrieval numbers. Both states are reported instead of pretending
 the corpus holds still.
@@ -140,14 +140,14 @@ the corpus holds still.
 ### 3c. Where the misses actually live
 
 Rank-1 accuracy is 0.62, but that number says nothing about *why* the other 22 cases miss. Measured by
-re-scoring every gold query against all 692 chunks (`k = 200`, hybrid, default chunking, this commit):
+re-scoring every gold query against all 705 chunks (`k = 200`, hybrid, default chunking, this commit):
 
 | Cut | R@k | Cases |
 | --- | --- | --- |
 | R@1 | 0.621 | 36/58 |
 | R@3 | 0.759 | 44/58 |
 | R@5 | 0.776 | 45/58 |
-| R@10 | 0.897 | 52/58 |
+| R@10 | 0.879 | 51/58 |
 | R@20 | **0.983** | **57/58** |
 | R@50 | 0.983 | 57/58 |
 | R@100 | 1.000 | 58/58 |

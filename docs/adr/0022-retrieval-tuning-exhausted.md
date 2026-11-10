@@ -57,7 +57,7 @@ this repository once reported as wins.
   ordering mechanism, and it must beat the engine's measured band (R@1 0.62–0.66, MRR 0.67–0.70) at the
   same cost.
 - Documentation is corpus: the rows above were measured at 681 chunks and this ADR's own text moved the
-  engine to 0.62 / 0.76 / 0.78 / 0.68 (692 chunks). The drop is the documented corpus effect, not a code
+  engine to 0.62 / 0.76 / 0.78 / 0.68 (705 chunks). The drop is the documented corpus effect, not a code
   change — the code changed in exactly one place, a clamp on a loop step that cannot alter ranking.
 - The honest reading of the metric is narrower than before: parameter-level differences below ~8 cases
   are not resolvable on this corpus with this instrument.
@@ -70,7 +70,7 @@ this repository once reported as wins.
 ## Verification
 
 ```bash
-node scripts/semantic/eval.mjs                 # 0.62 / 0.76 / 0.78 / 0.68 on 692 chunks, this commit
+node scripts/semantic/eval.mjs                 # 0.62 / 0.76 / 0.78 / 0.68 on 705 chunks, this commit
 node scripts/property-test.mjs --only semantic  # window advance, coverage, MD_CHUNK_MAX
 node scripts/mutation-test.mjs                  # 12/12 killed, including window-step-zero
 node scripts/check-repo.sh                      # retrieval gate unchanged

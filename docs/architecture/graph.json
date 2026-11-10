@@ -3,7 +3,7 @@
   "generator": "scripts/architecture-graph.mjs",
   "note": "Generated from tracked files — do not edit by hand. Regenerate with --write.",
   "stats": {
-    "files": 145,
+    "files": 146,
     "components": 16,
     "edges": 32
   },
@@ -46,7 +46,7 @@
     {
       "id": "docs-agents",
       "label": "Agent docs",
-      "files": 9
+      "files": 10
     },
     {
       "id": "docs-ci",

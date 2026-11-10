@@ -4,6 +4,9 @@ The default search path is **offline, deterministic, and model-free**. Neural re
 only by explicit request, with weights the operator verified — and the machinery refuses to pretend
 otherwise.
 
+The cost of the neural path is priced in the [D8 card](d8-onnx-card.md): the runtime is roughly thirteen
+times the weight file it carries, and no licence-clean multilingual weights ship an ONNX export.
+
 ```bash
 node scripts/semantic/model.mjs status     # what is declared, what is installed, what is missing
 node scripts/semantic/model.mjs verify     # checksum / size / path checks
