@@ -4,7 +4,7 @@
 > Regenerate with `node scripts/architecture-graph.mjs --write`.
 > `guard` and the `architecture` workflow fail when this file is stale.
 
-**96 tracked files · 16 components · 26 directed links**
+**102 tracked files · 16 components · 27 directed links**
 
 ## Component map
 
@@ -26,7 +26,7 @@ graph LR
   scripts["Repository scripts"]
   tests["Property tests"]
   mocks["Service mocks"]
-  adr -->|10| docs_agents
+  adr -->|12| docs_agents
   adr -->|3| docs_arch
   adr -->|4| docs_ci
   adr -->|2| docs_data
@@ -34,15 +34,16 @@ graph LR
   adr -->|5| root
   agent_harness -->|4| docs_agents
   agent_harness -->|1| root
-  docs_agents -->|2| adr
+  docs_agents -->|5| adr
   docs_agents -->|2| agent_harness
+  docs_agents -->|1| other
   docs_agents -->|2| root
   docs_agents -->|1| tests
   github_config -->|1| root
   other -->|1| root
-  root -->|29| adr
+  root -->|32| adr
   root -->|4| agent_harness
-  root -->|30| docs_agents
+  root -->|32| docs_agents
   root -->|3| docs_arch
   root -->|8| docs_ci
   root -->|4| docs_data
@@ -50,26 +51,26 @@ graph LR
   root -->|2| scripts
   scripts -->|2| tooling_lib
   tests -->|2| scripts
-  tests -->|2| semantic
-  tests -->|4| tooling_lib
+  tests -->|3| semantic
+  tests -->|5| tooling_lib
 ```
 
 ## Components
 
 | Component | Files |
 | --- | --- |
-| `scripts` — Repository scripts | 20 |
+| `scripts` — Repository scripts | 22 |
 | `github-config` — GitHub config & templates | 17 |
-| `adr` — Decision records | 12 |
+| `adr` — Decision records | 13 |
 | `root` — Root docs & config | 12 |
+| `agent-harness` — Agent harness (.agent) | 10 |
 | `workflows` — CI workflows | 10 |
-| `agent-harness` — Agent harness (.agent) | 9 |
-| `docs-agents` — Agent docs | 6 |
+| `docs-agents` — Agent docs | 7 |
+| `semantic` — Semantic engine | 5 |
+| `tests` — Property tests | 5 |
 | `skills` — Agent skills (.claude/skills) | 4 |
-| `tests` — Property tests | 4 |
 | `docs-arch` — Architecture docs | 3 |
 | `docs-ci` — CI docs | 3 |
-| `semantic` — Semantic engine | 3 |
 | `mocks` — Service mocks | 2 |
 | `tooling-lib` — Tooling library | 2 |
 | `docs-data` — Data docs | 1 |
@@ -79,21 +80,21 @@ graph LR
 
 | From | To | References |
 | --- | --- | --- |
-| `root` | `docs-agents` | 30 |
-| `root` | `adr` | 29 |
-| `adr` | `docs-agents` | 10 |
+| `root` | `adr` | 32 |
+| `root` | `docs-agents` | 32 |
+| `adr` | `docs-agents` | 12 |
 | `root` | `docs-ci` | 8 |
 | `root` | `other` | 6 |
 | `adr` | `root` | 5 |
+| `docs-agents` | `adr` | 5 |
+| `tests` | `tooling-lib` | 5 |
 | `adr` | `docs-ci` | 4 |
 | `adr` | `other` | 4 |
 | `agent-harness` | `docs-agents` | 4 |
 | `root` | `agent-harness` | 4 |
 | `root` | `docs-data` | 4 |
-| `tests` | `tooling-lib` | 4 |
 | `adr` | `docs-arch` | 3 |
 | `root` | `docs-arch` | 3 |
-| `adr` | `docs-data` | 2 |
 
 ## How this stays alive
 

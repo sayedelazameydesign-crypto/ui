@@ -87,7 +87,13 @@ measured in four configurations:
 All worse. It is therefore **off by default** (`--rerank` to try it) and the negative result is kept
 as evidence in [ADR-0011](../adr/0011-local-reranker-experiment.md). Lexical features reward passages
 that *discuss* the topic and displace passages that *answer* it — exactly the gap a semantic
-cross-encoder exists to close, and exactly the thing this offline contract cannot download.
+cross-encoder exists to close.
+
+**Neural reranking is now a declared, opt-in path** rather than an aspiration
+([ADR-0013](../adr/0013-opt-in-model-load.md)): ≤ 100 MiB quantized weights, isolated in `.models/`,
+usable only with a human-pinned SHA-256, and refused unless `--enable-neural-rerank` is passed. The
+loader is implemented and property-tested; the artifact is not installed, so `R@1` remains 0.667.
+`node scripts/semantic/model.mjs status` prints exactly what is missing, without guessing.
 
 ## 5. Known failure, stated plainly
 
@@ -115,7 +121,7 @@ embedding provider would add per-token charges and egress — both deliberately 
 | --- | --- |
 | Hashing embeddings, no neural model | no world knowledge, no paraphrase beyond the glossary |
 | BM25 with a fixed k1/b | not tuned per document type |
-| No cross-encoder reranker | top-5 is good, top-1 is 67%; the lexical substitute measurably failed (D8) |
+| No cross-encoder reranker | top-5 is good, top-1 is 67%; the lexical substitute measurably failed and the neural path has no pinned weights yet (D8) |
 | Glossary is hand-curated | Arabic recall is bounded by ~45 entries; grow it when a query fails |
 | 18 cases | a thin benchmark; broad enough to catch regressions, not to prove excellence |
 | Benchmark contamination is a standing risk | tests/fixtures are excluded from the index; any doc quoting a gold query can still match it |

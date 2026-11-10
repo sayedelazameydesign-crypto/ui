@@ -10,7 +10,7 @@
 [![provenance](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/provenance.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/provenance.yml)
 [![dependency-audit](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/dependency-audit.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/dependency-audit.yml)
 
-`main` · `L0 baseline` · `AGENTS.md` · `hybrid search` · `measured quality` · `fail-closed` · `PII guard` · `RTL-first`
+`main` · `L0 baseline` · `AGENTS.md` · `hybrid search` · `measured quality` · `fail-closed` · `PII guard` · `pinned models` · `RTL-first`
 
 </div>
 
@@ -113,6 +113,7 @@ node scripts/artifact-manifest.mjs --check
 | **سيادة البيانات** | قائمة وجهات مسموحة بـ«سبب» و«ملف مسموح»؛ أي URL جديد يفشل البناء | ✅ 8 وجهات معلنة، 0 مخالفة |
 | **حارس الخصوصية (PII/DLP)** | فحص المحتوى المرحّل قبل الالتزام: بريد، هاتف مصري، رقم قومي، بطاقات (Luhn)، مفاتيح وسرّ؛ النتائج مُقنَّعة دائماً | ✅ 10 قواعد، 0 نتيجة، إعفاء لا بد له من سبب |
 | **نتيجة سلبية موثّقة** | معيد ترتيب معجمي جُرِّب في 4 تهيئات وهبط بـ R@1 من 0.67 إلى 0.61 — لذا هو مُعطَّل افتراضياً | ✅ R@1 = 0.67 (الهدف 0.85، D8) |
+| **تحميل نموذج اختياري ومُوثَّق** | وزن مُكمَّم ≤ 100MB في `.models/` (خارج Git)، لا يُستخدم إلا ببصمة SHA-256 مثبَّتة بشرياً؛ الشبكة تحتاج `--allow-network` صريحاً | ✅ السياسة والمُحمِّل مُنفَّذان ومُختبَران؛ الوزن نفسه غير مُنزَّل |
 
 ```bash
 node scripts/semantic/eval.mjs --timing     # R@1/R@3/MRR + كلفة كل 1000 استعلام
@@ -236,6 +237,7 @@ node scripts/artifact-manifest.mjs --check
 | **Data sovereignty** | egress allowlist where each host needs a reason and a permitted file scope | ✅ 8 declared hosts, 0 violations |
 | **Privacy guard (PII/DLP)** | staged-diff scan before commit: email, EG phone, national ID, Luhn-checked cards, keys; findings are always masked | ✅ 10 rules, 0 findings, reasoned exemptions only |
 | **A documented negative result** | a lexical reranker was measured in 4 configurations and lowered R@1 from 0.67 to 0.61 — so it ships off | ✅ R@1 0.67 (goal 0.85, D8) |
+| **Opt-in, pinned model load** | quantized weights ≤ 100 MiB in `.models/` (outside Git), usable only with a human-pinned SHA-256; a fetch needs explicit `--allow-network` | ✅ policy and loader enforced and property-tested; no artifact installed |
 
 ```bash
 node scripts/semantic/eval.mjs --timing     # R@1/R@3/MRR + cost per 1k queries
@@ -262,6 +264,8 @@ node scripts/check-egress.mjs --list        # declared destinations and why
   runtime control (D9).
 - The PII guard is **pattern-based**: it catches an address or a phone number, not a person's name in
   prose, and it does not classify data or set a retention policy.
+- Neural reranking is **plumbed but not running**: the manifest is unpinned (nobody verified an
+  artifact here) and `onnxruntime-node` is not installed. `R@1` stays 0.667 until both exist.
 - No model calls are made by CI. Everything in `.github/workflows/` is deterministic and auditable.
 
 ### Next steps

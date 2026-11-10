@@ -73,7 +73,9 @@ stack arrives.
     build ([ADR-0010](docs/adr/0010-fail-closed-boundaries.md)).
 15. **Only synthetic data enters the repository.** The pre-commit scan blocks PII and secrets in the
     staged diff; exemptions need a written reason ([ADR-0012](docs/adr/0012-pii-dlp-guard.md)).
-16. **Defaults follow the measurement.** A component that loses on the eval (the lexical reranker)
+16. **Weights are opt-in and verified.** Unpinned artifacts are refused, storage is isolated, and the
+    default path never loads a model ([ADR-0013](docs/adr/0013-opt-in-model-load.md)).
+17. **Defaults follow the measurement.** A component that loses on the eval (the lexical reranker)
     ships off by default and is documented as a negative result ([ADR-0011](docs/adr/0011-local-reranker-experiment.md)).
 15. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
     result can be traced to the exact data that produced it
@@ -109,6 +111,9 @@ stack arrives.
 | **Staged blob** | What `git commit` will record — not necessarily what is on disk. |
 | **Masking** | Replacing a matched value with a shape-preserving placeholder so logs never leak it. |
 | **Negative result** | A measured, documented experiment that did not improve the gate's numbers. |
+| **Pinned checksum** | A SHA-256 recorded by a human who verified the artifact independently. |
+| **Unpinned** | `sha256: null` — legal in the schema, unusable by the loader, never installed. |
+| **Storage isolation** | Model files resolve inside `.models/` only; traversal is rejected, not sanitised. |
 
 ## 5. Non-goals
 
@@ -142,6 +147,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0010 — Fail-closed boundaries and declared egress](docs/adr/0010-fail-closed-boundaries.md) · accepted
 - [ADR-0011 — A local reranker was attempted, measured, and left off](docs/adr/0011-local-reranker-experiment.md) · accepted (negative result)
 - [ADR-0012 — PII and secret detection at the commit boundary](docs/adr/0012-pii-dlp-guard.md) · accepted
+- [ADR-0013 — Opt-in model loading with pinned checksums](docs/adr/0013-opt-in-model-load.md) · accepted (policy and loader; artifact absent)
 
 ## 8. Change protocol
 
@@ -159,6 +165,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 | New outbound destination | `scripts/check-egress.mjs` allowlist entry + a reason |
 | New structural JSON file | schema in `scripts/validate-json.mjs` + guard required-file entry |
 | New detector rule | `scripts/check-pii.mjs` + a property that proves masking still holds |
+| New model artifact | manifest entry with pinned `sha256`, byte count, license, runtime |
 | Ranking change | eval run before/after recorded in the PR body (ADR-0009) |
 
 ## 9. References
@@ -178,3 +185,4 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - Retrieval quality: [docs/agents/retrieval-quality.md](docs/agents/retrieval-quality.md)
 - Data sovereignty: [docs/security/data-sovereignty.md](docs/security/data-sovereignty.md)
 - PII guard: [docs/security/pii-guard.md](docs/security/pii-guard.md)
+- Local model policy: [docs/agents/local-model.md](docs/agents/local-model.md)
