@@ -75,7 +75,15 @@ stack arrives.
     staged diff; exemptions need a written reason ([ADR-0012](docs/adr/0012-pii-dlp-guard.md)).
 16. **Weights are opt-in and verified.** Unpinned artifacts are refused, storage is isolated, and the
     default path never loads a model ([ADR-0013](docs/adr/0013-opt-in-model-load.md)).
-17. **Defaults follow the measurement.** A component that loses on the eval (the lexical reranker)
+17. **The demo is the engine.** The playground imports `core.mjs`; parity is enforced, so a demo can
+    never quietly retrieve worse than the CLI ([ADR-0014](docs/adr/0014-playground-and-benchmarks.md)).
+18. **Derived state is versioned separately.** Snapshots restore it byte-for-byte; source belongs to
+    Git ([ADR-0015](docs/adr/0015-state-snapshots-and-ledger.md)).
+19. **History is self-verifying.** Every recorded action is hash-chained; an anchor makes truncation
+    detectable too.
+20. **Context is compressed by extraction.** Packs quote sources verbatim, cite `file:line`, and mark
+    omitted text with `…` ([ADR-0017](docs/adr/0017-context-packing.md)).
+21. **Defaults follow the measurement.** A component that loses on the eval (the lexical reranker)
     ships off by default and is documented as a negative result ([ADR-0011](docs/adr/0011-local-reranker-experiment.md)).
 15. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
     result can be traced to the exact data that produced it
@@ -114,6 +122,16 @@ stack arrives.
 | **Pinned checksum** | A SHA-256 recorded by a human who verified the artifact independently. |
 | **Unpinned** | `sha256: null` — legal in the schema, unusable by the loader, never installed. |
 | **Storage isolation** | Model files resolve inside `.models/` only; traversal is rejected, not sanitised. |
+| **Parity** | The playground and the engine return the same ranking on the gold set (within tolerance). |
+| **Postings** | `token → [[chunk, tf]]`; BM25 touches matching chunks instead of scanning all of them. |
+| **p50 / p95** | Median and tail latency — a best case is not a benchmark. |
+| **Mutation** | A deliberate defect injected into a guard; "killed" means the suite noticed. |
+| **Baseline** | The unmutated behaviour — measured first, so a broken test cannot look like a pass. |
+| **Anchor** | A committed record of the ledger's length and head hash; defeats tail truncation. |
+| **Snapshot** | A hash-recorded copy of derived state, restorable byte-for-byte. |
+| **Pack** | A cited, extractive subset of the corpus sized to a token budget. |
+| **answer@budget** | The gold file for a query is still cited somewhere in the pack. |
+| **Gap marker** | ` … ` where sentences were skipped, so an extract never reads as complete text. |
 
 ## 5. Non-goals
 
@@ -148,6 +166,10 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0011 — A local reranker was attempted, measured, and left off](docs/adr/0011-local-reranker-experiment.md) · accepted (negative result)
 - [ADR-0012 — PII and secret detection at the commit boundary](docs/adr/0012-pii-dlp-guard.md) · accepted
 - [ADR-0013 — Opt-in model loading with pinned checksums](docs/adr/0013-opt-in-model-load.md) · accepted (policy and loader; artifact absent)
+- [ADR-0014 — A playground that cannot lie, and a benchmark harness](docs/adr/0014-playground-and-benchmarks.md) · accepted
+- [ADR-0015 — Snapshots for derived state, and a tamper-evident ledger](docs/adr/0015-state-snapshots-and-ledger.md) · accepted
+- [ADR-0016 — Mutation testing for the guards](docs/adr/0016-mutation-testing.md) · accepted
+- [ADR-0017 — Extractive context packing with measured citation retention](docs/adr/0017-context-packing.md) · accepted
 
 ## 8. Change protocol
 
@@ -166,6 +188,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 | New structural JSON file | schema in `scripts/validate-json.mjs` + guard required-file entry |
 | New detector rule | `scripts/check-pii.mjs` + a property that proves masking still holds |
 | New model artifact | manifest entry with pinned `sha256`, byte count, license, runtime |
+| Retrieval code change | re-run `bench.mjs` + `eval.mjs`, put both numbers in the PR, regenerate `playground/index.json` |
 | Ranking change | eval run before/after recorded in the PR body (ADR-0009) |
 
 ## 9. References
@@ -186,3 +209,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - Data sovereignty: [docs/security/data-sovereignty.md](docs/security/data-sovereignty.md)
 - PII guard: [docs/security/pii-guard.md](docs/security/pii-guard.md)
 - Local model policy: [docs/agents/local-model.md](docs/agents/local-model.md)
+- Benchmarks: [docs/benchmarks.md](docs/benchmarks.md) · Demo: [playground/index.html](playground/index.html)
+- State and rollback: [docs/agents/state-and-rollback.md](docs/agents/state-and-rollback.md)
+- Context packing: [docs/agents/context-packing.md](docs/agents/context-packing.md)
+- Architecture graph (interactive): [playground/graph.html](playground/graph.html)

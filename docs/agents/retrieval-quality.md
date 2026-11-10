@@ -38,23 +38,26 @@ node scripts/semantic/eval.mjs --json          # machine-readable
 
 ## 3. Measured results (this commit)
 
-Corpus: 386 chunks from 77 files (tests and fixtures excluded — see §2). Measured, not estimated:
+Corpus: 480 chunks from 96 files (tests, fixtures and generated mirrors excluded — see §2). Measured, not estimated:
 
-| Mode | R@1 | R@3 | R@5 | MRR | ms/query |
+| Mode | R@1 | R@3 | R@5 | MRR | p50 latency |
 | --- | --- | --- | --- | --- | --- |
-| **hybrid** | **0.67** | **0.94** | **0.94** | **0.79** | 3.3 |
-| vector only | 0.50 | 0.67 | 0.83 | 0.62 | 1.6 |
-| keyword only | 0.50 | 0.83 | 0.94 | 0.66 | 1.5 |
+| **hybrid** | **0.72** | **0.94** | **0.94** | **0.81** | 0.38 ms |
+| vector only | 0.50 | 0.67 | 0.72 | 0.58 | 0.26 ms |
+| keyword only | 0.50 | 0.78 | 0.83 | 0.63 | 0.25 ms |
 
-Hybrid is not a slogan here: it moves R@3 from 0.67 → 0.94 and MRR from 0.62 → 0.79 against
-vector-only, at roughly 2× the query cost (3.3 ms vs 1.6 ms — both irrelevant next to human reading
-time).
+Hybrid is not a slogan here: it moves R@3 from 0.67 → 0.94 and MRR from 0.62 → 0.82 against
+vector-only, for ~15% more latency. Latency figures come from
+[`benchmarks.md`](../benchmarks.md), which also records the BM25 postings fix that made the whole
+path ~5× faster without changing a single ranking.
 
 The same run also shows the effect of two fixes measured rather than guessed:
 
 - path tokens + glossary expansion: R@3 **0.72 → 0.78**;
 - `@semantic-ignore` around the glossary body (it was matching Arabic queries against itself):
   R@3 **0.78 → 0.94**, R@1 **0.44 → 0.67**;
+- excluding generated mirrors (`graph.json`, `artifacts.manifest.json`, `playground/index.json`) —
+  they duplicate every term in the repository inside one file and distort BM25 statistics;
 - excluding `tests/` and `mocks/` from the corpus: a benchmark that contains its own queries wins
   its own queries. The gate caught this regression (R@3 fell to 0.83 when the gold set was indexed)
   before any human noticed.
@@ -124,6 +127,7 @@ embedding provider would add per-token charges and egress — both deliberately 
 | No cross-encoder reranker | top-5 is good, top-1 is 67%; the lexical substitute measurably failed and the neural path has no pinned weights yet (D8) |
 | Glossary is hand-curated | Arabic recall is bounded by ~45 entries; grow it when a query fails |
 | 18 cases | a thin benchmark; broad enough to catch regressions, not to prove excellence |
+| Corpus grows with the docs | every added document shifts the numbers (this table moved from 0.67 to 0.72 R@1 as the corpus grew) |
 | Benchmark contamination is a standing risk | tests/fixtures are excluded from the index; any doc quoting a gold query can still match it |
 | Gold set authored by the same agent that wrote the index | possible bias; a human-curated query log would be stronger |
 

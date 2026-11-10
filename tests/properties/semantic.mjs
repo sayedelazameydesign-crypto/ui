@@ -1,7 +1,7 @@
 // Properties for the semantic engine: tokeniser and embedder contract.
 // These are invariants, not examples — they hold for every generated input.
 
-import { tokenize, normalizeToken, embedLocal, cosine, fnv1a, chunkFile, DEFAULT_DIMS } from "../../scripts/semantic/lib.mjs";
+import { tokenize, normalizeToken, embedLocal, cosine, fnv1a, chunkFile, bm25Scores, DEFAULT_DIMS } from "../../scripts/semantic/lib.mjs";
 import { gen } from "../../scripts/lib/property.mjs";
 
 const vectorGen = gen.arrayOf(gen.text({ maxLength: 12 }), { maxLength: 6 });
@@ -9,6 +9,41 @@ const vectorGen = gen.arrayOf(gen.text({ maxLength: 12 }), { maxLength: 6 });
 const unit = (s) => s.replace(/[\u064B-\u0652]/gu, "");
 
 export default [
+  {
+    name: "postings-based BM25 equals a naive reference implementation",
+    generators: { tokens: gen.arrayOf(gen.pick(["alpha", "beta", "gamma", "delta"]), { maxLength: 4 }) },
+    property: ({ tokens }) => {
+      const chunks = [
+        { terms: [["alpha", 2], ["beta", 1]], length: 12 },
+        { terms: [["beta", 3]], length: 8 },
+        { terms: [["gamma", 1], ["alpha", 1]], length: 20 },
+      ];
+      const df = new Map();
+      for (const chunk of chunks) for (const [token] of chunk.terms) df.set(token, (df.get(token) ?? 0) + 1);
+      const index = {
+        chunks,
+        stats: { documents: chunks.length, avgLength: 40 / 3, df: [...df.entries()] },
+      };
+
+      const K1 = 1.2;
+      const B = 0.75;
+      const naive = new Array(chunks.length).fill(0);
+      for (const token of new Set(tokens)) {
+        const d = df.get(token) ?? 0;
+        if (!d) continue;
+        const idf = Math.log(1 + (chunks.length - d + 0.5) / (d + 0.5));
+        chunks.forEach((chunk, i) => {
+          const tf = chunk.terms.find(([t]) => t === token)?.[1] ?? 0;
+          if (!tf) return;
+          naive[i] += (idf * (tf * (K1 + 1))) / (tf + K1 * (1 - B + (B * chunk.length) / (40 / 3)));
+        });
+      }
+
+      const fast = bm25Scores(index, tokens);
+      return fast.every((score, i) => Math.abs(score - naive[i]) < 1e-9);
+    },
+  },
+
   {
     name: "tokenize never yields empty or stopword tokens",
     generators: { text: gen.text({ maxLength: 40 }) },

@@ -10,7 +10,7 @@
 [![provenance](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/provenance.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/provenance.yml)
 [![dependency-audit](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/dependency-audit.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/dependency-audit.yml)
 
-`main` · `L0 baseline` · `AGENTS.md` · `hybrid search` · `measured quality` · `fail-closed` · `PII guard` · `pinned models` · `RTL-first`
+`main` · `L0 baseline` · `AGENTS.md` · `hybrid search` · `measured quality` · `fail-closed` · `PII guard` · `pinned models` · `zero-install demo` · `rollback + audit` · `RTL-first`
 
 </div>
 
@@ -120,6 +120,51 @@ node scripts/semantic/eval.mjs --timing     # R@1/R@3/MRR + كلفة كل 1000 �
 node scripts/validate-json.mjs              # تحقق صارم
 node scripts/check-egress.mjs --list        # الوجهات المعلنة وأسبابها
 ```
+
+### المشكلة، بصيغة دقيقة
+
+لدينا مستودع معرفة لا يستطيع أي إنسان قراءته كاملاً. السؤال ليس «هل نضيف بحثاً؟» بل: **كم نتيجة
+صحيحة نضعها في أعلى القائمة، وبأي كلفة، وبأي حدود للخصوصية؟**
+
+- **الاسترجاع:** دالة ترتيب واحدة لا تكفي. `score(d) = Σ_r w_r / (60 + rank_r(d))` تدمج ترتيب
+  المتجهات وترتيب BM25، و`BM25(tf, dl) = idf · tf(k₁+1) / (tf + k₁(1−b+b·dl/avgdl))` بـ k₁=1.2، b=0.75.
+- **الجودة:** تُقاس على مجموعة ذهبية من 18 استعلاماً، وبوابة تفشل تحت R@3 0.90 أو MRR 0.75.
+- **الكلفة:** تُقاس بـ `bench.mjs` على نفس الفهرس ونفس الاستعلامات — لا أرقام تسويقية.
+
+| الحقيقة الآن | الرقم |
+| --- | --- |
+| R@3 (هجين) | **0.944** مقابل 0.67 للمتجه وحده |
+| زمن الاستجابة p50 | **0.38 ms** لكل استعلام (2 474 استعلاماً/ثانية) |
+| الحجم | 445 مقطعاً · 88 ملفاً · فهرس 1.1MB · +6MB ذاكرة |
+
+**جرّبه الآن بلا تثبيت:** صفحة واحدة، بلا حزم ولا بناء ولا شبكة.
+
+### الاستعادة والتدقيق
+
+| القدرة | الملف | الحالة |
+| --- | --- | --- |
+| **نسخ حالة مشفّرة والتراجع الحتمي** | `snapshot.mjs` — SHA-256 لكل ملف + بصمة شجرة Git | ✅ الاستعادة ترفض نسخة معدّلة، وترفض شجرة مختلفة بلا `--force` |
+| **دفتر تدقيق غير قابل للتعديل بصمت** | `ledger.mjs` — سلسلة `hash = sha256(prev + entry)` + مرساة | ✅ 6 خصائص: تعديل/حذف/بتر ينكشف |
+| **اختبار الطفرات للحرّاس** | `mutation-test.mjs` — 4 طفرات، خط أساس قبل كل طفرة | ✅ 4/4 مقتولة |
+| **خريطة معمارية تفاعلية** | `playground/graph.html` من `graph.json` | ✅ تُبنى من الكود، والحارس يفشل إذا انحرفت |
+
+| **ضغط السياق بالاستخلاص** | `context-pack.mjs` — جمل مستخرجة حرفياً بمراجع `file:line` وفجوات معلّمة | ✅ 400 توكن: 94% من الإجابات باقية · أصغر 31× من إرسال المرشحات |
+
+```bash
+node scripts/snapshot.mjs save --label "قبل التجربة"
+node scripts/ledger.mjs verify
+node scripts/mutation-test.mjs
+node scripts/context-pack.mjs "من يحق له دمج طلب سحب" --budget 800
+```
+
+
+
+```bash
+node scripts/playground-server.mjs        # ثم افتح /playground/
+```
+
+المتصفح يستدعي **نفس** `scripts/semantic/core.mjs` الذي يستدعيه الـCLI، و`playground-parity.mjs`
+يفشل إن اختلف الاثنان (الحالي: 0.94 مقابل 0.94).
 
 ### حالة المزامنة
 
@@ -245,6 +290,56 @@ node scripts/validate-json.mjs              # fail-closed validation
 node scripts/check-egress.mjs --list        # declared destinations and why
 ```
 
+### The problem, stated precisely
+
+This repository holds more knowledge than any one person can read. The question is not "should there
+be search?" but: **how many correct answers reach the top, at what cost, and inside which privacy
+boundary?**
+
+- **Ranking:** one signal is not enough. `score(d) = Σ_r w_r / (60 + rank_r(d))` fuses the vector and
+  BM25 rankings, with `BM25(tf, dl) = idf · tf(k₁+1) / (tf + k₁(1−b+b·dl/avgdl))`, k₁=1.2, b=0.75.
+- **Quality:** measured on an 18-case gold set behind a gate (R@3 ≥ 0.90, MRR ≥ 0.75).
+- **Cost:** measured by `bench.mjs` on the same index and queries — no marketing figures.
+
+| Fact, now | Number |
+| --- | --- |
+| R@3 (hybrid) | **0.944** vs 0.67 vector-only |
+| p50 latency | **0.38 ms** per query (2,474 queries/s) |
+| Footprint | 445 chunks · 88 files · 1.1 MB index · +6 MB heap |
+
+The benchmark also found and fixed a real hotspot: BM25 was scanning every chunk for every term, so
+postings cut the hybrid path from 2.12 ms to 0.38 ms with **identical** ranking
+([benchmarks](docs/benchmarks.md)).
+
+**Try it with zero install:** one static page, no bundler, no CDN, no network.
+
+### Recovery and audit
+
+| Capability | File | State |
+| --- | --- | --- |
+| **Hash-recorded snapshots, deterministic rollback** | `snapshot.mjs` — SHA-256 per file + the Git tree hash | ✅ restore refuses an altered copy and a different tree without `--force` |
+| **Tamper-evident audit ledger** | `ledger.mjs` — `hash = sha256(prev + entry)` chain, anchored | ✅ 6 properties: edits, removals and truncation are detectable |
+| **Mutation testing for the guards** | `mutation-test.mjs` — 4 mutants, baseline measured first | ✅ 4/4 killed |
+| **Interactive architecture graph** | `playground/graph.html` from `graph.json` | ✅ generated from the code; the guard fails on drift |
+
+| **Extractive context packing** | `context-pack.mjs` — verbatim sentences, `file:line` citations, marked gaps | ✅ at 400 tokens: 94% answer retention, 31× smaller than the candidates |
+
+```bash
+node scripts/snapshot.mjs save --label "before the experiment"
+node scripts/ledger.mjs verify
+node scripts/mutation-test.mjs
+node scripts/context-pack.mjs "who may merge a pull request" --budget 800
+```
+
+
+
+```bash
+node scripts/playground-server.mjs        # then open /playground/
+```
+
+The browser imports the **same** `scripts/semantic/core.mjs` the CLI uses, and
+`scripts/playground-parity.mjs` fails if they disagree (currently 0.94 vs 0.94).
+
 ### Honest limits
 
 - The guard proves **conventions**, not correctness — review still matters.
@@ -264,6 +359,16 @@ node scripts/check-egress.mjs --list        # declared destinations and why
   runtime control (D9).
 - The PII guard is **pattern-based**: it catches an address or a phone number, not a person's name in
   prose, and it does not classify data or set a retention policy.
+- Snapshots cover **derived state only**, and capture is not atomic across files. Automatic rollback
+  does not exist by design: a failing test never deletes your work.
+- The audit ledger is **per-machine** and local; the anchor is what makes truncation detectable, and it
+  is only as current as the last commit that carried it.
+- Context packing is **lossy by design**: at 400 tokens one gold case in eighteen loses its answering
+  file; the token count is a `chars / 4` estimate, not a tokenizer.
+- Mutation testing has **5 mutants**, not exhaustive coverage: it proves the key guards are load-bearing,
+  not that every branch is.
+- The playground is a **demo**, not a product: no ranking feedback loop, no query log, no
+  multi-user concurrency, and it loads the whole index into memory (fine at 445 chunks, not at 50k).
 - Neural reranking is **plumbed but not running**: the manifest is unpinned (nobody verified an
   artifact here) and `onnxruntime-node` is not installed. `R@1` stays 0.667 until both exist.
 - No model calls are made by CI. Everything in `.github/workflows/` is deterministic and auditable.

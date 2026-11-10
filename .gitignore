@@ -40,3 +40,5 @@ npm-debug.log*
 # Opt-in model weights (ADR-0013): large binaries, verified by checksum, never committed.
 .models/
 *.partial
+.agent/snapshots/
+.agent/ledger.jsonl

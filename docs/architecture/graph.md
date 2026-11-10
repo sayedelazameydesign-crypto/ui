@@ -4,7 +4,7 @@
 > Regenerate with `node scripts/architecture-graph.mjs --write`.
 > `guard` and the `architecture` workflow fail when this file is stale.
 
-**102 tracked files · 16 components · 27 directed links**
+**127 tracked files · 16 components · 30 directed links**
 
 ## Component map
 
@@ -26,48 +26,51 @@ graph LR
   scripts["Repository scripts"]
   tests["Property tests"]
   mocks["Service mocks"]
-  adr -->|12| docs_agents
+  adr -->|17| docs_agents
   adr -->|3| docs_arch
   adr -->|4| docs_ci
   adr -->|2| docs_data
-  adr -->|4| other
+  adr -->|6| other
   adr -->|5| root
   agent_harness -->|4| docs_agents
   agent_harness -->|1| root
   docs_agents -->|5| adr
   docs_agents -->|2| agent_harness
-  docs_agents -->|1| other
+  docs_agents -->|2| other
   docs_agents -->|2| root
   docs_agents -->|1| tests
   github_config -->|1| root
   other -->|1| root
-  root -->|32| adr
+  other -->|1| semantic
+  root -->|44| adr
   root -->|4| agent_harness
-  root -->|32| docs_agents
+  root -->|36| docs_agents
   root -->|3| docs_arch
   root -->|8| docs_ci
   root -->|4| docs_data
-  root -->|6| other
+  root -->|11| other
   root -->|2| scripts
+  scripts -->|1| other
+  scripts -->|7| semantic
   scripts -->|2| tooling_lib
-  tests -->|2| scripts
-  tests -->|3| semantic
-  tests -->|5| tooling_lib
+  tests -->|5| scripts
+  tests -->|4| semantic
+  tests -->|7| tooling_lib
 ```
 
 ## Components
 
 | Component | Files |
 | --- | --- |
-| `scripts` — Repository scripts | 22 |
+| `scripts` — Repository scripts | 31 |
+| `adr` — Decision records | 17 |
 | `github-config` — GitHub config & templates | 17 |
-| `adr` — Decision records | 13 |
+| `agent-harness` — Agent harness (.agent) | 13 |
 | `root` — Root docs & config | 12 |
-| `agent-harness` — Agent harness (.agent) | 10 |
 | `workflows` — CI workflows | 10 |
-| `docs-agents` — Agent docs | 7 |
-| `semantic` — Semantic engine | 5 |
-| `tests` — Property tests | 5 |
+| `docs-agents` — Agent docs | 9 |
+| `tests` — Property tests | 7 |
+| `semantic` — Semantic engine | 6 |
 | `skills` — Agent skills (.claude/skills) | 4 |
 | `docs-arch` — Architecture docs | 3 |
 | `docs-ci` — CI docs | 3 |
@@ -80,21 +83,21 @@ graph LR
 
 | From | To | References |
 | --- | --- | --- |
-| `root` | `adr` | 32 |
-| `root` | `docs-agents` | 32 |
-| `adr` | `docs-agents` | 12 |
+| `root` | `adr` | 44 |
+| `root` | `docs-agents` | 36 |
+| `adr` | `docs-agents` | 17 |
+| `root` | `other` | 11 |
 | `root` | `docs-ci` | 8 |
-| `root` | `other` | 6 |
+| `scripts` | `semantic` | 7 |
+| `tests` | `tooling-lib` | 7 |
+| `adr` | `other` | 6 |
 | `adr` | `root` | 5 |
 | `docs-agents` | `adr` | 5 |
-| `tests` | `tooling-lib` | 5 |
+| `tests` | `scripts` | 5 |
 | `adr` | `docs-ci` | 4 |
-| `adr` | `other` | 4 |
 | `agent-harness` | `docs-agents` | 4 |
 | `root` | `agent-harness` | 4 |
 | `root` | `docs-data` | 4 |
-| `adr` | `docs-arch` | 3 |
-| `root` | `docs-arch` | 3 |
 
 ## How this stays alive
 

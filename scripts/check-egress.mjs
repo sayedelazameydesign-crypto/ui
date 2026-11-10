@@ -55,6 +55,10 @@ const ALLOWLIST = {
     why: "LFS pointer spec identifier read from pointer files — a string format, not a request",
     files: ["^scripts/artifact-manifest\.mjs$"],
   },
+  "www.w3.org": {
+    why: "XML namespace identifier (SVG elements) — a name string, never a request",
+    files: ["^playground/"],
+  },
   "huggingface.co": {
     why: "opt-in model weights only — requires --allow-network and a checksum pinned in the manifest; never used by CI",
     files: ["^scripts/semantic/model\\.mjs$", "^scripts/semantic/models\\.manifest\\.json$", "^docs/agents/local-model\\.md$"],
@@ -65,6 +69,10 @@ const ALLOWLIST = {
   },
 };
 
+// Generated mirrors of already-scanned sources: they copy text (and therefore URLs)
+// from files this check reads directly, so scanning them adds only false positives.
+const GENERATED = [/^playground\/index\.json$/, /^docs\/architecture\/graph\.json$/, /^artifacts\.manifest\.json$/];
+
 const TEXT_EXTENSIONS = new Set([
   ".md", ".mjs", ".js", ".cjs", ".ts", ".yml", ".yaml", ".json", ".sh", ".html", ".css", ".txt", ".jsonc",
 ]);
@@ -74,7 +82,7 @@ const violations = [];
 const seenHosts = new Map();
 
 for (const file of files) {
-  if (!TEXT_EXTENSIONS.has(extname(file))) continue;
+  if (!TEXT_EXTENSIONS.has(extname(file)) || GENERATED.some((pattern) => pattern.test(file))) continue;
   let content;
   try {
     content = readFileSync(file, "utf8");
