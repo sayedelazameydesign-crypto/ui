@@ -10,7 +10,7 @@
 [![provenance](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/provenance.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/provenance.yml)
 [![dependency-audit](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/dependency-audit.yml/badge.svg)](https://github.com/sayedelazameydesign-crypto/ui/actions/workflows/dependency-audit.yml)
 
-`main` · `L0 baseline` · `AGENTS.md` · `hybrid search` · `measured quality` · `fail-closed` · `RTL-first`
+`main` · `L0 baseline` · `AGENTS.md` · `hybrid search` · `measured quality` · `fail-closed` · `PII guard` · `RTL-first`
 
 </div>
 
@@ -111,6 +111,8 @@ node scripts/artifact-manifest.mjs --check
 | **بوابة جودة** | `semantic/eval.mjs` يفشل تحت R@3 0.90 أو MRR 0.75 — سقف يزيد ولا ينقص | ✅ مفعّلة في الحارس و CI |
 | **تحقق صارم (fail-closed)** | مخطّطات JSON لمفاتيح `.mcp.json` والسجلات؛ أي مفتاح غير معروف خطأ لا تحذير | ✅ مع اختبارات سلبية |
 | **سيادة البيانات** | قائمة وجهات مسموحة بـ«سبب» و«ملف مسموح»؛ أي URL جديد يفشل البناء | ✅ 8 وجهات معلنة، 0 مخالفة |
+| **حارس الخصوصية (PII/DLP)** | فحص المحتوى المرحّل قبل الالتزام: بريد، هاتف مصري، رقم قومي، بطاقات (Luhn)، مفاتيح وسرّ؛ النتائج مُقنَّعة دائماً | ✅ 10 قواعد، 0 نتيجة، إعفاء لا بد له من سبب |
+| **نتيجة سلبية موثّقة** | معيد ترتيب معجمي جُرِّب في 4 تهيئات وهبط بـ R@1 من 0.67 إلى 0.61 — لذا هو مُعطَّل افتراضياً | ✅ R@1 = 0.67 (الهدف 0.85، D8) |
 
 ```bash
 node scripts/semantic/eval.mjs --timing     # R@1/R@3/MRR + كلفة كل 1000 استعلام
@@ -232,6 +234,8 @@ node scripts/artifact-manifest.mjs --check
 | **Quality gate** | `semantic/eval.mjs` fails below R@3 0.90 / MRR 0.75 — a floor that only ratchets up | ✅ in guard and CI |
 | **Fail-closed validation** | explicit JSON schemas for `.mcp.json` and the ledgers; unknown keys are errors | ✅ negative-tested |
 | **Data sovereignty** | egress allowlist where each host needs a reason and a permitted file scope | ✅ 8 declared hosts, 0 violations |
+| **Privacy guard (PII/DLP)** | staged-diff scan before commit: email, EG phone, national ID, Luhn-checked cards, keys; findings are always masked | ✅ 10 rules, 0 findings, reasoned exemptions only |
+| **A documented negative result** | a lexical reranker was measured in 4 configurations and lowered R@1 from 0.67 to 0.61 — so it ships off | ✅ R@1 0.67 (goal 0.85, D8) |
 
 ```bash
 node scripts/semantic/eval.mjs --timing     # R@1/R@3/MRR + cost per 1k queries
@@ -255,7 +259,9 @@ node scripts/check-egress.mjs --list        # declared destinations and why
 - Retrieval is **measured but thin**: 18 gold cases, top-1 at 0.67, one documented Arabic failure —
   the numbers are reported, not smoothed. A neural reranker is the next real gain (D8).
 - The egress allowlist is **textual**: a URL assembled at runtime would evade it. A proxy is the
-  runtime control (D9), and there is no PII classification or DLP yet.
+  runtime control (D9).
+- The PII guard is **pattern-based**: it catches an address or a phone number, not a person's name in
+  prose, and it does not classify data or set a retention policy.
 - No model calls are made by CI. Everything in `.github/workflows/` is deterministic and auditable.
 
 ### Next steps
