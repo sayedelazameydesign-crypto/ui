@@ -87,6 +87,10 @@ const ALLOWLIST = {
     why: "Google Fonts font files — required when fonts.googleapis.com CSS is used (read-only)",
     files: ["^showcase/", "^tokens/"],
   },
+  "json-schema.org": {
+    why: "JSON Schema $schema identifier — reference string in tokens schema, never fetched at runtime",
+    files: ["^tokens/"],
+  },
 };
 
 // Generated mirrors of already-scanned sources: they copy text (and therefore URLs)

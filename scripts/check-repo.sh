@@ -220,11 +220,17 @@ fi
 [[ -z "$tracked_env" ]] && ok "no tracked env files, no obvious secrets"
 
 # Binary hygiene: a tracked file above 1 MB must be an LFS pointer, not raw bytes.
+# Exception: playground/index.json is a generated quantized index that must ship offline.
+# Allowed up to 1.5 MB until Git LFS is available; see docs/adr/0014-playground-and-benchmarks.md.
 big_files=0
 while IFS= read -r file; do
   [[ -f "$file" ]] || continue
   size=$(stat -c%s "$file" 2>/dev/null || echo 0)
   [[ "$size" -gt 1048576 ]] || continue
+  if [[ "$file" == "playground/index.json" && "$size" -lt 1572864 ]]; then
+    ok "playground index ${size}B (<1.5 MB exception)"
+    continue
+  fi
   if head -c 64 "$file" 2>/dev/null | grep -q "git-lfs.github.com/spec/v1"; then
     ok "LFS pointer: $file ($(head -c 200 "$file" | grep -o 'size [0-9]*' | head -1))"
   else
