@@ -63,6 +63,10 @@ const ALLOWLIST = {
     why: "attack fixture: a data-carrying markdown link the scanner must flag; never fetched",
     files: ["^tests/adversarial/cases\\.json$"],
   },
+  "manus.im": {
+    why: "public product documentation referenced by the AI website-builder brief; documentation only, never requested by repository tooling",
+    files: ["^docs/ai-website-builder-mvp\\.md$"],
+  },
   "www.apache.org": {
     why: "canonical Apache-2.0 licence reference in the licence and NOTICE text — a string, never requested",
     files: ["^LICENSE$", "^NOTICE$"],

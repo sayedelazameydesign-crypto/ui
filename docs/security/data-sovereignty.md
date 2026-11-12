@@ -28,6 +28,7 @@ node scripts/check-egress.mjs --list   # the current contract
 | `git-lfs.github.com` | `scripts/artifact-manifest.mjs` | LFS pointer format string, not a request |
 | `collect.example.net` | `tests/adversarial/cases.json` | an attack fixture the scanner must flag; never fetched |
 | `example.com` | `tests/adversarial/cases.json` | a data-carrying markdown link in the same fixture; never fetched |
+| `manus.im` | `docs/ai-website-builder-mvp.md` | public product-documentation references; documentation only, never requested by repository tooling |
 | `www.apache.org` | `LICENSE`, `NOTICE` | the canonical licence reference, as text; never requested |
 
 Adding a destination is a code change with a written reason — reviewed like any other. A new URL
