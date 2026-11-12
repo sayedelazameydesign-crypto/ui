@@ -178,11 +178,14 @@ node scripts/playground-server.mjs        # ثم افتح /playground/
 
 ### الخطوات التالية
 
+المنتج المستهدف الآن هو **منشئ مواقع وتطبيقات ويب بالذكاء الاصطناعي**. نطاق النسخة الأولى وتدفقها ومعايير قبولها موثقة في [موجز المنتج](docs/ai-website-builder-mvp.md)؛ هذا وصف مقترح، وليس تطبيقاً منفذاً.
+
 1. تثبيت **نظام التصميم** أولاً: الرموز (ألوان، مسافات، خطوط) واستراتيجية RTL — قرار D2.
-2. اختيار حزمة التقنيات عبر ADR جديد يُلغي [ADR-0002](docs/adr/0002-defer-stack-choice.md).
-3. تفعيل حماية الفرع `main` على GitHub: مراجعة إلزامية + منع الدفع المباشر.
-4. ~~اختيار الترخيص (D5)~~ — تم: **Apache-2.0** مع `NOTICE` ([ADR-0020](docs/adr/0020-license.md)).
-5. إضافة `.env.example` عند أول حاجة لتهيئة بيئة.
+2. اختيار حزمة التقنيات عبر ADR جديد يُلغي [ADR-0002](docs/adr/0002-defer-stack-choice.md)، بعد موافقة بشرية.
+3. حسم مزود النموذج، عزل تنفيذ المشاريع، والاستضافة قبل بدء تنفيذ هذه الأجزاء.
+4. تفعيل حماية الفرع `main` على GitHub: مراجعة إلزامية + منع الدفع المباشر.
+5. ~~اختيار الترخيص (D5)~~ — تم: **Apache-2.0** مع `NOTICE` ([ADR-0020](docs/adr/0020-license.md)).
+6. إضافة `.env.example` عند أول حاجة لتهيئة بيئة.
 
 ### الترخيص
 
@@ -388,11 +391,14 @@ The browser imports the **same** `scripts/semantic/core.mjs` the CLI uses, and
 
 ### Next steps
 
+The target product is now an **AI website and web-app builder**. The proposed first-release scope, workflow, and acceptance criteria are in the [product brief](docs/ai-website-builder-mvp.md); this is a proposal, not an implemented application.
+
 1. Specify the **design system** first: tokens (colour, space, type) and the RTL strategy — D2.
-2. Choose the stack through a new ADR superseding [ADR-0002](docs/adr/0002-defer-stack-choice.md).
-3. Enable `main` branch protection on GitHub: required review, no direct pushes.
-4. ~~Choose the licence (D5)~~ — done: **Apache-2.0** with a `NOTICE` ([ADR-0020](docs/adr/0020-license.md)).
-5. Add `.env.example` at the first need for environment configuration.
+2. Choose the stack through a new ADR superseding [ADR-0002](docs/adr/0002-defer-stack-choice.md), with human approval.
+3. Decide the model provider, project-execution isolation, and hosting before implementing those parts.
+4. Enable `main` branch protection on GitHub: required review, no direct pushes.
+5. ~~Choose the licence (D5)~~ — done: **Apache-2.0** with a `NOTICE` ([ADR-0020](docs/adr/0020-license.md)).
+6. Add `.env.example` at the first need for environment configuration.
 
 ### Licence
 
