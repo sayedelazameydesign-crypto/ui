@@ -83,6 +83,18 @@ const ALLOWLIST = {
     why: "OPT-IN embedding provider — refuses to run without an explicit key and is never used by CI",
     files: ["^scripts/semantic/lib\\.mjs$"],
   },
+  "fonts.googleapis.com": {
+    why: "Google Fonts CSS — typography for showcase and tokens preview (read-only, no PII sent)",
+    files: ["^showcase/", "^tokens/"],
+  },
+  "fonts.gstatic.com": {
+    why: "Google Fonts font files — required when fonts.googleapis.com CSS is used (read-only)",
+    files: ["^showcase/", "^tokens/"],
+  },
+  "json-schema.org": {
+    why: "JSON Schema $schema identifier — reference string in tokens schema, never fetched at runtime",
+    files: ["^tokens/"],
+  },
 };
 
 // Generated mirrors of already-scanned sources: they copy text (and therefore URLs)

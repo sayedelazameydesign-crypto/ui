@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الرموز — Tokens Preview · ui</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  :root{--bg:#080B10;--panel:#111A28;--line:#1F3347;--text:#EAF0F7;--muted:#8EA3B8;--accent:#3EE8A8;--accent2:#2AD4F0;--mono: 'IBM Plex Mono', monospace}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:14px/1.7 'IBM Plex Sans Arabic',sans-serif}
+  header{max-width:1100px;margin:0 auto;padding:28px 24px 12px;border-bottom:1px solid var(--line)}
+  h1{margin:0;font:700 28px/1.2 'IBM Plex Sans Arabic',sans-serif} .muted{color:var(--muted)}
+  .mono{font-family:var(--mono)}
+  main{max-width:1100px;margin:0 auto;padding:24px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .swatch{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel)}
+  .chip{height:86px;display:grid;place-items:center;font:600 13px var(--mono);color:#07131A;text-shadow:0 1px 0 rgba(255,255,255,.35)}
+  .meta{padding:10px 12px} .meta b{font:600 13px 'IBM Plex Sans Arabic',sans-serif} .meta span{display:block;color:var(--muted);font:12px var(--mono)}
+  .sec{margin:28px 0 12px;font:700 16px 'IBM Plex Sans Arabic',sans-serif;color:var(--accent)}
+  .table{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;font:13px 'IBM Plex Sans Arabic',sans-serif} th{background:#0E1826;color:var(--muted)}
+  .badge{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid rgba(62,232,168,.3);background:rgba(62,232,168,.12);color:var(--accent);font:12px var(--mono)}
+  pre{background:#0D1420;border:1px solid var(--line);border-radius:12px;padding:12px;overflow:auto;font:12px var(--mono);color:#B9C9DA}
+</style>
+</head>
+<body>
+<header>
+  <div class="mono" style="color:var(--muted);font-size:12px">ui · tokens · ELA-6 · v1.0.0 · مصدر: showcase/index.html :root</div>
+  <h1>معاينة الرموز — Tokens Preview <span class="badge">قراءة فقط</span></h1>
+  <p class="muted">كل قيمة مستخرجة من <span class="mono">showcase/index.html:8-10</span> — لا قيم مخترعة. الملف المرجعي: <span class="mono">tokens.json</span> + <span class="mono">tokens/typography.json</span></p>
+  <p class="muted">قيد: هذه المعاينة <b>لا تغير</b> showcase — التحويل يأتي بعد المراجعة.</p>
+</header>
+<main>
+  <div class="sec">الألوان — color</div>
+  <div id="colors" class="grid"></div>
+
+  <div class="sec">المسافات — spacing (4px base)</div>
+  <table class="table" id="spacing"><thead><tr><th>الرمز</th><th>القيمة</th><th>تمثيل</th></tr></thead><tbody></tbody></table>
+
+  <div class="sec">نصف القطر — radius</div>
+  <table class="table" id="radius"><thead><tr><th>الرمز</th><th>القيمة</th><th>شكل</th></tr></thead><tbody></tbody></table>
+
+  <div class="sec">الخطوط — typography</div>
+  <pre id="typo"></pre>
+
+  <div class="sec">التحقق</div>
+  <pre>python3 -m json.tool tokens.json  # valid
+python3 -m json.tool tokens/typography.json
+# المقبل: node scripts/validate-json.mjs (سيُضاف schema للرموز)</pre>
+</main>
+<script>
+async function load(){
+  const res = await fetch('/tokens.json'); const t = await res.json();
+  const colors = [];
+  function walk(obj,prefix=''){
+    for(const [k,v] of Object.entries(obj)){
+      if(v && typeof v==='object' && 'value' in v && v.type==='color'){ colors.push({name: prefix ? prefix+'.'+k : k, value: v.value, src: v.source||''}); }
+      else if(v && typeof v==='object' && !('value' in v)){ walk(v, prefix? prefix+'.'+k : k); }
+    }
+  }
+  walk(t.color,'color');
+  document.getElementById('colors').innerHTML = colors.map(c=>`
+    <div class="swatch">
+      <div class="chip" style="background:${c.value}">${c.value}</div>
+      <div class="meta"><b>${c.name}</b><span>${c.value} · ${c.src}</span></div>
+    </div>`).join('');
+
+  const spacing = t.spacing; const tb=document.querySelector('#spacing tbody');
+  tb.innerHTML = Object.entries(spacing).map(([k,v])=>`<tr><td class="mono">spacing.${k}</td><td class="mono">${v.value}</td><td><span style="display:inline-block;height:12px;width:${v.value};background:var(--accent);border-radius:4px"></span></td></tr>`).join('');
+
+  const radius = t.radius; const rb=document.querySelector('#radius tbody');
+  rb.innerHTML = Object.entries(radius).map(([k,v])=>`<tr><td class="mono">radius.${k}</td><td class="mono">${v.value}</td><td><span style="display:inline-block;width:40px;height:24px;background:var(--panel);border:1px solid var(--line);border-radius:${v.value}"></span></td></tr>`).join('');
+
+  const ty = await fetch('/tokens/typography.json').then(r=>r.json());
+  document.getElementById('typo').textContent = JSON.stringify(ty,null,2);
+}
+load();
+</script>
+</body>
+</html>
