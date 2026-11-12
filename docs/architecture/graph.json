@@ -3,7 +3,7 @@
   "generator": "scripts/architecture-graph.mjs",
   "note": "Generated from tracked files — do not edit by hand. Regenerate with --write.",
   "stats": {
-    "files": 148,
+    "files": 157,
     "components": 16,
     "edges": 32
   },
@@ -11,7 +11,7 @@
     {
       "id": "root",
       "label": "Root docs & config",
-      "files": 15
+      "files": 17
     },
     {
       "id": "agent-harness",
