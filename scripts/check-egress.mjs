@@ -48,8 +48,8 @@ const ALLOWLIST = {
     files: ["^\\.devcontainer/"],
   },
   "127.0.0.1": {
-    why: "loopback only — the deterministic mock server and its CI health checks never leave the sandbox",
-    files: ["^scripts/mock-server\.mjs$", "^\.github/workflows/property-tests\.yml$"],
+    why: "loopback only — deterministic mock checks and the documented local builder preview; never a public destination",
+    files: ["^scripts/mock-server\.mjs$", "^scripts/builder-server\.mjs$", "^\.github/workflows/property-tests\.yml$", "^docs/ai-website-builder-mvp\.md$"],
   },
   "git-lfs.github.com": {
     why: "LFS pointer spec identifier read from pointer files — a string format, not a request",
@@ -62,6 +62,18 @@ const ALLOWLIST = {
   "example.com": {
     why: "attack fixture: a data-carrying markdown link the scanner must flag; never fetched",
     files: ["^tests/adversarial/cases\\.json$"],
+  },
+  "ui.example.test": {
+    why: "synthetic same-origin host used only by mocked API tests; never fetched",
+    files: ["^tests/builder/plan-api\\.test\\.mjs$"],
+  },
+  "attacker.example": {
+    why: "synthetic cross-origin host used only to test rejection; never fetched",
+    files: ["^tests/builder/plan-api\\.test\\.mjs$"],
+  },
+  "preview.invalid": {
+    why: "non-resolving base URL used to parse local preview request paths; never fetched",
+    files: ["^scripts/builder-server\\.mjs$"],
   },
   "manus.im": {
     why: "public product documentation referenced by the AI website-builder brief; documentation only, never requested by repository tooling",
@@ -82,6 +94,10 @@ const ALLOWLIST = {
   "api.openai.com": {
     why: "OPT-IN embedding provider — refuses to run without an explicit key and is never used by CI",
     files: ["^scripts/semantic/lib\\.mjs$"],
+  },
+  "generativelanguage.googleapis.com": {
+    why: "opt-in Gemini planning endpoint; receives only a user-consented brief via a server-side function, never called in CI",
+    files: ["^api/plan\\.js$"],
   },
   "fonts.googleapis.com": {
     why: "Google Fonts CSS — typography for showcase and tokens preview (read-only, no PII sent)",

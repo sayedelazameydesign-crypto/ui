@@ -1,6 +1,7 @@
 {
   "cleanUrls": true,
   "rewrites": [
+    { "source": "/builder", "destination": "/builder/index.html" },
     { "source": "/", "destination": "/showcase/index.html" }
   ]
 }

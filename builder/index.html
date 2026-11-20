@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="حوّل وصفك إلى خطة واضحة لموقع أو تطبيق ويب — مدعوم بـ Gemini.">
+  <title>منشئ المواقع بالذكاء الاصطناعي — ui</title>
+  <link rel="stylesheet" href="/builder/styles.css">
+  <script src="/builder/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="العودة إلى الصفحة الرئيسية">
+      <span class="brand-mark" aria-hidden="true">ui</span>
+      <span data-i18n="brand">منشئ المواقع</span>
+    </a>
+    <div class="top-actions">
+      <span class="provider-tag"><span class="provider-dot" aria-hidden="true"></span> Gemini</span>
+      <button class="language-button" id="language-toggle" type="button" aria-label="Switch language">English</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow" data-i18n="eyebrow">من الفكرة إلى خطة قابلة للمراجعة</p>
+      <h1 id="page-title" data-i18n="title">صف فكرتك. ابدأ بخطة واضحة.</h1>
+      <p class="intro-copy" data-i18n="intro">اكتب ما تريد بناءه، وسيساعدك Gemini في تنظيم الصفحات والميزات والأسئلة المفتوحة قبل أن يبدأ أي تنفيذ.</p>
+      <div class="steps" aria-label="مراحل العمل">
+        <span class="step current"><b>1</b><span data-i18n="step-plan">الخطة</span></span>
+        <span class="step"><b>2</b><span data-i18n="step-build">البناء — لاحقاً</span></span>
+        <span class="step"><b>3</b><span data-i18n="step-preview">المعاينة — لاحقاً</span></span>
+      </div>
+    </section>
+
+    <section class="workspace" aria-label="إنشاء خطة المشروع">
+      <form id="brief-form" class="brief-card">
+        <label class="field-label" for="brief" data-i18n="brief-label">ما الموقع أو التطبيق الذي تريد إنشاءه؟</label>
+        <p class="field-hint" id="brief-hint" data-i18n="brief-hint">اذكر الهدف والجمهور والصفحات أو الوظائف الأساسية. لا تضع كلمات مرور أو بيانات شخصية.</p>
+        <textarea id="brief" name="brief" dir="auto" maxlength="4000" minlength="20" required aria-describedby="brief-hint" placeholder="مثال: أريد موقعاً لمقهى محلي يعرض القائمة، وساعات العمل، وموقع الفرع، مع نموذج لحجز طاولة."></textarea>
+        <div class="field-meta"><span id="char-count">0 / 4000</span><span data-i18n="language-note">ستُكتب الخطة باللغة المحددة في الأعلى.</span></div>
+
+        <div class="examples" aria-label="أمثلة">
+          <span class="examples-title" data-i18n="examples-label">أمثلة للبدء</span>
+          <button class="example-chip" type="button" data-example="booking" data-i18n="example-booking">موقع حجز مواعيد</button>
+          <button class="example-chip" type="button" data-example="store" data-i18n="example-store">متجر إلكتروني صغير</button>
+          <button class="example-chip" type="button" data-example="portfolio" data-i18n="example-portfolio">معرض أعمال</button>
+        </div>
+
+        <label class="consent-row" for="consent">
+          <input id="consent" name="consent" type="checkbox" required>
+          <span data-i18n="consent">أوافق على إرسال هذا الوصف إلى Google Gemini لإنشاء خطة. لن يُنشأ أو يُشغّل أي كود في هذه المرحلة.</span>
+        </label>
+        <p class="privacy-note" data-i18n="privacy">لا تدخل معلومات سرية أو شخصية. لا يُحفظ الوصف في هذا التطبيق، لكن مزوّد النموذج قد يعالج الطلب وفق شروطه.</p>
+
+        <div class="form-footer">
+          <button class="primary-button" id="submit-button" type="submit">
+            <span data-i18n="submit">أنشئ خطة المشروع</span><span aria-hidden="true">↗</span>
+          </button>
+          <span class="secure-note"><span aria-hidden="true">●</span> <span data-i18n="server-note">المفتاح يبقى على الخادم ولا يصل إلى المتصفح</span></span>
+        </div>
+        <p class="status" id="form-status" role="status" aria-live="polite"></p>
+      </form>
+
+      <aside class="side-note">
+        <div class="note-icon" aria-hidden="true">✦</div>
+        <h2 data-i18n="side-title">خطة أولاً، لا كود عشوائي</h2>
+        <p data-i18n="side-copy">راجع الصفحات والافتراضات والأسئلة قبل البناء. خطوة إنشاء الكود وتشغيله غير مفعّلة بعد.</p>
+        <ul>
+          <li data-i18n="side-item-1">اسم وملخص للمشروع</li>
+          <li data-i18n="side-item-2">الصفحات والغرض من كل صفحة</li>
+          <li data-i18n="side-item-3">الميزات والأسئلة غير المحسومة</li>
+        </ul>
+        <a class="back-link" href="/" data-i18n="back">العودة إلى الصفحة الرئيسية</a>
+      </aside>
+    </section>
+
+    <section id="plan-result" class="plan-result" aria-labelledby="plan-title" hidden>
+      <div class="result-heading">
+        <div>
+          <p class="eyebrow" data-i18n="result-eyebrow">مسودة للمراجعة</p>
+          <h2 id="plan-title" data-i18n="result-title">خطة المشروع</h2>
+        </div>
+        <button class="secondary-button" id="clear-plan" type="button" data-i18n="clear">ابدأ من جديد</button>
+      </div>
+      <p id="plan-summary" class="plan-summary"></p>
+      <div class="plan-grid">
+        <article class="plan-panel">
+          <h3 data-i18n="pages-title">الصفحات</h3>
+          <ul id="plan-pages" class="plan-list"></ul>
+        </article>
+        <article class="plan-panel">
+          <h3 data-i18n="features-title">الميزات</h3>
+          <ul id="plan-features" class="plan-list"></ul>
+        </article>
+        <article class="plan-panel">
+          <h3 data-i18n="questions-title">أسئلة تحتاج إجابة</h3>
+          <ul id="plan-questions" class="plan-list"></ul>
+        </article>
+        <article class="plan-panel">
+          <h3 data-i18n="assumptions-title">افتراضات أولية</h3>
+          <ul id="plan-assumptions" class="plan-list"></ul>
+        </article>
+      </div>
+      <div class="milestone"><span class="milestone-icon" aria-hidden="true">→</span><p><b data-i18n="milestone-title">أول خطوة مقترحة</b><span id="plan-milestone"></span></p></div>
+      <p class="result-disclaimer" data-i18n="result-disclaimer">هذه خطة أولية مولدة بالذكاء الاصطناعي وليست تنفيذاً. لا يتم تشغيل كود أو نشر موقع من هذه الصفحة.</p>
+    </section>
+  </main>
+  <footer class="footer"><span>ui · AI Website Builder · preview</span><span data-i18n="footer">خطة فقط — البناء قيد التطوير</span></footer>
+</body>
+</html>

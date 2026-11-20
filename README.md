@@ -23,8 +23,7 @@
 هذا المستودع ليس مجرد مكان لتخزين الكود: إنه **بيئة عمل مشتركة بين الإنسان والوكيل الذكي**.
 كل قاعدة يحتاجها الوكيل مكتوبة في ملف يمكنه قراءته، وكل قاعدة قابلة للفحص الآلي عبر سكربت واحد.
 
-**المرحلة الحالية: L0 — الأساس الحاكم.** لا يوجد كود تطبيق ولا حزمة تقنيات مختارة، والقرار
-مؤجَّل عمداً (انظر [ADR-0002](docs/adr/0002-defer-stack-choice.md)).
+**المرحلة الحالية: أساس L0 مع أول شريحة تطبيقية.** توجد صفحة ثنائية اللغة لإنشاء خطة مشروع عبر Gemini من خلال دالة خادمية؛ لا تولّد كوداً ولا تشغّله. إطار التطبيق العام ما زال غير مختار (انظر [ADR-0002](docs/adr/0002-defer-stack-choice.md)).
 
 ### الملفات التي تهمّك
 
@@ -45,6 +44,8 @@
 | [`docs/data/artifacts.md`](docs/data/artifacts.md) | الجميع | LFS وسجل حالة البيانات |
 | [`docs/ci/testing-strategy.md`](docs/ci/testing-strategy.md) | الجميع | اختبارات الخصائص والمحاكاة |
 | [`docs/architecture/graph.md`](docs/architecture/graph.md) | الجميع | مخطط معماري مُولَّد |
+| [`docs/ai-website-builder-mvp.md`](docs/ai-website-builder-mvp.md) | الجميع | نطاق المنتج الحالي، تشغيل المعاينة، وحدود Gemini |
+| [`builder/`](builder/) + [`api/plan.js`](api/plan.js) | التطبيق | واجهة تخطيط ثنائية اللغة ودالة Gemini الخادمية |
 | [`docs/security/adversarial-inputs.md`](docs/security/adversarial-inputs.md) | الجميع | مدخلات عدائية: نقاط ترميز مخفية، اتجاه معكوس، أوامر موجَّهة للقارئ — وحدودها المعلنة |
 
 ### دورة العمل
@@ -178,14 +179,14 @@ node scripts/playground-server.mjs        # ثم افتح /playground/
 
 ### الخطوات التالية
 
-المنتج المستهدف الآن هو **منشئ مواقع وتطبيقات ويب بالذكاء الاصطناعي**. نطاق النسخة الأولى وتدفقها ومعايير قبولها موثقة في [موجز المنتج](docs/ai-website-builder-mvp.md)؛ هذا وصف مقترح، وليس تطبيقاً منفذاً.
+المنتج المستهدف هو **منشئ مواقع وتطبيقات ويب بالذكاء الاصطناعي**. الشريحة الأولى في [`/builder`](builder/index.html) تنشئ خطة قابلة للمراجعة باستخدام Gemini فقط؛ لا تولّد كوداً ولا تشغّله. التفاصيل في [موجز المنتج](docs/ai-website-builder-mvp.md).
 
-1. تثبيت **نظام التصميم** أولاً: الرموز (ألوان، مسافات، خطوط) واستراتيجية RTL — قرار D2.
-2. اختيار حزمة التقنيات عبر ADR جديد يُلغي [ADR-0002](docs/adr/0002-defer-stack-choice.md)، بعد موافقة بشرية.
-3. حسم مزود النموذج، عزل تنفيذ المشاريع، والاستضافة قبل بدء تنفيذ هذه الأجزاء.
-4. تفعيل حماية الفرع `main` على GitHub: مراجعة إلزامية + منع الدفع المباشر.
-5. ~~اختيار الترخيص (D5)~~ — تم: **Apache-2.0** مع `NOTICE` ([ADR-0020](docs/adr/0020-license.md)).
-6. إضافة `.env.example` عند أول حاجة لتهيئة بيئة.
+1. إعداد `GEMINI_API_KEY` و`GEMINI_PLANNER_ENABLED=true` في بيئة تشغيل Vercel؛ أسرار GitHub Actions منفصلة ولا يستخدمها CI.
+2. إضافة تحكم دخول وتحديد معدل طلبات دائم قبل تفعيل الخدمة على الإنتاج.
+3. اختيار حزمة التطبيق العامة عبر ADR جديد يُلغي [ADR-0002](docs/adr/0002-defer-stack-choice.md)، بعد موافقة بشرية.
+4. حسم عزل توليد الكود وتشغيل المعاينة قبل تنفيذ هذه الميزات.
+5. تفعيل حماية الفرع `main` على GitHub: مراجعة إلزامية + منع الدفع المباشر.
+6. ~~اختيار الترخيص (D5)~~ — تم: **Apache-2.0** مع `NOTICE` ([ADR-0020](docs/adr/0020-license.md)).
 
 ### الترخيص
 
@@ -203,8 +204,7 @@ This repository is not only version control — it is a **shared workspace for h
 Every constraint an agent must respect is written in a file it can read, and enforced by a check
 it can run.
 
-**Current maturity: L0 — governance baseline.** No application code and no framework: the stack
-choice is deliberately deferred (see [ADR-0002](docs/adr/0002-defer-stack-choice.md)).
+**Current maturity: L0 governance with an initial application slice.** A bilingual project-planning page calls Gemini through a server-side function; it does not generate or execute code. The general application framework remains undecided (see [ADR-0002](docs/adr/0002-defer-stack-choice.md)).
 
 ### Where to look
 
@@ -225,6 +225,8 @@ choice is deliberately deferred (see [ADR-0002](docs/adr/0002-defer-stack-choice
 | [`docs/data/artifacts.md`](docs/data/artifacts.md) | everyone | LFS lanes and the artifact ledger |
 | [`docs/ci/testing-strategy.md`](docs/ci/testing-strategy.md) | everyone | Properties and mocks |
 | [`docs/architecture/graph.md`](docs/architecture/graph.md) | everyone | Generated architecture map |
+| [`docs/ai-website-builder-mvp.md`](docs/ai-website-builder-mvp.md) | everyone | Product scope, preview command, and Gemini boundaries |
+| [`builder/`](builder/) + [`api/plan.js`](api/plan.js) | application | Bilingual planning UI and server-side Gemini endpoint |
 | [`docs/security/adversarial-inputs.md`](docs/security/adversarial-inputs.md) | everyone | Adversarial input: hidden codepoints, reordered text, reader-directed directives — and their stated limits |
 
 ### Workflow
@@ -391,14 +393,14 @@ The browser imports the **same** `scripts/semantic/core.mjs` the CLI uses, and
 
 ### Next steps
 
-The target product is now an **AI website and web-app builder**. The proposed first-release scope, workflow, and acceptance criteria are in the [product brief](docs/ai-website-builder-mvp.md); this is a proposal, not an implemented application.
+The target product is an **AI website and web-app builder**. Its first usable slice creates a reviewable plan with Gemini at [`/builder`](builder/index.html); it does not yet generate or run code. The product scope and remaining work are in the [product brief](docs/ai-website-builder-mvp.md).
 
-1. Specify the **design system** first: tokens (colour, space, type) and the RTL strategy — D2.
-2. Choose the stack through a new ADR superseding [ADR-0002](docs/adr/0002-defer-stack-choice.md), with human approval.
-3. Decide the model provider, project-execution isolation, and hosting before implementing those parts.
-4. Enable `main` branch protection on GitHub: required review, no direct pushes.
-5. ~~Choose the licence (D5)~~ — done: **Apache-2.0** with a `NOTICE` ([ADR-0020](docs/adr/0020-license.md)).
-6. Add `.env.example` at the first need for environment configuration.
+1. Configure `GEMINI_API_KEY` and `GEMINI_PLANNER_ENABLED=true` in the Vercel **runtime** environment; GitHub Actions secrets are separate and are not used by CI.
+2. Add durable access control/rate limiting before enabling the public planner in production.
+3. Decide the general application stack through a new ADR superseding [ADR-0002](docs/adr/0002-defer-stack-choice.md), with human approval.
+4. Decide the isolated code-generation and preview execution model before implementing those features.
+5. Enable `main` branch protection on GitHub: required review, no direct pushes.
+6. ~~Choose the licence (D5)~~ — done: **Apache-2.0** with a `NOTICE` ([ADR-0020](docs/adr/0020-license.md)).
 
 ### Licence
 
