@@ -110,6 +110,11 @@ invariants, and vocabulary, read [CONTEXT.md](CONTEXT.md) — that file is norma
     `check-repo.sh`, never quietly tolerated. A finding is fixed, or exempted in
     `.adversarial-allowlist.json` with a reason ([adversarial inputs](docs/security/adversarial-inputs.md),
     [ADR-0019](docs/adr/0019-adversarial-inputs.md)).
+26. **LLMs are not numerical decision authorities.** Any future optimization workflow must use a
+    constrained data contract, pre-solve checks, and independent post-solve verification; malformed,
+    infeasible, uncertain, or unverified results fail closed. Do not execute model-generated code.
+    See [the optimization protocol](docs/architecture/deterministic-optimization-protocol.md) and
+    [ADR-0025](docs/adr/0025-deterministic-optimization-and-verification.md).
 
 ---
 
