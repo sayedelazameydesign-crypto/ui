@@ -8,12 +8,12 @@
 
 ## 0. الوضع الحالي / Current state
 
-المستودع في مرحلة **الأساس (L0)**:
-- لا يوجد كود تطبيق ولا حزمة تقنيات مختارة — القرار مؤجَّل عمداً (D1 في [AGENTS.md](AGENTS.md#9-open-decisions-human-sign-off-required)).
-- الموجود الآن: التوثيق، حواجز الحماية الآلية، مهارات الوكلاء، وسياسات الصلاحيات،
-  إضافة إلى أربع قدرات: **بحث دلالي متجهي**، **بيئات معزولة مؤقتة**، **توقيع أصل الكود (بشري/ذكائي)**،
-  و**محرك تبعيات عديم الثقة**. جميعها تعمل دون شبكة ودون مفاتيح.
-- الهدف: أن يكون المستودع **قابلاً للقراءة والتنفيذ الآمن بواسطة الوكلاء** قبل كتابة أي سطر واجهة.
+المستودع يجمع بين أساس الحوكمة **L0** وأول شرائح الواجهة:
+- يوجد عرض ثابت للهوية البصرية ومعاينة للرموز، وصفحة منشئ مواقع ثنائية اللغة.
+- يتضمن المنشئ حالياً إنشاء **خطة فقط** عبر Gemini من خلال دالة Vercel خادمية، بعد موافقة صريحة؛ لا يولد كوداً ولا يشغله ولا يحفظه أو ينشره.
+- لا يوجد إطار تطبيق عام مختار بعد (D1 مفتوح). اتصال Gemini لا يعمل إلا إذا ضُبط `GEMINI_API_KEY` و`GEMINI_PLANNER_ENABLED=true` في بيئة تشغيل Vercel؛ سر GitHub Actions لا ينتقل إليها تلقائياً.
+- تظل أدوات L0+ الحالية مستقلة عن الإطار، وتعمل اختبارات API باستخدام محاكاة محلية دون استدعاء نموذج أو شبكة.
+- يظل الهدف أن يكون المستودع **قابلاً للقراءة والتنفيذ الآمن بواسطة الوكلاء** مع توسيع التطبيق تدريجياً.
 
 ---
 
@@ -28,11 +28,11 @@ can change it without breaking it.
 | Layer | Responsibility | State |
 | --- | --- | --- |
 | L0 · Governance | docs, ADRs, agent charter, guard scripts, CI | ✅ present |
-| L1 · Foundation | stack, toolchain, lint/format/type gates | ⛔ not chosen (D1) |
-| L2 · Design system | tokens, typography, spacing, RTL/LTR primitives | ⛔ not started (D2) |
+| L1 · Foundation | static HTML/CSS/JS plus the initial Vercel Function; general framework/toolchain remains open (D1) | ⚠️ first slice only |
+| L2 · Design system | initial tokens v1 exist; complete typography, RTL, and accessibility system remains open (D2) | ⚠️ partial |
 | L3 · Components | accessible, composable UI primitives | ⛔ not started |
-| L4 · Surfaces | pages / routes / content | ⛔ not started |
-| L5 · Delivery | hosting, previews, observability | ⛔ not chosen (D3, D6) |
+| L4 · Surfaces | showcase, token preview, bilingual AI project-planning surface | ⚠️ initial surfaces |
+| L5 · Delivery | Vercel Function for plan endpoint; general hosting, preview isolation, and observability remain open (D3, D6) | ⚠️ partial |
 | L0+ · Retrieval & provenance | semantic index, authorship trailers, supply-chain audit | ✅ present |
 | L0+ · Verification & docs | property tests, deterministic mocks, generated architecture graph | ✅ present |
 | L0+ · Retrieval quality & boundaries | hybrid ranking with a measured gate, fail-closed schemas, declared egress | ✅ present |
@@ -97,6 +97,9 @@ stack arrives.
 24. **Bytes are reproducible.** Large artifacts live in LFS and are hashed in the manifest, so a
     result can be traced to the exact data that produced it
     ([ADR-0005](docs/adr/0005-artifact-storage.md)).
+25. **Gemini planning is opt-in and server-side.** Each brief requires explicit consent, provider
+    credentials remain in the runtime environment, tests mock the provider, and code generation
+    remains disabled ([ADR-0024](docs/adr/0024-gemini-planning-endpoint.md)).
 
 ## 4. Vocabulary
 

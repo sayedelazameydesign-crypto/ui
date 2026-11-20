@@ -28,6 +28,7 @@ const JSON_OUT = argv.includes("--json");
 
 const COMPONENTS = [
   { id: "root", label: "Root docs & config", match: (f) => !f.includes("/") },
+  { id: "api", label: "Serverless API", match: (f) => f.startsWith("api/") },
   { id: "agent-harness", label: "Agent harness (.agent)", match: (f) => f.startsWith(".agent/") },
   { id: "skills", label: "Agent skills (.claude/skills)", match: (f) => f.startsWith(".claude/skills/") },
   { id: "workflows", label: "CI workflows", match: (f) => f.startsWith(".github/workflows/") },

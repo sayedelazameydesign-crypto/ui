@@ -9,6 +9,7 @@ run offline, in CI, with no service account and no model call.
 | Layer | Tool | Status |
 | --- | --- | --- |
 | **Properties** (invariants over generated input) | `scripts/property-test.mjs` | ✅ active |
+| **Serverless API contract** | `node --test tests/builder/plan-api.test.mjs` with a mocked provider fetch | ✅ active, no key/network required |
 | **Unit / component** | framework chosen with the stack (D1) | ⏸ dormant |
 | **Service mocks** | `scripts/mock-server.mjs` | ✅ active, used by CI smoke test |
 | **Visual / a11y** | Playwright + axe when a runtime exists | ⏸ dormant |
@@ -21,6 +22,7 @@ node scripts/property-test.mjs                 # 19 properties × 100 runs
 node scripts/property-test.mjs --runs 1000     # deeper
 node scripts/property-test.mjs --seed 42       # reproduce a failure exactly
 node scripts/property-test.mjs --only semantic
+node --test tests/builder/plan-api.test.mjs  # mocked Gemini endpoint contract; no network or key
 ```
 
 A property is a claim that must hold for **every** generated input:
@@ -59,7 +61,7 @@ curl -s "localhost:4010/health?status=503&delay=250"   # fault injection
 
 ## 4. What must never happen
 
-1. A test calling a production API or a paid model endpoint.
+1. A test calling a production API or a paid model endpoint. The Gemini route test must keep `fetch` mocked.
 2. A property that is vacuously true (`|| true`, comparing a value with itself).
 3. A mock that drifts from the real contract without a contract note in the test.
 4. A test that depends on the current date, locale, or network latency.

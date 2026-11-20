@@ -23,11 +23,14 @@ node scripts/check-egress.mjs --list   # the current contract
 | `api.githubcopilot.com` | `.mcp.json` | MCP endpoint; token injected at runtime |
 | `mcr.microsoft.com`, `ghcr.io` | `.devcontainer/` | base image and features |
 | `api.openai.com` | `scripts/semantic/lib.mjs` | **opt-in** embeddings; refuses without a key, never used by CI |
-| `127.0.0.1` | mock server + its workflow | loopback only |
+| `generativelanguage.googleapis.com` | `api/plan.js` | **opt-in** Gemini planning; only a consented brief; server-side key; no CI calls |
+| `127.0.0.1` | mock server, builder preview, and the product brief | loopback only; not a public destination |
 | `huggingface.co` | model loader + manifest + local-model doc | **opt-in weights only**: `--allow-network` plus a pinned checksum; never in CI |
 | `git-lfs.github.com` | `scripts/artifact-manifest.mjs` | LFS pointer format string, not a request |
 | `collect.example.net` | `tests/adversarial/cases.json` | an attack fixture the scanner must flag; never fetched |
 | `example.com` | `tests/adversarial/cases.json` | a data-carrying markdown link in the same fixture; never fetched |
+| `ui.example.test`, `attacker.example` | `tests/builder/plan-api.test.mjs` | synthetic same-/cross-origin hosts for mocks; never fetched |
+| `preview.invalid` | `scripts/builder-server.mjs` | non-resolving URL base used only to parse local paths; never fetched |
 | `manus.im` | `docs/ai-website-builder-mvp.md` | public product-documentation references; documentation only, never requested by repository tooling |
 | `www.apache.org` | `LICENSE`, `NOTICE` | the canonical licence reference, as text; never requested |
 
@@ -58,7 +61,8 @@ reviewed. Errors carry a JSON path, so the message points at the key, not at the
 | Repository → developer machine | in | `git clone`, no telemetry |
 | Developer → repository | in | pre-commit PII/secret scan ([`pii-guard.md`](pii-guard.md)) |
 | Tooling → network | **none by default** | all scripts are offline; egress allowlist |
-| CI → GitHub APIs | metadata only | explicit `permissions:` per workflow |
+| User browser → Gemini via `/api/plan` | user-consented brief only | same-origin server function; API key stays in runtime env; feature disabled unless explicitly enabled |
+| CI → GitHub APIs | metadata only | explicit `permissions:` per workflow; CI never receives the Gemini key |
 | Agent → MCP server | declared endpoints only | `.mcp.json` + `mcp-policy.md` |
 | Artifacts → storage | Git LFS | `.gitattributes` + hashed manifest |
 | Model weights → disk | in (opt-in) | `.models/` (git-ignored) + SHA-256 pinned in the manifest; unpinned means unusable |
@@ -68,8 +72,9 @@ reviewed. Errors carry a JSON path, so the message points at the key, not at the
 - **Language is not a reason to leave the machine.** The retrieval layer normalises Arabic
   (diacritics, alef forms, definite article) and expands queries through a **local** glossary rather
   than calling a translation API — the Arabic capability adds no egress.
-- **No cloud NLP by default.** Any Arabic-language model use is an explicit, declared decision, not
-  a side effect of installing a library.
+- **No cloud NLP by default.** The Gemini planner runs only after an explicit user consent checkbox
+  and submit action; its server-side endpoint is disabled unless `GEMINI_PLANNER_ENABLED=true`.
+  Other Arabic-language model use remains an explicit, declared decision, not a side effect of installing a library.
 - **Residency expectations.** If client data from a regulated market ever enters this repository, the
   relevant requirement is a *region-scoped* store; the allowlist and the artifact ledger are the two
   places that decision must be recorded.

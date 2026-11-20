@@ -1,10 +1,12 @@
 # AI Website Builder — MVP Product Brief
 
-> **ملخص عربي:** الهدف هو بناء منصّة تمكّن المستخدم من وصف موقع أو تطبيق ويب، ومراجعة خطة إنشائه، ثم معاينته وتحسينه باللغة الطبيعية. هذه مواصفات منتج مقترحة، وليست وصفاً لميزات موجودة. لا تختار إطاراً أو مزوّد نموذج أو استضافة؛ تبقى هذه قرارات تحتاج موافقة وتوثيقاً منفصلين.
+> **ملخص عربي:** الهدف بناء منصّة تحوّل وصف المستخدم إلى موقع أو تطبيق ويب. الشريحة الأولى تنشئ خطة فقط باستخدام Gemini عبر دالة Vercel خادمية، بعد موافقة المستخدم؛ لا تولّد كوداً ولا تشغّله. إطار التطبيق العام وعزل التنفيذ والاستضافة الأوسع ما زالت قرارات مفتوحة.
 
 ## 1. Product intent
 
 Build a web application that helps a user go from a plain-language brief to a working, previewable web project. The first release focuses on the website-builder workflow, not on reproducing every Manus product or capability.
+
+**Implementation status (2026-11-12):** the first slice now provides a bilingual brief form and a server-side Gemini endpoint that returns a reviewable plan. It does not generate, run, save, or publish code. See [ADR-0024](adr/0024-gemini-planning-endpoint.md).
 
 The product should make the build process understandable and reversible: the user sees the proposed plan, can review generated changes, can inspect or export project code, and explicitly approves publishing.
 
@@ -24,7 +26,16 @@ The product should make the build process understandable and reversible: the use
 6. **Own the result:** inspect and download the project source and project metadata.
 7. **Publish deliberately:** show the target, visibility, and any relevant configuration; require explicit confirmation before publishing.
 
-## 4. MVP scope
+## 4. Run the current planning slice
+
+```bash
+node scripts/builder-server.mjs
+# open http://127.0.0.1:4173/builder
+```
+
+Without runtime configuration, the page remains usable but the API returns a safe “not configured” response. To enable it in a trusted local or Vercel preview environment, set `GEMINI_API_KEY` and `GEMINI_PLANNER_ENABLED=true` in that environment; see [`.env.example`](../.env.example) for variable names only. GitHub Actions secrets are not runtime variables. Do not enable the public production endpoint until durable access control, rate limiting, and a usage budget are in place.
+
+## 5. MVP scope
 
 ### Must have
 
@@ -45,7 +56,7 @@ The product should make the build process understandable and reversible: the use
 - Mobile app and game generation, team collaboration, scheduled automations, and usage-based billing.
 - Visual element selection and direct style controls. These are valuable follow-ups after reliable prompt-based generation and preview are proven.
 
-## 5. Safety and trust requirements
+## 6. Safety and trust requirements
 
 - Treat prompts, uploaded project files, dependencies, and generated code as untrusted input.
 - Run generated code in a per-project isolated environment with resource limits; do not run it in the control-plane process.
@@ -55,7 +66,7 @@ The product should make the build process understandable and reversible: the use
 - Make changes recoverable through version history; report failed or partial builds truthfully.
 - Use synthetic data in fixtures and tests. Do not send project content to external providers unless the user has opted in and the destination is declared.
 
-## 6. MVP acceptance criteria
+## 7. MVP acceptance criteria
 
 A release candidate is acceptable when a test user can:
 
@@ -68,20 +79,20 @@ A release candidate is acceptable when a test user can:
 
 Automated tests must cover workflow state transitions, authorization boundaries, build failures, version restoration, and publishing approval. Security testing must verify project isolation and that secrets cannot be read from the preview.
 
-## 7. Decisions required before implementation
+## 8. Decisions required before implementation
 
-These are deliberately open; this brief does not decide them:
+These remain open; this brief does not decide them:
 
 - **Stack and runtime:** framework, build/runtime model, and supported generated-project templates (AGENTS.md D1).
 - **Design system:** visual language, typefaces, tokens, and styling/RTL implementation (D2).
-- **Deployment:** platform, preview isolation, production publishing, and custom-domain scope (D3/D6).
-- **Model provider:** provider, user consent, data handling, credentials, and declared egress destinations.
-- **Execution sandbox:** isolation boundary, resource quotas, network policy, and lifecycle.
+- **Model provider:** Gemini is selected for the plan-generation slice. Its API key is server-side only, and each brief requires explicit consent; see [ADR-0024](adr/0024-gemini-planning-endpoint.md).
+- **Endpoint runtime:** Vercel Functions are selected for the initial planning endpoint only; broader site hosting, preview isolation, and production abuse controls remain open.
+- **Execution sandbox:** isolation boundary, resource quotas, network policy, and lifecycle remain open. No generated code is executed.
 - **First-release mode:** hosted-only is the recommended smallest first step; local development can follow after the hosted workflow is proven.
 
 Each accepted platform-level choice must be recorded in a new ADR before the relevant implementation begins. This document is a product brief, not authorization to choose those technologies.
 
-## 8. Reference and differentiation
+## 9. Reference and differentiation
 
 The workflow takes inspiration from publicly documented website-builder capabilities: plan before build, live preview and iterative natural-language editing, code access/export, and deliberate publishing. It is an independent implementation; it must not depend on Manus internals, copy proprietary assets, or imply affiliation.
 
