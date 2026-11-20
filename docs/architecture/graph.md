@@ -4,7 +4,7 @@
 > Regenerate with `node scripts/architecture-graph.mjs --write`.
 > `guard` and the `architecture` workflow fail when this file is stale.
 
-**166 tracked files · 17 components · 33 directed links**
+**168 tracked files · 17 components · 34 directed links**
 
 ## Component map
 
@@ -28,7 +28,7 @@ graph LR
   tests["Property tests"]
   mocks["Service mocks"]
   adr -->|31| docs_agents
-  adr -->|3| docs_arch
+  adr -->|4| docs_arch
   adr -->|4| docs_ci
   adr -->|2| docs_data
   adr -->|8| other
@@ -40,16 +40,17 @@ graph LR
   docs_agents -->|3| other
   docs_agents -->|2| root
   docs_agents -->|1| tests
+  docs_arch -->|1| adr
   github_config -->|1| root
   other -->|4| adr
   other -->|2| docs_agents
   other -->|2| root
   other -->|1| semantic
-  root -->|71| adr
+  root -->|76| adr
   root -->|4| agent_harness
   root -->|2| api
   root -->|37| docs_agents
-  root -->|3| docs_arch
+  root -->|7| docs_arch
   root -->|8| docs_ci
   root -->|4| docs_data
   root -->|22| other
@@ -67,7 +68,7 @@ graph LR
 | Component | Files |
 | --- | --- |
 | `scripts` — Repository scripts | 34 |
-| `adr` — Decision records | 24 |
+| `adr` — Decision records | 25 |
 | `agent-harness` — Agent harness (.agent) | 19 |
 | `root` — Root docs & config | 18 |
 | `github-config` — GitHub config & templates | 17 |
@@ -75,8 +76,8 @@ graph LR
 | `tests` — Property tests | 10 |
 | `workflows` — CI workflows | 10 |
 | `semantic` — Semantic engine | 6 |
+| `docs-arch` — Architecture docs | 4 |
 | `skills` — Agent skills (.claude/skills) | 4 |
-| `docs-arch` — Architecture docs | 3 |
 | `docs-ci` — CI docs | 3 |
 | `mocks` — Service mocks | 2 |
 | `tooling-lib` — Tooling library | 2 |
@@ -88,7 +89,7 @@ graph LR
 
 | From | To | References |
 | --- | --- | --- |
-| `root` | `adr` | 71 |
+| `root` | `adr` | 76 |
 | `root` | `docs-agents` | 37 |
 | `adr` | `docs-agents` | 31 |
 | `root` | `other` | 22 |
@@ -96,13 +97,13 @@ graph LR
 | `adr` | `other` | 8 |
 | `root` | `docs-ci` | 8 |
 | `tests` | `tooling-lib` | 8 |
+| `root` | `docs-arch` | 7 |
 | `scripts` | `semantic` | 7 |
 | `tests` | `scripts` | 7 |
 | `adr` | `root` | 5 |
+| `adr` | `docs-arch` | 4 |
 | `adr` | `docs-ci` | 4 |
 | `agent-harness` | `docs-agents` | 4 |
-| `other` | `adr` | 4 |
-| `root` | `agent-harness` | 4 |
 
 ## How this stays alive
 

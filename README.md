@@ -45,6 +45,7 @@
 | [`docs/ci/testing-strategy.md`](docs/ci/testing-strategy.md) | الجميع | اختبارات الخصائص والمحاكاة |
 | [`docs/architecture/graph.md`](docs/architecture/graph.md) | الجميع | مخطط معماري مُولَّد |
 | [`docs/ai-website-builder-mvp.md`](docs/ai-website-builder-mvp.md) | الجميع | نطاق المنتج الحالي، تشغيل المعاينة، وحدود Gemini |
+| [`docs/architecture/deterministic-optimization-protocol.md`](docs/architecture/deterministic-optimization-protocol.md) | الجميع | بروتوكول فصل LLM عن التحسين الحتمي والتحقق؛ موثق، ومحرك التحسين لم يُنفّذ بعد |
 | [`builder/`](builder/) + [`api/plan.js`](api/plan.js) | التطبيق | واجهة تخطيط ثنائية اللغة ودالة Gemini الخادمية |
 | [`docs/security/adversarial-inputs.md`](docs/security/adversarial-inputs.md) | الجميع | مدخلات عدائية: نقاط ترميز مخفية، اتجاه معكوس، أوامر موجَّهة للقارئ — وحدودها المعلنة |
 
@@ -226,6 +227,7 @@ it can run.
 | [`docs/ci/testing-strategy.md`](docs/ci/testing-strategy.md) | everyone | Properties and mocks |
 | [`docs/architecture/graph.md`](docs/architecture/graph.md) | everyone | Generated architecture map |
 | [`docs/ai-website-builder-mvp.md`](docs/ai-website-builder-mvp.md) | everyone | Product scope, preview command, and Gemini boundaries |
+| [`docs/architecture/deterministic-optimization-protocol.md`](docs/architecture/deterministic-optimization-protocol.md) | everyone | Protocol separating LLM interpretation from deterministic optimization and verification; engine not yet implemented |
 | [`builder/`](builder/) + [`api/plan.js`](api/plan.js) | application | Bilingual planning UI and server-side Gemini endpoint |
 | [`docs/security/adversarial-inputs.md`](docs/security/adversarial-inputs.md) | everyone | Adversarial input: hidden codepoints, reordered text, reader-directed directives — and their stated limits |
 

@@ -13,6 +13,7 @@
 - يتضمن المنشئ حالياً إنشاء **خطة فقط** عبر Gemini من خلال دالة Vercel خادمية، بعد موافقة صريحة؛ لا يولد كوداً ولا يشغله ولا يحفظه أو ينشره.
 - لا يوجد إطار تطبيق عام مختار بعد (D1 مفتوح). اتصال Gemini لا يعمل إلا إذا ضُبط `GEMINI_API_KEY` و`GEMINI_PLANNER_ENABLED=true` في بيئة تشغيل Vercel؛ سر GitHub Actions لا ينتقل إليها تلقائياً.
 - تظل أدوات L0+ الحالية مستقلة عن الإطار، وتعمل اختبارات API باستخدام محاكاة محلية دون استدعاء نموذج أو شبكة.
+- اعتُمد بروتوكول معماري يفصل بين فهم LLM الاحتمالي والتحسين الرياضي والتحقق المستقل، لكن محرك التحسين لم يُنفّذ ولم تُختر مكتبة بعد ([ADR-0025](docs/adr/0025-deterministic-optimization-and-verification.md)).
 - يظل الهدف أن يكون المستودع **قابلاً للقراءة والتنفيذ الآمن بواسطة الوكلاء** مع توسيع التطبيق تدريجياً.
 
 ---
@@ -100,6 +101,10 @@ stack arrives.
 25. **Gemini planning is opt-in and server-side.** Each brief requires explicit consent, provider
     credentials remain in the runtime environment, tests mock the provider, and code generation
     remains disabled ([ADR-0024](docs/adr/0024-gemini-planning-endpoint.md)).
+26. **LLMs do not authorize numerical decisions.** Optimization workflows use a constrained,
+    validated problem contract and an independent post-solve gate; invalid or uncertain results fail
+    closed. The protocol is adopted, but no solver implementation or library is selected
+    ([ADR-0025](docs/adr/0025-deterministic-optimization-and-verification.md)).
 
 ## 4. Vocabulary
 
@@ -127,7 +132,9 @@ stack arrives.
 | **Index scope** | Which tracked paths a semantic index covers. Default is repository knowledge (`docs`, `scripts`, workflows); `.agent/memory/` is opt-in with `--with-memory`, and the choice is recorded inside the index ([ADR-0021](docs/adr/0021-index-scope.md)). |
 | **Gold set** | `tests/semantic-gold.json` — queries with the file that truly answers each one. |
 | **Egress allowlist** | The declared set of outbound hosts, each with a reason and a file scope. |
-| **Fail-closed** | Absent an explicit rule, the answer is "reject" — for keys and for destinations. |
+| **Fail-closed** | Absent an explicit rule, the answer is "reject" — for keys, destinations, and any unverified optimization result. |
+| **Optimization contract** | Versioned, bounded representation of an objective, decision variables, constraints, units, and sourced coefficients; not executable code. |
+| **Post-solve gate** | Independent recomputation of objective and constraints; only verified solver statuses may become decisions ([protocol](docs/architecture/deterministic-optimization-protocol.md)). |
 | **PII** | Personal data: names, addresses, phones, national IDs, card numbers, credentials. |
 | **Staged blob** | What `git commit` will record — not necessarily what is on disk. |
 | **Masking** | Replacing a matched value with a shape-preserving placeholder so logs never leak it. |
@@ -195,6 +202,8 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 - [ADR-0021 — Agent memory is not repository knowledge](docs/adr/0021-index-scope.md) · accepted
 - [ADR-0022 — Retrieval tuning is exhausted; ordering is the remaining lever](docs/adr/0022-retrieval-tuning-exhausted.md) · accepted (negative result)
 - [ADR-0023 — D8 is closed: R@1 0.85 is not reachable under the local constraints](docs/adr/0023-close-d8.md) · accepted (decision closed)
+- [ADR-0024 — Gemini planning endpoint (Vercel Function)](docs/adr/0024-gemini-planning-endpoint.md) · accepted
+- [ADR-0025 — Deterministic optimization and verification boundary](docs/adr/0025-deterministic-optimization-and-verification.md) · accepted (architecture boundary; implementation deferred)
 
 ## 8. Change protocol
 
@@ -217,6 +226,7 @@ Accepted decisions are recorded in [`docs/adr/`](docs/adr/):
 | Retrieval code change | re-run `bench.mjs` + `eval.mjs`, put both numbers in the PR, regenerate `playground/index.json` |
 | Change to what the index covers | ADR + property on `isIndexable` + guard scope check + new numbers in `retrieval-quality.md` |
 | Ranking change | eval run before/after recorded in the PR body (ADR-0009) |
+| Optimization/solver change | domain case + versioned contract + pre/post-solve tests; solver/dependency selection requires an ADR and independent constraint verification (ADR-0025) |
 
 ## 9. References
 

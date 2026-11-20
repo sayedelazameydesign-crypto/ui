@@ -3,9 +3,9 @@
   "generator": "scripts/architecture-graph.mjs",
   "note": "Generated from tracked files — do not edit by hand. Regenerate with --write.",
   "stats": {
-    "files": 166,
+    "files": 168,
     "components": 17,
-    "edges": 33
+    "edges": 34
   },
   "components": [
     {
@@ -46,7 +46,7 @@
     {
       "id": "adr",
       "label": "Decision records",
-      "files": 24
+      "files": 25
     },
     {
       "id": "docs-agents",
@@ -66,7 +66,7 @@
     {
       "id": "docs-arch",
       "label": "Architecture docs",
-      "files": 3
+      "files": 4
     },
     {
       "id": "semantic",
@@ -103,7 +103,7 @@
     {
       "from": "adr",
       "to": "docs-arch",
-      "links": 3
+      "links": 4
     },
     {
       "from": "adr",
@@ -161,6 +161,11 @@
       "links": 1
     },
     {
+      "from": "docs-arch",
+      "to": "adr",
+      "links": 1
+    },
+    {
       "from": "github-config",
       "to": "root",
       "links": 1
@@ -188,7 +193,7 @@
     {
       "from": "root",
       "to": "adr",
-      "links": 71
+      "links": 76
     },
     {
       "from": "root",
@@ -208,7 +213,7 @@
     {
       "from": "root",
       "to": "docs-arch",
-      "links": 3
+      "links": 7
     },
     {
       "from": "root",
